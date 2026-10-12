@@ -17,6 +17,14 @@ export interface Word {
   image2Url?: string;
   image3Url?: string;
   image4Url?: string;
+  emojis?: string;
+  options?: string[];
+  correctOption?: number;
+  matchPairs?: string[];
+  fillBlanks?: string;
+  audioUrl?: string;
+  logicData?: string;
+  sequence?: string;
   direction: "across" | "down";
   startRow: number;
   startCol: number;
@@ -30,7 +38,8 @@ export interface Level {
   title: string;
   difficulty: "easy" | "medium" | "hard";
   gameMode?: "crossword" | "quiz";
-  puzzleType?: "text" | "image" | "images4";
+  puzzleType?: string;
+  timeLimit?: number;
   gridSize: { rows: number; cols: number };
   cells: Cell[];
   words: Word[];

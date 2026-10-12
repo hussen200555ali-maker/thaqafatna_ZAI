@@ -34,7 +34,21 @@ model Level {
   title         String
   difficulty    String   @default("easy") // easy | medium | hard
   gameMode      String   @default("quiz") // quiz | crossword
-  puzzleType    String   @default("text") // text | image | images4
+  puzzleType    String   @default("text") 
+  // text: سؤال نصي مباشر
+  // image: صورة واحدة
+  // images4: 4 صور
+  // emoji: إيموجي
+  // scrambled: حروف مبعثرة
+  // crossword: شبكة متقاطعة
+  // fillblank: فراغات
+  // matching: توصيل وربط
+  // multiple: اختيار من متعدد
+  // audio: أصوات
+  // logic: ألغاز ذهنية
+  // progressive: تلميحات متدرجة
+  // mixed: مرحلة مختلطة (بوس)
+  timeLimit     Int      @default(0) // بالثواني (0 = بلا وقت)
   gridSizeRows  Int      @default(5)
   gridSizeCols  Int      @default(5)
   availableLetters String // حروف مفصولة بفواصل
@@ -68,6 +82,15 @@ model Word {
   image2Url   String   @default("") // للغز 4 صور
   image3Url   String   @default("") // للغز 4 صور
   image4Url   String   @default("") // للغز 4 صور
+  // حقول خاصة بأنواع الألغاز
+  emojis      String   @default("") // رموز تعبيرية للغز الإيموجي
+  options     String   @default("") // خيارات للاختيار من متعدد (مفصولة بـ|)
+  correctOption Int    @default(0)  // رقم الخيار الصحيح (0-indexed)
+  matchPairs  String   @default("") // أزواج التوصيل (مفصولة بـ|)
+  fillBlanks  String   @default("") // نص الفراغات (الفراغ = ___)
+  audioUrl    String   @default("") // رابط الصوت للغز الصوتي
+  logicData   String   @default("") // بيانات اللغز المنطقي (JSON)
+  sequence    String   @default("") // متتالية أو شفرة
   direction   String   @default("across") // across | down
   startRow    Int      @default(0)
   startCol    Int      @default(0)

@@ -11,6 +11,7 @@ import { GridEditor } from "./grid-editor";
 import { QuizEditor } from "./quiz-editor";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { PUZZLE_TYPES, PuzzleType, getPuzzleTypeDef } from "@/lib/puzzle-types";
 
 interface LevelEditorProps {
   levelId: number | null;
@@ -56,6 +57,7 @@ const CATEGORIES = [
 
 export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
   const [gameMode, setGameMode] = useState<"crossword" | "quiz">("quiz");
+  const [puzzleType, setPuzzleType] = useState<PuzzleType>("text");
   const [title, setTitle] = useState("");
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
   const [gridSizeRows, setGridSizeRows] = useState(5);
@@ -168,15 +170,11 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
       setAvailableLetters(lettersToSend);
     }
 
-    // تحديد نوع اللغز بناءً على الأسئلة
-    let detectedPuzzleType: "text" | "image" | "images4" = "text";
-    if (words.some((w) => w.image2Url)) detectedPuzzleType = "images4";
-    else if (words.some((w) => w.imageUrl)) detectedPuzzleType = "image";
-
+    // استخدام نوع اللغز المختار من المحرر
     const payload = {
       chapterId,
       gameMode,
-      puzzleType: gameMode === "quiz" ? detectedPuzzleType : "text",
+      puzzleType: puzzleType,
       title,
       difficulty,
       gridSizeRows,
@@ -251,9 +249,7 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
   const canSave = title && words.length > 0;
 
   // تحديد نوع اللغز للعرض
-  const detectedPuzzleType: "text" | "image" | "images4" =
-    words.some((w) => w.image2Url) ? "images4" :
-    words.some((w) => w.imageUrl) ? "image" : "text";
+  const puzzleTypeDef = getPuzzleTypeDef(puzzleType);
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -276,9 +272,9 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
                   <Badge variant="outline" className="text-[10px] py-0">
                     {gameMode === "quiz" ? "❓ أسئلة" : "🔤 شبكة"}
                   </Badge>
-                  {detectedPuzzleType !== "text" && (
+                  {puzzleType !== "text" && (
                     <Badge variant="outline" className="text-[10px] py-0">
-                      {detectedPuzzleType === "image" ? "🖼️ صورة" : "📷 4 صور"}
+                      {puzzleTypeDef?.icon} {puzzleTypeDef?.label}
                     </Badge>
                   )}
                   <span>{words.length} سؤال</span>
@@ -355,77 +351,75 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
         {/* تبويب: المحرر */}
         {activeTab === "editor" && (
           <div className="space-y-4">
-            {/* اختيار وضع اللعبة + نوع اللغز */}
+            {/* اختيار نوع اللغز */}
             <Card className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* وضع اللعبة */}
-                <div>
-                  <Label className="text-sm font-bold text-stone-700 mb-2 block">
-                    🎮 وضع اللعبة
-                  </Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setGameMode("quiz")}
-                      className={cn(
-                        "py-3 px-3 rounded-xl text-sm font-bold border-2 transition-all flex flex-col items-center gap-1",
-                        gameMode === "quiz"
-                          ? "bg-teal-50 border-teal-400 text-teal-800 shadow-sm"
-                          : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
-                      )}
-                    >
-                      <span className="text-2xl">❓</span>
-                      <span>أسئلة وألغاز</span>
-                      <span className="text-[10px] font-normal text-stone-500">سؤال + إجابة + حروف</span>
-                    </button>
-                    <button
-                      onClick={() => setGameMode("crossword")}
-                      className={cn(
-                        "py-3 px-3 rounded-xl text-sm font-bold border-2 transition-all flex flex-col items-center gap-1",
-                        gameMode === "crossword"
-                          ? "bg-teal-50 border-teal-400 text-teal-800 shadow-sm"
-                          : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
-                      )}
-                    >
-                      <span className="text-2xl">🔤</span>
-                      <span>شبكة متقاطعة</span>
-                      <span className="text-[10px] font-normal text-stone-500">سحب الحروف في شبكة</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* الصعوبة + المكافأة */}
-                <div className="space-y-3">
+              <Label className="text-sm font-bold text-stone-700 mb-3 block">
+                🎮 نوع اللغز
+              </Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                {PUZZLE_TYPES.map((pt) => (
+                  <button
+                    key={pt.type}
+                    onClick={() => {
+                      setPuzzleType(pt.type);
+                      if (pt.type === "crossword") setGameMode("crossword");
+                      else setGameMode("quiz");
+                    }}
+                    className={cn(
+                      "py-3 px-2 rounded-xl text-sm font-bold border-2 transition-all flex flex-col items-center gap-1 text-center",
+                      puzzleType === pt.type
+                        ? "bg-teal-50 border-teal-400 text-teal-800 shadow-sm"
+                        : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
+                    )}
+                    style={puzzleType === pt.type ? { borderColor: pt.color } : {}}
+                  >
+                    <span className="text-2xl">{pt.icon}</span>
+                    <span className="text-xs">{pt.label}</span>
+                    <span className="text-[9px] text-stone-400">{pt.difficulty}</span>
+                  </button>
+                ))}
+              </div>
+              {/* وصف النوع المختار */}
+              {puzzleType !== "text" && (
+                <div className="mt-3 p-2 rounded-lg bg-stone-50 border border-stone-200 flex items-center gap-2">
+                  <span className="text-lg">{getPuzzleTypeDef(puzzleType)?.icon}</span>
                   <div>
-                    <Label className="text-sm font-bold text-stone-700 mb-2 block">
-                      📊 مستوى الصعوبة
-                    </Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {([
-                        { val: "easy", label: "سهل", icon: "🟢", reward: 50 },
-                        { val: "medium", label: "متوسط", icon: "🟡", reward: 75 },
-                        { val: "hard", label: "صعب", icon: "🔴", reward: 100 },
-                      ] as const).map((d) => (
-                        <button
-                          key={d.val}
-                          onClick={() => {
-                            setDifficulty(d.val);
-                            setReward(d.reward);
-                          }}
-                          className={cn(
-                            "py-2 rounded-lg text-sm font-medium border-2 transition-all flex flex-col items-center gap-0.5",
-                            difficulty === d.val
-                              ? "bg-amber-50 border-amber-400 text-amber-800"
-                              : "bg-white border-stone-200 text-stone-600"
-                          )}
-                        >
-                          <span>{d.icon}</span>
-                          <span>{d.label}</span>
-                          <span className="text-[10px] text-stone-500">{d.reward} 🪙</span>
-                        </button>
-                      ))}
-                    </div>
+                    <p className="text-xs font-bold text-stone-700">{getPuzzleTypeDef(puzzleType)?.label}</p>
+                    <p className="text-xs text-stone-500">{getPuzzleTypeDef(puzzleType)?.description}</p>
                   </div>
                 </div>
+              )}
+            </Card>
+
+            {/* اختيار الصعوبة */}
+            <Card className="p-4">
+              <Label className="text-sm font-bold text-stone-700 mb-3 block">
+                📊 مستوى الصعوبة
+              </Label>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { val: "easy", label: "سهل", icon: "🟢", reward: 50 },
+                  { val: "medium", label: "متوسط", icon: "🟡", reward: 75 },
+                  { val: "hard", label: "صعب", icon: "🔴", reward: 100 },
+                ] as const).map((d) => (
+                  <button
+                    key={d.val}
+                    onClick={() => {
+                      setDifficulty(d.val);
+                      setReward(d.reward);
+                    }}
+                    className={cn(
+                      "py-2 rounded-lg text-sm font-medium border-2 transition-all flex flex-col items-center gap-0.5",
+                      difficulty === d.val
+                        ? "bg-amber-50 border-amber-400 text-amber-800"
+                        : "bg-white border-stone-200 text-stone-600"
+                    )}
+                  >
+                    <span>{d.icon}</span>
+                    <span>{d.label}</span>
+                    <span className="text-[10px] text-stone-500">{d.reward} 🪙</span>
+                  </button>
+                ))}
               </div>
             </Card>
 
