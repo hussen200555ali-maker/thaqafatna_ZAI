@@ -169,14 +169,23 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
       return;
     }
 
+    // توليد الحروف تلقائياً إذا كانت فارغة
+    let lettersToSend = availableLetters;
+    if (!lettersToSend || lettersToSend.length === 0) {
+      const answerWords = words.map((w) => w.text);
+      lettersToSend = generateLetters(answerWords, bonusWords);
+      setAvailableLetters(lettersToSend);
+    }
+
     const payload = {
       chapterId,
       gameMode,
+      puzzleType: gameMode === "quiz" ? "text" : "text",
       title,
       difficulty,
       gridSizeRows,
       gridSizeCols,
-      availableLetters,
+      availableLetters: lettersToSend,
       bonusWords,
       reward,
       hintCost,
@@ -184,6 +193,10 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
         text: w.text,
         clue: w.clue,
         category: w.category || "",
+        imageUrl: w.imageUrl || "",
+        image2Url: w.image2Url || "",
+        image3Url: w.image3Url || "",
+        image4Url: w.image4Url || "",
         direction: w.direction,
         startRow: w.startRow,
         startCol: w.startCol,
@@ -207,12 +220,18 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
       if (!response.ok) {
         if (data.details) {
           setValidation({ valid: false, errors: data.details });
+          toast({
+            title: "فشل التحقق",
+            description: data.details.join(" · "),
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "فشل الحفظ",
+            description: data.error || "حدث خطأ غير متوقع",
+            variant: "destructive",
+          });
         }
-        toast({
-          title: "فشل الحفظ",
-          description: data.error || "حدث خطأ",
-          variant: "destructive",
-        });
         setSaving(false);
         return;
       }

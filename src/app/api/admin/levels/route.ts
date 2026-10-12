@@ -54,17 +54,23 @@ export async function POST(request: NextRequest) {
       cells,
     } = body;
 
-    if (!chapterId || !title || !availableLetters || !words) {
+    if (!chapterId || !title || !words) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
+    // توليد الحروف تلقائياً إذا كانت فارغة
+    let lettersToSave = availableLetters;
+    if (!lettersToSave || (Array.isArray(lettersToSave) && lettersToSave.length === 0)) {
+      lettersToSave = words.map((w: any) => w.text).join("").split("");
+    }
+
     // فحص آلي لجودة اللغز (فقط في وضع الشبكة)
-    const mode = gameMode || "crossword";
+    const mode = gameMode || "quiz";
     if (mode === "crossword" && cells && cells.length > 0) {
-      const validation = validateLevel(words, cells, availableLetters);
+      const validation = validateLevel(words, cells, lettersToSave);
       if (!validation.valid) {
         return NextResponse.json(
           { error: "Validation failed", details: validation.errors },
@@ -91,18 +97,18 @@ export async function POST(request: NextRequest) {
         title,
         difficulty: difficulty || "easy",
         gameMode: mode,
+        puzzleType: body.puzzleType || "text",
         gridSizeRows: gridSizeRows || 5,
         gridSizeCols: gridSizeCols || 5,
-        availableLetters: Array.isArray(availableLetters)
-          ? availableLetters.join(",")
-          : availableLetters,
+        availableLetters: Array.isArray(lettersToSave)
+          ? lettersToSave.join(",")
+          : lettersToSave || "",
         bonusWords: Array.isArray(bonusWords)
           ? bonusWords.join(",")
           : bonusWords || "",
         reward: reward || 50,
         hintCost: hintCost || 10,
         status: "draft",
-        puzzleType: body.puzzleType || "text",
         words: {
           create: words.map((w: any) => ({
             text: w.text,
