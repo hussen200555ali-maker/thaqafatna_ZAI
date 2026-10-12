@@ -824,7 +824,8 @@ function SuccessModal({ level, foundWords, bonusWords, timeSpent, hintsUsed, onC
   const minutes = Math.floor(timeSpent / 60);
   const seconds = timeSpent % 60;
   const timeStr = minutes > 0 ? `${minutes} د ${seconds} ث` : `${seconds} ثانية`;
-  const stars = hintsUsed === 0 && timeSpent < 60 ? 3 : hintsUsed <= 2 ? 2 : 1;
+  // نظام نجوم محسّن: 3 نجوم = دون تلميحات وسريع، 2 نجوم = دون/مع تلميح قليل، نجمة واحدة = أكمل على الأقل
+  const stars = hintsUsed === 0 && timeSpent < 120 ? 3 : hintsUsed <= 3 && timeSpent < 300 ? 2 : 1;
 
   return (
     <motion.div
