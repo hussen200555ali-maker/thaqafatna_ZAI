@@ -274,17 +274,33 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {!title && (
+              <span className="text-xs text-amber-600 font-medium hidden sm:inline">
+                ⚠️ أدخل عنوان المرحلة
+              </span>
+            )}
+            {title && words.length === 0 && (
+              <span className="text-xs text-amber-600 font-medium hidden sm:inline">
+                ⚠️ أضف سؤالاً واحداً على الأقل
+              </span>
+            )}
             <Button
               variant="outline"
               onClick={() => handleSave(false)}
               disabled={saving || !title || words.length === 0}
+              className={cn(
+                (!title || words.length === 0) && "opacity-40 cursor-not-allowed"
+              )}
             >
               {saving ? "جاري الحفظ..." : "حفظ كمسودة"}
             </Button>
             <Button
               onClick={() => handleSave(true)}
               disabled={saving || !title || words.length === 0}
-              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+              className={cn(
+                "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700",
+                (!title || words.length === 0) && "opacity-40 cursor-not-allowed"
+              )}
             >
               {saving ? "جاري النشر..." : "حفظ ونشر"}
             </Button>
