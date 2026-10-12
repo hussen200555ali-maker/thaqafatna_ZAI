@@ -20,9 +20,10 @@ interface GameState extends GameProgress {
   completeLevel: (levelId: number, reward: number) => void;
   unlockLevel: (levelId: number) => void;
   setCurrentLevel: (levelId: number | null) => void;
-  addCoins: (amount: number) => void;
+  addCoins: (amount: number) => boolean;
   spendCoins: (amount: number) => boolean;
   useHint: () => void;
+  resetLevelStats: () => void; // إعادة تعيين إحصائيات المرحلة الحالية
   completeDailyChallenge: (date: string, reward: number) => void;
   resetProgress: () => void;
   getLevelStars: (levelId: number) => number;
@@ -119,7 +120,10 @@ export const useGameStore = create<GameState>()(
 
       setCurrentLevel: (levelId) => set({ currentLevel: levelId }),
 
-      addCoins: (amount) => set((state) => ({ coins: state.coins + amount })),
+      addCoins: (amount) => {
+        set({ coins: get().coins + amount });
+        return true;
+      },
 
       spendCoins: (amount) => {
         const current = get().coins;
@@ -129,6 +133,8 @@ export const useGameStore = create<GameState>()(
       },
 
       useHint: () => set((state) => ({ hintsUsed: state.hintsUsed + 1 })),
+
+      resetLevelStats: () => set({ hintsUsed: 0 }),
 
       completeDailyChallenge: (date, reward) =>
         set((state) => {

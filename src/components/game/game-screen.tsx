@@ -32,7 +32,7 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
   const [level, setLevel] = useState<Level | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { completeLevel, addCoins, spendCoins, useHint: recordHintUsed, coins, hintsUsed, getLevelStars, userId } =
+  const { completeLevel, addCoins, spendCoins, useHint: recordHintUsed, resetLevelStats, coins, hintsUsed: globalHintsUsed, getLevelStars, userId } =
     useGameStore();
 
   const [foundWords, setFoundWords] = useState<string[]>([]);
@@ -45,6 +45,7 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
   const [answerOrder, setAnswerOrder] = useState<number[]>([]); // أرقام index في selectedLetters بترتيب النقر
   const [revealedLetters, setRevealedLetters] = useState<Set<number>>(new Set());
   const [wrongShake, setWrongShake] = useState(false);
+  const [levelHintsUsed, setLevelHintsUsed] = useState(0); // تلميحات المرحلة الحالية فقط
 
   useEffect(() => {
     setIsMuted(getMuted());
@@ -61,6 +62,7 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
     setSelectedLetters([]);
     setAnswerOrder([]);
     setRevealedLetters(new Set());
+    setLevelHintsUsed(0); // إعادة تعيين تلميحات المرحلة
 
     fetchLevelById(levelId).then((data) => {
       if (!cancelled) {
@@ -184,7 +186,7 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
             saveProgress({
               userId, levelId: level.id, isCompleted: true, stars: 1,
               score: level.reward + bonusWords.length * 20,
-              hintsUsed, timeSpent,
+              hintsUsed: levelHintsUsed, timeSpent,
               coinsEarned: level.reward + bonusWords.length * 20,
             }).catch((e) => console.error("Cloud sync error:", e));
           }
@@ -237,6 +239,7 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
     }
     if (spendCoins(level.hintCost)) {
       recordHintUsed();
+      setLevelHintsUsed(prev => prev + 1);
       const newRevealed = new Set(revealedLetters);
       newRevealed.add(emptyIdx);
       setRevealedLetters(newRevealed);
@@ -796,7 +799,7 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
             foundWords={foundWords.length}
             bonusWords={bonusWords.length}
             timeSpent={Math.floor((Date.now() - startTime) / 1000)}
-            hintsUsed={hintsUsed}
+            hintsUsed={levelHintsUsed}
             onClose={() => {
               setShowSuccess(false);
               if (onExit) onExit();
