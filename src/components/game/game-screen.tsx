@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useGameStore } from "@/lib/game-store";
 import { Level, Word } from "@/lib/game-data";
+import { CrosswordGrid } from "./crossword-grid";
 import { fetchLevelById, saveProgress } from "@/lib/game-data-api";
 import { useToast } from "@/hooks/use-toast";
 import { playSound, getMuted, setMuted } from "@/lib/sound-effects";
@@ -609,6 +610,52 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
             </div>
           )}
 
+          {/* عرض الشبكة المتقاطعة */}
+          {puzzleType === "crossword" && (
+            <div className="bg-gradient-to-br from-amber-50/10 to-amber-100/5 rounded-2xl p-4 border-2 border-amber-300/30 w-full max-w-lg">
+              {/* قائمة الكلمات */}
+              <div className="flex flex-wrap gap-2 justify-center mb-4">
+                {level.words.map((word, idx) => {
+                  const found = foundWords.includes(word.text);
+                  return (
+                    <div
+                      key={idx}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all",
+                        found
+                          ? "bg-gradient-to-br from-amber-400 to-amber-500 text-white border-amber-500"
+                          : idx === currentWordIndex
+                          ? "bg-amber-400/20 text-amber-300 border-amber-400 animate-pulse"
+                          : "bg-white/5 text-white/40 border-white/10"
+                      )}
+                    >
+                      {word.number}. {word.direction === "across" ? "→" : "↓"} {found ? word.text : "؟".repeat(word.text.length)}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* التلميح الحالي */}
+              <div className="bg-gradient-to-br from-teal-600 to-cyan-700 rounded-xl px-4 py-3 mb-4">
+                {currentWord.category && (
+                  <div className="text-center mb-1">
+                    <span className="px-2 py-0.5 rounded bg-white/20 text-white text-xs font-bold">
+                      {currentWord.category}
+                    </span>
+                  </div>
+                )}
+                <p className="text-white text-sm sm:text-base font-bold text-center">
+                  {currentWord.number}. {currentWord.direction === "across" ? "أفقي" : "عمودي"} — {currentWord.clue}
+                </p>
+              </div>
+
+              {/* شبكة الكلمات المتقاطعة */}
+              <div className="flex justify-center">
+                <CrosswordGrid level={level} foundWords={foundWords} />
+              </div>
+            </div>
+          )}
+
           {/* عرض النص للغز النصي العادي */}
           {puzzleType === "text" && (
             <div className="bg-gradient-to-br from-teal-600 to-cyan-700 rounded-2xl px-6 py-4 shadow-xl max-w-md w-full">
@@ -625,8 +672,8 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
             </div>
           )}
 
-          {/* خانات الإجابة (للأنواع التي تستخدم الكتابة) */}
-          {puzzleType !== "multiple" && puzzleType !== "matching" && (
+          {/* خانات الإجابة (للأنواع التي تستخدم الكتابة - عدا crossword) */}
+          {puzzleType !== "multiple" && puzzleType !== "matching" && puzzleType !== "crossword" && (
             <div className="flex flex-wrap gap-2 justify-center max-w-sm">
               {answerLetters.map((letter, idx) => {
                 const isRevealed = revealedLetters.has(idx);
