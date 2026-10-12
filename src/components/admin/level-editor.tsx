@@ -30,6 +30,10 @@ interface Word {
   text: string;
   clue: string;
   category?: string;
+  imageUrl?: string;
+  image2Url?: string;
+  image3Url?: string;
+  image4Url?: string;
   direction: "across" | "down";
   startRow: number;
   startCol: number;
@@ -65,6 +69,7 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [validation, setValidation] = useState<{ valid: boolean; errors: string[] } | null>(null);
+  const [activeTab, setActiveTab] = useState<"editor" | "settings" | "preview">("editor");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -93,11 +98,7 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
       })
       .catch((err) => {
         console.error("Error loading level:", err);
-        toast({
-          title: "خطأ",
-          description: "فشل تحميل المرحلة",
-          variant: "destructive",
-        });
+        toast({ title: "خطأ", description: "فشل تحميل المرحلة", variant: "destructive" });
       })
       .finally(() => setLoading(false));
   }, [levelId, toast]);
@@ -114,24 +115,18 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
     letterCount.forEach((count, letter) => {
       for (let i = 0; i < count; i++) letters.push(letter);
     });
-
-    // إضافة حروف إضافية للتضليل (20% من الإجمالي)
     const arabicLetters = "ابتثجدحخدرزسشصضطظعغفقكلمنهوي";
     const extraCount = Math.max(3, Math.ceil(letters.length * 0.3));
     for (let i = 0; i < extraCount; i++) {
-      const random = arabicLetters[Math.floor(Math.random() * arabicLetters.length)];
-      if (!letters.includes(random) || Math.random() > 0.5) {
-        letters.push(random);
-      }
+      const randomLetter = arabicLetters[Math.floor(Math.random() * arabicLetters.length)];
+      if (!letters.includes(randomLetter)) letters.push(randomLetter);
     }
-    // خلط الحروف
     return letters.sort(() => Math.random() - 0.5);
   };
 
   const handleWordsChange = (newWords: Word[], newCells?: Cell[]) => {
     setWords(newWords);
     if (newCells) setCells(newCells);
-    // توليد الحروف تلقائياً
     setAvailableLetters(generateLetters(newWords, bonusWords));
   };
 
@@ -160,11 +155,7 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
     setValidation(null);
 
     if (words.length === 0) {
-      toast({
-        title: "لا يمكن الحفظ",
-        description: "أضف كلمة واحدة على الأقل",
-        variant: "destructive",
-      });
+      toast({ title: "لا يمكن الحفظ", description: "أضف كلمة واحدة على الأقل", variant: "destructive" });
       setSaving(false);
       return;
     }
@@ -173,17 +164,14 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
     let lettersToSend = availableLetters;
     if (!lettersToSend || lettersToSend.length === 0) {
       const answerWords = words.map((w) => w.text);
-      lettersToSend = generateLetters(answerWords, bonusWords);
+      lettersToSend = generateLetters(words, bonusWords);
       setAvailableLetters(lettersToSend);
     }
 
     // تحديد نوع اللغز بناءً على الأسئلة
     let detectedPuzzleType: "text" | "image" | "images4" = "text";
-    if (words.some((w) => w.image2Url)) {
-      detectedPuzzleType = "images4";
-    } else if (words.some((w) => w.imageUrl)) {
-      detectedPuzzleType = "image";
-    }
+    if (words.some((w) => w.image2Url)) detectedPuzzleType = "images4";
+    else if (words.some((w) => w.imageUrl)) detectedPuzzleType = "image";
 
     const payload = {
       chapterId,
@@ -216,29 +204,19 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
     try {
       const url = levelId ? `/api/admin/levels/${levelId}` : "/api/admin/levels";
       const method = levelId ? "PUT" : "POST";
-
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       const data = await response.json();
 
       if (!response.ok) {
         if (data.details) {
           setValidation({ valid: false, errors: data.details });
-          toast({
-            title: "فشل التحقق",
-            description: data.details.join(" · "),
-            variant: "destructive",
-          });
+          toast({ title: "فشل التحقق", description: data.details.join(" · "), variant: "destructive" });
         } else {
-          toast({
-            title: "فشل الحفظ",
-            description: data.error || "حدث خطأ غير متوقع",
-            variant: "destructive",
-          });
+          toast({ title: "فشل الحفظ", description: data.error || "حدث خطأ غير متوقع", variant: "destructive" });
         }
         setSaving(false);
         return;
@@ -250,25 +228,13 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
       });
 
       if (publish && data.level?.id) {
-        const publishResponse = await fetch(`/api/admin/levels/${data.level.id}/publish`, {
-          method: "POST",
-        });
-        if (publishResponse.ok) {
-          toast({
-            title: "تم النشر",
-            description: "المرحلة منشورة الآن",
-          });
-        }
+        const publishResponse = await fetch(`/api/admin/levels/${data.level.id}/publish`, { method: "POST" });
+        if (publishResponse.ok) toast({ title: "تم النشر", description: "المرحلة منشورة الآن" });
       }
-
       onBack();
     } catch (error) {
       console.error("Error saving level:", error);
-      toast({
-        title: "خطأ",
-        description: "فشل حفظ المرحلة",
-        variant: "destructive",
-      });
+      toast({ title: "خطأ", description: "فشل حفظ المرحلة", variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -282,360 +248,486 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
     );
   }
 
+  const canSave = title && words.length > 0;
+
+  // تحديد نوع اللغز للعرض
+  const detectedPuzzleType: "text" | "image" | "images4" =
+    words.some((w) => w.image2Url) ? "images4" :
+    words.some((w) => w.imageUrl) ? "image" : "text";
+
   return (
     <div className="min-h-screen bg-stone-50">
-      {/* الرأس */}
-      <header className="bg-white border-b border-stone-200 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={onBack}>
-              ← رجوع
-            </Button>
-            <div>
-              <h1 className="text-xl font-bold text-stone-800">
-                {levelId ? "تعديل المرحلة" : "مرحلة جديدة"}
-              </h1>
-              <p className="text-xs text-stone-500">
-                {gameMode === "quiz" ? "وضع الأسئلة" : "وضع الشبكة"} · {words.length} سؤال/كلمة
-              </p>
+      {/* ===== الرأس ===== */}
+      <header className="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
+            {/* يمين: زر الرجوع + العنوان */}
+            <div className="flex items-center gap-3 min-w-0">
+              <Button variant="ghost" size="sm" onClick={onBack} className="shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </Button>
+              <div className="min-w-0">
+                <h1 className="text-lg font-bold text-stone-800 truncate">
+                  {levelId ? "تعديل المرحلة" : "مرحلة جديدة"}
+                </h1>
+                <div className="flex items-center gap-2 text-xs text-stone-500">
+                  <Badge variant="outline" className="text-[10px] py-0">
+                    {gameMode === "quiz" ? "❓ أسئلة" : "🔤 شبكة"}
+                  </Badge>
+                  {detectedPuzzleType !== "text" && (
+                    <Badge variant="outline" className="text-[10px] py-0">
+                      {detectedPuzzleType === "image" ? "🖼️ صورة" : "📷 4 صور"}
+                    </Badge>
+                  )}
+                  <span>{words.length} سؤال</span>
+                </div>
+              </div>
+            </div>
+
+            {/* يسار: أزرار الحفظ */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* مؤشر الحالة */}
+              {!canSave && (
+                <span className="text-xs text-amber-600 font-medium hidden md:flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  {!title ? "أدخل العنوان" : "أضف سؤالاً"}
+                </span>
+              )}
+              {canSave && (
+                <span className="text-xs text-green-600 font-medium hidden md:flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-green-500" />
+                  جاهز للحفظ
+                </span>
+              )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSave(false)}
+                disabled={saving || !canSave}
+                className={cn(!canSave && "opacity-40")}
+              >
+                {saving ? "⏳" : "💾"} مسودة
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => handleSave(true)}
+                disabled={saving || !canSave}
+                className={cn(
+                  "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700",
+                  !canSave && "opacity-40"
+                )}
+              >
+                {saving ? "⏳ جاري..." : "🚀 حفظ ونشر"}
+              </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {!title && (
-              <span className="text-xs text-amber-600 font-medium hidden sm:inline">
-                ⚠️ أدخل عنوان المرحلة
-              </span>
-            )}
-            {title && words.length === 0 && (
-              <span className="text-xs text-amber-600 font-medium hidden sm:inline">
-                ⚠️ أضف سؤالاً واحداً على الأقل
-              </span>
-            )}
-            <Button
-              variant="outline"
-              onClick={() => handleSave(false)}
-              disabled={saving || !title || words.length === 0}
-              className={cn(
-                (!title || words.length === 0) && "opacity-40 cursor-not-allowed"
-              )}
-            >
-              {saving ? "جاري الحفظ..." : "حفظ كمسودة"}
-            </Button>
-            <Button
-              onClick={() => handleSave(true)}
-              disabled={saving || !title || words.length === 0}
-              className={cn(
-                "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700",
-                (!title || words.length === 0) && "opacity-40 cursor-not-allowed"
-              )}
-            >
-              {saving ? "جاري النشر..." : "حفظ ونشر"}
-            </Button>
+
+          {/* تبويبات */}
+          <div className="flex items-center gap-1 mt-3 border-b border-stone-200 -mb-3">
+            {([
+              { id: "editor", label: "المحرر", icon: "✏️" },
+              { id: "settings", label: "الإعدادات", icon: "⚙️" },
+              { id: "preview", label: "معاينة", icon: "👁️" },
+            ] as const).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "px-4 py-2 text-sm font-medium border-b-2 transition-all flex items-center gap-1.5 -mb-px",
+                  activeTab === tab.id
+                    ? "border-amber-500 text-amber-700"
+                    : "border-transparent text-stone-500 hover:text-stone-700"
+                )}
+              >
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
+              </button>
+            ))}
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* العمود الأيسر: معلومات المرحلة */}
-        <div className="space-y-4">
-          <Card className="p-4">
-            <h3 className="font-bold text-stone-700 mb-3">معلومات المرحلة</h3>
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="title">عنوان المرحلة</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="مثال: لغز رقم 1"
-                />
-              </div>
-
-              {/* اختيار وضع اللعبة */}
-              <div>
-                <Label>وضع اللعبة</Label>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  <button
-                    onClick={() => setGameMode("quiz")}
-                    className={cn(
-                      "py-2 px-3 rounded-lg text-sm font-medium border-2 transition-all flex flex-col items-center gap-1",
-                      gameMode === "quiz"
-                        ? "bg-amber-100 border-amber-400 text-amber-800"
-                        : "bg-white border-stone-200 text-stone-600"
-                    )}
-                  >
-                    <span className="text-xl">❓</span>
-                    <span>أسئلة</span>
-                  </button>
-                  <button
-                    onClick={() => setGameMode("crossword")}
-                    className={cn(
-                      "py-2 px-3 rounded-lg text-sm font-medium border-2 transition-all flex flex-col items-center gap-1",
-                      gameMode === "crossword"
-                        ? "bg-amber-100 border-amber-400 text-amber-800"
-                        : "bg-white border-stone-200 text-stone-600"
-                    )}
-                  >
-                    <span className="text-xl">🔤</span>
-                    <span>شبكة</span>
-                  </button>
-                </div>
-                <p className="text-xs text-stone-500 mt-1">
-                  {gameMode === "quiz"
-                    ? "سؤال + إجابة + حروف متاحة (مثل وصلة)"
-                    : "شبكة كلمات متقاطعة بالسحب"}
-                </p>
-              </div>
-
-              <div>
-                <Label>مستوى الصعوبة</Label>
-                <div className="grid grid-cols-3 gap-2 mt-1">
-                  {(["easy", "medium", "hard"] as const).map((d) => (
+      {/* ===== المحتوى ===== */}
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* تبويب: المحرر */}
+        {activeTab === "editor" && (
+          <div className="space-y-4">
+            {/* اختيار وضع اللعبة + نوع اللغز */}
+            <Card className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* وضع اللعبة */}
+                <div>
+                  <Label className="text-sm font-bold text-stone-700 mb-2 block">
+                    🎮 وضع اللعبة
+                  </Label>
+                  <div className="grid grid-cols-2 gap-2">
                     <button
-                      key={d}
-                      onClick={() => setDifficulty(d)}
+                      onClick={() => setGameMode("quiz")}
                       className={cn(
-                        "py-2 rounded-lg text-sm font-medium border-2 transition-all",
-                        difficulty === d
-                          ? "bg-amber-100 border-amber-400 text-amber-800"
-                          : "bg-white border-stone-200 text-stone-600"
+                        "py-3 px-3 rounded-xl text-sm font-bold border-2 transition-all flex flex-col items-center gap-1",
+                        gameMode === "quiz"
+                          ? "bg-teal-50 border-teal-400 text-teal-800 shadow-sm"
+                          : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
                       )}
                     >
-                      {d === "easy" ? "سهل" : d === "medium" ? "متوسط" : "صعب"}
+                      <span className="text-2xl">❓</span>
+                      <span>أسئلة وألغاز</span>
+                      <span className="text-[10px] font-normal text-stone-500">سؤال + إجابة + حروف</span>
                     </button>
-                  ))}
+                    <button
+                      onClick={() => setGameMode("crossword")}
+                      className={cn(
+                        "py-3 px-3 rounded-xl text-sm font-bold border-2 transition-all flex flex-col items-center gap-1",
+                        gameMode === "crossword"
+                          ? "bg-teal-50 border-teal-400 text-teal-800 shadow-sm"
+                          : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
+                      )}
+                    >
+                      <span className="text-2xl">🔤</span>
+                      <span>شبكة متقاطعة</span>
+                      <span className="text-[10px] font-normal text-stone-500">سحب الحروف في شبكة</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {gameMode === "crossword" && (
-                <div className="grid grid-cols-2 gap-2">
+                {/* الصعوبة + المكافأة */}
+                <div className="space-y-3">
                   <div>
-                    <Label>عدد الصفوف</Label>
-                    <Input
-                      type="number"
-                      value={gridSizeRows}
-                      onChange={(e) => setGridSizeRows(Math.min(10, Math.max(3, parseInt(e.target.value) || 5)))}
-                      min={3}
-                      max={10}
-                    />
-                  </div>
-                  <div>
-                    <Label>عدد الأعمدة</Label>
-                    <Input
-                      type="number"
-                      value={gridSizeCols}
-                      onChange={(e) => setGridSizeCols(Math.min(10, Math.max(3, parseInt(e.target.value) || 5)))}
-                      min={3}
-                      max={10}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>المكافأة</Label>
-                  <Input
-                    type="number"
-                    value={reward}
-                    onChange={(e) => setReward(parseInt(e.target.value) || 50)}
-                    min={0}
-                  />
-                </div>
-                <div>
-                  <Label>تكلفة التلميح</Label>
-                  <Input
-                    type="number"
-                    value={hintCost}
-                    onChange={(e) => setHintCost(parseInt(e.target.value) || 10)}
-                    min={0}
-                  />
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* قائمة الأسئلة/الكلمات */}
-          <Card className="p-4">
-            <h3 className="font-bold text-stone-700 mb-3">
-              {gameMode === "quiz" ? "الأسئلة" : "الكلمات"} ({words.length})
-            </h3>
-            {words.length === 0 ? (
-              <p className="text-sm text-stone-500 text-center py-4">
-                {gameMode === "quiz" ? "أضف أسئلة من المحرر" : "أضف كلمات من الشبكة"}
-              </p>
-            ) : (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {words.map((word, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-2 rounded-lg bg-stone-50 border border-stone-200"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-amber-700">{word.number}.</span>
-                        {word.category && (
-                          <Badge variant="outline" className="text-xs py-0">
-                            {word.category}
-                          </Badge>
-                        )}
-                        <span className="font-bold text-stone-800 truncate">{word.text}</span>
-                      </div>
-                      <p className="text-xs text-stone-500 mt-0.5 truncate">{word.clue}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-
-          {/* الكلمات الإضافية */}
-          <Card className="p-4">
-            <h3 className="font-bold text-stone-700 mb-3">الكلمات الإضافية (مكافآت)</h3>
-            <div className="flex gap-2 mb-2">
-              <Input
-                placeholder="أضف كلمة..."
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const input = e.target as HTMLInputElement;
-                    if (input.value.trim()) {
-                      handleAddBonusWord(input.value);
-                      input.value = "";
-                    }
-                  }
-                }}
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {bonusWords.map((word) => (
-                <span
-                  key={word}
-                  className="px-2 py-1 rounded-md bg-purple-100 text-purple-700 text-xs flex items-center gap-1"
-                >
-                  {word}
-                  <button
-                    onClick={() => handleRemoveBonusWord(word)}
-                    className="hover:text-purple-900"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-              {bonusWords.length === 0 && (
-                <p className="text-xs text-stone-500">لا توجد كلمات إضافية</p>
-              )}
-            </div>
-          </Card>
-        </div>
-
-        {/* العمود الأوسط: المحرر */}
-        <div className="lg:col-span-2 space-y-4">
-          {gameMode === "quiz" ? (
-            <QuizEditor
-              words={words}
-              onChange={handleWordsChange}
-              categories={CATEGORIES}
-            />
-          ) : (
-            <Card className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-stone-700">محرر الشبكة</h3>
-                <div className="text-xs text-stone-500">
-                  اسحب من خلية إلى أخرى لرسم كلمة
-                </div>
-              </div>
-              <GridEditor
-                rows={gridSizeRows}
-                cols={gridSizeCols}
-                cells={cells}
-                words={words}
-                onChange={handleGridChange}
-              />
-            </Card>
-          )}
-
-          {/* الحروف المتاحة */}
-          <Card className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-stone-700">الحروف المتاحة</h3>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-stone-500">{availableLetters.length} حرف</span>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setAvailableLetters(generateLetters(words, bonusWords));
-                  }}
-                >
-                  🔀 توليد تلقائي
-                </Button>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {availableLetters.map((letter, idx) => (
-                <span
-                  key={idx}
-                  className="w-10 h-10 rounded-lg bg-white border border-stone-200 flex items-center justify-center font-bold text-stone-800 shadow-sm"
-                >
-                  {letter}
-                </span>
-              ))}
-              {availableLetters.length === 0 && (
-                <p className="text-sm text-stone-500">
-                  ستظهر الحروف تلقائياً عند إضافة الكلمات
-                </p>
-              )}
-            </div>
-          </Card>
-
-          {/* نتائج الفحص */}
-          {validation && !validation.valid && (
-            <Card className="p-4 border-red-200 bg-red-50">
-              <h3 className="font-bold text-red-700 mb-2">⚠️ أخطاء في الفحص</h3>
-              <ul className="space-y-1 text-sm text-red-600">
-                {validation.errors.map((error, idx) => (
-                  <li key={idx}>• {error}</li>
-                ))}
-              </ul>
-            </Card>
-          )}
-
-          {/* معاينة */}
-          {words.length > 0 && (
-            <Card className="p-4 bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200">
-              <h3 className="font-bold text-teal-700 mb-3 flex items-center gap-2">
-                <span>👁️</span> معاينة الأسئلة
-              </h3>
-              <div className="space-y-3">
-                {words.map((word, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-gradient-to-br from-teal-700 to-cyan-800 rounded-xl overflow-hidden shadow-md"
-                  >
-                    <div className="bg-teal-600/50 px-4 py-2 flex items-center justify-between">
-                      <span className="text-white text-sm font-bold">
-                        {word.category ? `${word.category} · ` : ""}سؤال {word.number}
-                      </span>
-                    </div>
-                    <div className="px-4 py-3 text-center">
-                      <p className="text-white text-base font-medium">{word.clue}</p>
-                    </div>
-                    <div className="bg-teal-900/30 px-4 py-2 flex justify-center gap-1">
-                      {word.text.split("").map((letter, i) => (
-                        <div
-                          key={i}
-                          className="w-8 h-8 rounded-lg bg-white/20 border border-white/30 flex items-center justify-center text-white text-sm font-bold"
+                    <Label className="text-sm font-bold text-stone-700 mb-2 block">
+                      📊 مستوى الصعوبة
+                    </Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {([
+                        { val: "easy", label: "سهل", icon: "🟢", reward: 50 },
+                        { val: "medium", label: "متوسط", icon: "🟡", reward: 75 },
+                        { val: "hard", label: "صعب", icon: "🔴", reward: 100 },
+                      ] as const).map((d) => (
+                        <button
+                          key={d.val}
+                          onClick={() => {
+                            setDifficulty(d.val);
+                            setReward(d.reward);
+                          }}
+                          className={cn(
+                            "py-2 rounded-lg text-sm font-medium border-2 transition-all flex flex-col items-center gap-0.5",
+                            difficulty === d.val
+                              ? "bg-amber-50 border-amber-400 text-amber-800"
+                              : "bg-white border-stone-200 text-stone-600"
+                          )}
                         >
-                          {letter}
-                        </div>
+                          <span>{d.icon}</span>
+                          <span>{d.label}</span>
+                          <span className="text-[10px] text-stone-500">{d.reward} 🪙</span>
+                        </button>
                       ))}
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
             </Card>
-          )}
-        </div>
+
+            {/* المحرر حسب الوضع */}
+            {gameMode === "quiz" ? (
+              <QuizEditor
+                words={words}
+                onChange={handleWordsChange}
+                categories={CATEGORIES}
+              />
+            ) : (
+              <Card className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-stone-700">محرر الشبكة المتقاطعة</h3>
+                  <span className="text-xs text-stone-500">اسحب من خلية إلى أخرى لرسم كلمة</span>
+                </div>
+                <GridEditor
+                  rows={gridSizeRows}
+                  cols={gridSizeCols}
+                  cells={cells}
+                  words={words}
+                  onChange={handleGridChange}
+                />
+              </Card>
+            )}
+
+            {/* نتائج الفحص */}
+            {validation && !validation.valid && (
+              <Card className="p-4 border-red-200 bg-red-50">
+                <h3 className="font-bold text-red-700 mb-2">⚠️ أخطاء في الفحص</h3>
+                <ul className="space-y-1 text-sm text-red-600">
+                  {validation.errors.map((error, idx) => (
+                    <li key={idx}>• {error}</li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* تبويب: الإعدادات */}
+        {activeTab === "settings" && (
+          <div className="space-y-4 max-w-2xl mx-auto">
+            {/* معلومات أساسية */}
+            <Card className="p-5">
+              <h3 className="font-bold text-stone-700 mb-4 flex items-center gap-2">
+                📝 معلومات المرحلة
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium text-stone-600 mb-1.5 block">
+                    عنوان المرحلة
+                  </Label>
+                  <Input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="مثال: لغز رقم 1"
+                    className="text-base"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-sm font-medium text-stone-600 mb-1.5 block">
+                      المكافأة (🪙)
+                    </Label>
+                    <Input
+                      type="number"
+                      value={reward}
+                      onChange={(e) => setReward(parseInt(e.target.value) || 50)}
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-stone-600 mb-1.5 block">
+                      تكلفة التلميح (🪙)
+                    </Label>
+                    <Input
+                      type="number"
+                      value={hintCost}
+                      onChange={(e) => setHintCost(parseInt(e.target.value) || 10)}
+                      min={0}
+                    />
+                  </div>
+                </div>
+
+                {gameMode === "crossword" && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-sm font-medium text-stone-600 mb-1.5 block">
+                        عدد الصفوف
+                      </Label>
+                      <Input
+                        type="number"
+                        value={gridSizeRows}
+                        onChange={(e) => setGridSizeRows(Math.min(10, Math.max(3, parseInt(e.target.value) || 5)))}
+                        min={3}
+                        max={10}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-stone-600 mb-1.5 block">
+                        عدد الأعمدة
+                      </Label>
+                      <Input
+                        type="number"
+                        value={gridSizeCols}
+                        onChange={(e) => setGridSizeCols(Math.min(10, Math.max(3, parseInt(e.target.value) || 5)))}
+                        min={3}
+                        max={10}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* الحروف المتاحة */}
+            <Card className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-stone-700 flex items-center gap-2">
+                  🔤 الحروف المتاحة
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-stone-500">{availableLetters.length} حرف</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setAvailableLetters(generateLetters(words, bonusWords))}
+                  >
+                    🔀 إعادة توليد
+                  </Button>
+                </div>
+              </div>
+              {availableLetters.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {availableLetters.map((letter, idx) => (
+                    <span
+                      key={idx}
+                      className="w-10 h-10 rounded-lg bg-gradient-to-br from-white to-stone-50 border border-stone-200 flex items-center justify-center font-bold text-stone-800 shadow-sm"
+                    >
+                      {letter}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-stone-500 text-center py-4">
+                  ستظهر الحروف تلقائياً عند إضافة الكلمات
+                </p>
+              )}
+            </Card>
+
+            {/* الكلمات الإضافية */}
+            <Card className="p-5">
+              <h3 className="font-bold text-stone-700 mb-4 flex items-center gap-2">
+                ✨ الكلمات الإضافية (مكافآت)
+              </h3>
+              <div className="flex gap-2 mb-3">
+                <Input
+                  placeholder="أضف كلمة..."
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const input = e.target as HTMLInputElement;
+                      if (input.value.trim()) {
+                        handleAddBonusWord(input.value);
+                        input.value = "";
+                      }
+                    }
+                  }}
+                />
+              </div>
+              {bonusWords.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {bonusWords.map((word) => (
+                    <span
+                      key={word}
+                      className="px-3 py-1.5 rounded-lg bg-purple-50 text-purple-700 text-sm font-medium border border-purple-200 flex items-center gap-1.5"
+                    >
+                      {word}
+                      <button
+                        onClick={() => handleRemoveBonusWord(word)}
+                        className="hover:text-purple-900 w-4 h-4 flex items-center justify-center rounded-full bg-purple-200 text-xs"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-stone-500 text-center py-2">
+                  لا توجد كلمات إضافية
+                </p>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {/* تبويب: المعاينة */}
+        {activeTab === "preview" && (
+          <div className="space-y-4 max-w-2xl mx-auto">
+            <Card className="p-5">
+              <h3 className="font-bold text-stone-700 mb-4 flex items-center gap-2">
+                👁️ معاينة الأسئلة
+              </h3>
+
+              {words.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-5xl mb-3">📝</div>
+                  <p className="text-stone-500">أضف أسئلة من تبويب "المحرر" لرؤية المعاينة</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* ملخص المرحلة */}
+                  <div className="bg-gradient-to-br from-teal-700 to-cyan-800 rounded-xl p-4 text-white">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-bold text-lg">{title || "بدون عنوان"}</h4>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-white/20 text-white border-0">
+                          {difficulty === "easy" ? "🟢 سهل" : difficulty === "medium" ? "🟡 متوسط" : "🔴 صعب"}
+                        </Badge>
+                        <span className="text-sm">🪙 {reward}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-teal-200">
+                      <span>{words.length} سؤال</span>
+                      <span>·</span>
+                      <span>{availableLetters.length} حرف</span>
+                      <span>·</span>
+                      <span>{bonusWords.length} كلمات إضافية</span>
+                    </div>
+                  </div>
+
+                  {/* قائمة الأسئلة */}
+                  {words.map((word, idx) => {
+                    const hasImage = word.imageUrl && word.imageUrl.length > 0;
+                    const has4Images = word.image2Url && word.image2Url.length > 0;
+
+                    return (
+                      <div
+                        key={idx}
+                        className="bg-gradient-to-br from-teal-700 to-cyan-800 rounded-xl overflow-hidden shadow-md"
+                      >
+                        <div className="bg-teal-600/50 px-4 py-2 flex items-center justify-between">
+                          <span className="text-white text-sm font-bold flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                              {word.number}
+                            </span>
+                            {has4Images ? "📷 4 صور" : hasImage ? "🖼️ صورة" : "📝 نص"}
+                            {word.category && (
+                              <span className="px-2 py-0.5 rounded bg-white/20 text-xs">{word.category}</span>
+                            )}
+                          </span>
+                        </div>
+
+                        {hasImage && (
+                          <div className={cn("p-3", has4Images && "grid grid-cols-2 gap-2")}>
+                            {has4Images ? (
+                              [word.imageUrl, word.image2Url, word.image3Url, word.image4Url].map((url, i) =>
+                                url ? (
+                                  <div key={i} className="aspect-square rounded-lg overflow-hidden bg-white/10">
+                                    { }
+                                    <img src={url} alt={`صورة ${i + 1}`} className="w-full h-full object-cover"
+                                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-white/30 text-2xl">🖼️</div>'; }}
+                                    />
+                                  </div>
+                                ) : null
+                              )
+                            ) : (
+                              <div className="flex justify-center">
+                                <div className="w-32 h-32 rounded-lg overflow-hidden bg-white/10">
+                                  { }
+                                  <img src={word.imageUrl} alt="صورة اللغز" className="w-full h-full object-cover"
+                                    onError={(e) => { (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-white/30 text-3xl">🖼️</div>'; }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="px-4 py-3">
+                          <p className="text-white text-base font-medium">{word.clue}</p>
+                        </div>
+
+                        <div className="bg-teal-900/30 px-4 py-2.5 flex justify-center gap-1 flex-wrap">
+                          {word.text.split("").map((letter, i) => (
+                            <div
+                              key={i}
+                              className="w-8 h-8 rounded-lg bg-white border-2 border-stone-300 flex items-center justify-center text-stone-800 text-sm font-bold shadow-sm"
+                            >
+                              {letter}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
