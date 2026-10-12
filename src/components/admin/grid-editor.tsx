@@ -61,6 +61,10 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
   const [inputDirection, setInputDirection] = useState<"across" | "down">("across");
   const gridRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(48); // حجم الخلية بالبكسل
+  // قوة إعادة الرسم بعد التركيب وأي تغيير في البيانات
+  // هذا يضمن أن getCellCenter يقرأ إحداثيات DOM صحيحة
+  const [, forceRender] = useState(0);
+  const triggerRender = () => forceRender(v => v + 1);
 
   // قياس حجم الخلية الفعلي بعد التركيب
   useEffect(() => {
@@ -68,10 +72,14 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
       const firstCell = gridRef.current.querySelector("[data-cell]") as HTMLElement;
       if (firstCell) {
         const rect = firstCell.getBoundingClientRect();
-        setCellSize(rect.width);
+        if (rect.width > 0 && rect.width !== cellSize) {
+          setCellSize(rect.width);
+        }
       }
+      // قوة إعادة الرسم مرة واحدة بعد القياس للتأكد من أن SVG يستخدم إحداثيات DOM الصحيحة
+      triggerRender();
     }
-  }, [rows, cols]);
+  }, [rows, cols, cells.length, words.length]);
 
   // بناء شبكة من الخلايا للوصول السريع
   const grid = useCallback(() => {
@@ -346,13 +354,36 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
     return null;
   };
 
-  // حساب إحداثيات مركز الخلية في SVG
+  // حساب إحداثيات مركز الخلية في SVG (مع مراعاة RTL)
+  // نستخدم DOM لضمان دقة الإحداثيات بصرياً
   const getCellCenter = (row: number, col: number) => {
-    const gap = 4; // الفجوة بين الخلايا
-    const totalCellSize = cellSize + gap;
+    if (!gridRef.current) {
+      // fallback: حساب رياضي بسيط
+      const gap = 4;
+      const totalCellSize = cellSize + gap;
+      const visualCol = cols - 1 - col; // عكس RTL
+      return {
+        x: visualCol * totalCellSize + cellSize / 2,
+        y: row * totalCellSize + cellSize / 2,
+      };
+    }
+    const cell = gridRef.current.querySelector(
+      `[data-cell="${row}-${col}"]`
+    ) as HTMLElement;
+    if (!cell) {
+      const gap = 4;
+      const totalCellSize = cellSize + gap;
+      const visualCol = cols - 1 - col;
+      return {
+        x: visualCol * totalCellSize + cellSize / 2,
+        y: row * totalCellSize + cellSize / 2,
+      };
+    }
+    const gridRect = gridRef.current.getBoundingClientRect();
+    const cellRect = cell.getBoundingClientRect();
     return {
-      x: col * totalCellSize + cellSize / 2,
-      y: row * totalCellSize + cellSize / 2,
+      x: cellRect.left - gridRect.left + cellRect.width / 2,
+      y: cellRect.top - gridRect.top + cellRect.height / 2,
     };
   };
 
@@ -411,10 +442,12 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
       <div className="inline-block rounded-2xl bg-gradient-to-br from-stone-50 to-amber-50 p-3 border border-stone-200">
         <div
           ref={gridRef}
-          className="relative grid gap-1"
+          className="grid-editor-grid relative grid gap-1"
           style={{
-            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-            gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+            gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
+            gridTemplateRows: `repeat(${rows}, ${cellSize}px)`,
+            width: cols * (cellSize + 4) - 4,
+            height: rows * (cellSize + 4) - 4,
           }}
         >
           {g.map((row, rowIdx) =>
@@ -437,7 +470,7 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
               return (
                 <motion.div
                   key={`${rowIdx}-${colIdx}`}
-                  data-cell
+                  data-cell={`${rowIdx}-${colIdx}`}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => handleCellClick(rowIdx, colIdx)}
                   onMouseDown={() => handleCellMouseDown(rowIdx, colIdx)}
