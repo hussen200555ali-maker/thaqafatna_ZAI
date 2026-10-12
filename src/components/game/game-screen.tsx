@@ -358,33 +358,23 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
           className={cn("flex-1 flex flex-col items-center justify-center gap-4", wrongShake && "animate-shake")}
           style={wrongShake ? { animation: "shake 0.5s" } : {}}
         >
-          {/* عرض الصورة إذا كان اللغز بصري */}
+          {/* 1. عرض الصورة إذا كان اللغز بصري */}
           {puzzleType === "image" && currentWord.imageUrl && (
             <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20">
-              { }
-              <img
-                src={currentWord.imageUrl}
-                alt="لغز"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                  (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-teal-700 text-white text-6xl">🖼️</div>';
-                }}
+              <img src={currentWord.imageUrl} alt="لغز" className="w-full h-full object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-teal-700 text-white text-6xl">🖼️</div>'; }}
               />
             </div>
           )}
 
-          {/* عرض 4 صور */}
+          {/* 2. عرض 4 صور */}
           {puzzleType === "images4" && (
             <div className="grid grid-cols-2 gap-2 w-64 sm:w-72">
               {[currentWord.imageUrl, currentWord.image2Url, currentWord.image3Url, currentWord.image4Url].map((url, i) => (
                 url ? (
                   <div key={i} className="aspect-square rounded-xl overflow-hidden shadow-lg border border-white/10">
-                    { }
                     <img src={url} alt={`صورة ${i+1}`} className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).parentElement!.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-teal-700 text-white text-3xl">🖼️</div>`;
-                      }}
+                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-teal-700 text-white text-3xl">🖼️</div>'; }}
                     />
                   </div>
                 ) : (
@@ -394,7 +384,232 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
             </div>
           )}
 
-          {/* عرض النص للغز النصي */}
+          {/* 3. عرض الإيموجي */}
+          {puzzleType === "emoji" && currentWord.emojis && (
+            <div className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-2xl px-8 py-6 border-2 border-amber-400/30">
+              <div className="flex items-center justify-center gap-2 text-5xl sm:text-6xl">
+                {currentWord.emojis.split("").map((emoji, i) => (
+                  <motion.span
+                    key={i}
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: i * 0.1, type: "spring" }}
+                  >
+                    {emoji}
+                  </motion.span>
+                ))}
+              </div>
+              {currentWord.clue && (
+                <p className="text-white/70 text-sm text-center mt-3">{currentWord.clue}</p>
+              )}
+            </div>
+          )}
+
+          {/* 4. عرض الحروف المبعثرة */}
+          {puzzleType === "scrambled" && currentWord.sequence && (
+            <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-2xl px-6 py-4 border-2 border-purple-400/30 w-full max-w-md">
+              <p className="text-white/70 text-sm text-center mb-3">{currentWord.clue}</p>
+              <div className="flex items-center justify-center gap-2">
+                {currentWord.sequence.split("").map((letter, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ scale: 0, y: -20 }}
+                    animate={{ scale: 1, y: 0 }}
+                    transition={{ delay: i * 0.1, type: "spring" }}
+                    className="w-12 h-12 rounded-xl bg-white/20 border-2 border-purple-400/50 flex items-center justify-center text-white text-xl font-bold"
+                  >
+                    {letter}
+                  </motion.div>
+                ))}
+              </div>
+              <p className="text-white/50 text-xs text-center mt-3">↑ رتب هذه الحروف لتكوين كلمة</p>
+            </div>
+          )}
+
+          {/* 5. عرض الفراغات */}
+          {puzzleType === "fillblank" && currentWord.fillBlanks && (
+            <div className="bg-gradient-to-br from-teal-600 to-cyan-700 rounded-2xl px-6 py-4 shadow-xl max-w-md w-full">
+              <p className="text-white text-lg sm:text-xl font-bold text-center leading-relaxed" style={{ fontFamily: "var(--font-tajawal)" }}>
+                {currentWord.fillBlanks.split("___").map((part, i, arr) => (
+                  <span key={i}>
+                    {part}
+                    {i < arr.length - 1 && (
+                      <span className="inline-block mx-1 px-3 py-0.5 rounded-lg bg-yellow-400/30 border-b-2 border-yellow-400 text-yellow-200">
+                        {"?".repeat(currentWord.text.length)}
+                      </span>
+                    )}
+                  </span>
+                ))}
+              </p>
+              <p className="text-white/60 text-xs text-center mt-2">الإجابة: {currentWord.text.length} حروف</p>
+            </div>
+          )}
+
+          {/* 6. عرض التوصيل والربط */}
+          {puzzleType === "matching" && currentWord.matchPairs && currentWord.matchPairs.length > 0 && (
+            <div className="bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-2xl px-6 py-4 border-2 border-blue-400/30 w-full max-w-lg">
+              <p className="text-white text-sm text-center mb-4">{currentWord.clue}</p>
+              <div className="grid grid-cols-2 gap-3">
+                {currentWord.matchPairs.flatMap((pair: string) => pair.split("|")).map((word, i) => (
+                  <motion.button
+                    key={i}
+                    initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="px-4 py-2.5 rounded-xl bg-white/15 border-2 border-white/20 text-white text-sm font-bold hover:bg-white/25 transition-colors cursor-pointer"
+                  >
+                    {word}
+                  </motion.button>
+                ))}
+              </div>
+              <p className="text-white/50 text-xs text-center mt-3">اضغط على الكلمات المتطابقة</p>
+            </div>
+          )}
+
+          {/* 7. عرض الاختيار من متعدد */}
+          {puzzleType === "multiple" && currentWord.options && currentWord.options.length > 0 && (
+            <div className="bg-gradient-to-br from-teal-600 to-cyan-700 rounded-2xl px-6 py-4 shadow-xl max-w-md w-full">
+              <p className="text-white text-lg font-bold text-center mb-4" style={{ fontFamily: "var(--font-tajawal)" }}>
+                {currentWord.clue}
+              </p>
+              <div className="space-y-2">
+                {currentWord.options.map((option: string, i: number) => (
+                  <motion.button
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    onClick={() => {
+                      if (i === currentWord.correctOption) {
+                        playSound("correctWord");
+                        const newFound = [...foundWords, currentWord.text];
+                        setFoundWords(newFound);
+                        toast({ title: "🎉 إجابة صحيحة!", description: currentWord.text });
+                        setTimeout(() => {
+                          if (currentWordIndex + 1 < level.words.length) {
+                            setCurrentWordIndex(currentWordIndex + 1);
+                            setRevealedLetters(new Set());
+                            setSelectedLetters(prev => prev.map(l => ({ ...l, used: false })));
+                            setAnswerOrder([]);
+                          } else {
+                            playSound("levelComplete");
+                            setShowSuccess(true);
+                            completeLevel(level.id, level.reward);
+                          }
+                        }, 800);
+                      } else {
+                        playSound("wrongWord");
+                        setWrongShake(true);
+                        setTimeout(() => setWrongShake(false), 500);
+                        toast({ title: "❌ خطأ", description: "حاول مرة أخرى", variant: "destructive" });
+                      }
+                    }}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/15 border-2 border-white/20 text-white text-sm font-bold hover:bg-white/25 transition-colors text-right flex items-center gap-2"
+                  >
+                    <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                      {["أ", "ب", "ج", "د"][i]}
+                    </span>
+                    {option}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 8. عرض اللغز المنطقي */}
+          {puzzleType === "logic" && (
+            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl px-6 py-4 shadow-xl max-w-md w-full">
+              {currentWord.sequence && (
+                <div className="mb-3">
+                  <p className="text-white/70 text-sm text-center mb-2">{currentWord.clue}</p>
+                  <div className="flex items-center justify-center gap-2">
+                    {currentWord.sequence.split(",").map((num, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: i * 0.15 }}
+                        className="w-12 h-12 rounded-xl bg-white/20 border-2 border-indigo-400/50 flex items-center justify-center text-white text-lg font-bold"
+                      >
+                        {num}
+                      </motion.div>
+                    ))}
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: currentWord.sequence.split(",").length * 0.15 }}
+                      className="w-12 h-12 rounded-xl bg-yellow-400/30 border-2 border-yellow-400 border-dashed flex items-center justify-center text-yellow-200 text-lg"
+                    >
+                      ?
+                    </motion.div>
+                  </div>
+                </div>
+              )}
+              {!currentWord.sequence && (
+                <p className="text-white text-lg font-bold text-center" style={{ fontFamily: "var(--font-tajawal)" }}>
+                  {currentWord.clue}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* 9. عرض التلميحات المتدرجة */}
+          {puzzleType === "progressive" && (
+            <div className="bg-gradient-to-br from-amber-500/20 to-yellow-500/20 rounded-2xl px-6 py-4 border-2 border-amber-400/30 max-w-md w-full">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="px-2 py-1 rounded-lg bg-amber-400/20 text-amber-300 text-xs font-bold">
+                  💡 تلميحات متدرجة
+                </span>
+              </div>
+              <p className="text-white text-lg font-bold text-center leading-relaxed" style={{ fontFamily: "var(--font-tajawal)" }}>
+                {currentWord.clue}
+              </p>
+              <div className="flex items-center justify-center gap-2 mt-3">
+                <span className="text-white/50 text-xs">عدد الحروف: {currentWord.text.length}</span>
+                {revealedLetters.size > 0 && (
+                  <span className="text-white/50 text-xs">• أول حرف: {currentWord.text[0]}</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 10. عرض المرحلة المختلطة (بوس) */}
+          {puzzleType === "mixed" && (
+            <div className="w-full max-w-md space-y-3">
+              {/* شارة البوس */}
+              <div className="flex items-center justify-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-gradient-to-r from-red-500 to-purple-600 text-white text-xs font-bold animate-pulse">
+                  👑 تحدي البوس
+                </span>
+              </div>
+              {/* محتوى مختلط حسب البيانات */}
+              {currentWord.emojis && (
+                <div className="flex items-center justify-center gap-2 text-4xl">
+                  {currentWord.emojis.split("").map((emoji, i) => (
+                    <motion.span key={i} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 }}>
+                      {emoji}
+                    </motion.span>
+                  ))}
+                </div>
+              )}
+              {currentWord.sequence && (
+                <div className="flex items-center justify-center gap-2">
+                  {currentWord.sequence.split("").map((letter, i) => (
+                    <div key={i} className="w-10 h-10 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center text-white font-bold">
+                      {letter}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="bg-gradient-to-br from-purple-600 to-red-700 rounded-2xl px-6 py-4 shadow-xl">
+                <p className="text-white text-lg font-bold text-center" style={{ fontFamily: "var(--font-tajawal)" }}>
+                  {currentWord.clue}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* عرض النص للغز النصي العادي */}
           {puzzleType === "text" && (
             <div className="bg-gradient-to-br from-teal-600 to-cyan-700 rounded-2xl px-6 py-4 shadow-xl max-w-md w-full">
               {currentWord.category && (
@@ -410,38 +625,40 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
             </div>
           )}
 
-          {/* خانات الإجابة */}
-          <div className="flex flex-wrap gap-2 justify-center max-w-sm">
-            {answerLetters.map((letter, idx) => {
-              const isRevealed = revealedLetters.has(idx);
-              return (
-                <motion.div
-                  key={idx}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className={cn(
-                    "w-11 h-11 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center font-bold text-xl shadow-md transition-all border-2",
-                    isRevealed
-                      ? "bg-gradient-to-br from-blue-400 to-blue-500 text-white border-blue-300"
-                      : letter !== null
-                      ? "bg-white text-stone-800 border-stone-300"
-                      : "bg-teal-950/60 border-teal-700/50"
-                  )}
-                >
-                  {letter && (
-                    <motion.span
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      {letter}
-                    </motion.span>
-                  )}
-                </motion.div>
-              );
-            })}
-          </div>
+          {/* خانات الإجابة (للأنواع التي تستخدم الكتابة) */}
+          {puzzleType !== "multiple" && puzzleType !== "matching" && (
+            <div className="flex flex-wrap gap-2 justify-center max-w-sm">
+              {answerLetters.map((letter, idx) => {
+                const isRevealed = revealedLetters.has(idx);
+                return (
+                  <motion.div
+                    key={idx}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className={cn(
+                      "w-11 h-11 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center font-bold text-xl shadow-md transition-all border-2",
+                      isRevealed
+                        ? "bg-gradient-to-br from-blue-400 to-blue-500 text-white border-blue-300"
+                        : letter !== null
+                        ? "bg-white text-stone-800 border-stone-300"
+                        : "bg-teal-950/60 border-teal-700/50"
+                    )}
+                  >
+                    {letter && (
+                      <motion.span
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      >
+                        {letter}
+                      </motion.span>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </motion.div>
 
         {/* الكلمات الإضافية */}
@@ -462,7 +679,8 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
         )}
       </main>
 
-      {/* لوحة المفاتيح العربية */}
+      {/* لوحة المفاتيح العربية - تظهر فقط للأنواع التي تحتاج كتابة */}
+      {(puzzleType === "text" || puzzleType === "image" || puzzleType === "images4" || puzzleType === "emoji" || puzzleType === "scrambled" || puzzleType === "fillblank" || puzzleType === "logic" || puzzleType === "progressive" || puzzleType === "mixed") && (
       <div className="bg-teal-950/60 backdrop-blur-md border-t border-white/10 p-3">
         {/* أزرار المساعدة */}
         <div className="flex items-center justify-center gap-3 mb-3">
@@ -521,6 +739,7 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
           ))}
         </div>
       </div>
+      )}
 
       {/* شاشة النجاح */}
       <AnimatePresence>

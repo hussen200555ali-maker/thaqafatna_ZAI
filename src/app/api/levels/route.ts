@@ -31,11 +31,16 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // تحويل الحروف والكلمات الإضافية إلى مصفوفات
+      // تحويل الحروف والكلمات الإضافية إلى مصفوفات + الحقول الجديدة
       const formattedLevel = {
         ...level,
         availableLetters: level.availableLetters.split(","),
         bonusWords: level.bonusWords ? level.bonusWords.split(",") : [],
+        words: level.words.map((w: any) => ({
+          ...w,
+          options: w.options ? w.options.split("|") : [],
+          matchPairs: w.matchPairs ? w.matchPairs.split("|") : [],
+        })),
       };
 
       return NextResponse.json({ level: formattedLevel });
