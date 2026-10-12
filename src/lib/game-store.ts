@@ -87,13 +87,12 @@ export const useGameStore = create<GameState>()(
       completeLevel: (levelId, reward) =>
         set((state) => {
           if (state.completedLevels.includes(levelId)) return state;
+          // فتح جميع المراحل — بما فيها المراحل ذات IDs غير متتابعة
           const newState = {
             completedLevels: [...state.completedLevels, levelId],
             coins: state.coins + reward,
             totalStars: state.totalStars + 1,
-            unlockedLevels: state.unlockedLevels.includes(levelId + 1)
-              ? state.unlockedLevels
-              : [...state.unlockedLevels, levelId + 1],
+            unlockedLevels: state.unlockedLevels,
           };
           // مزامنة سحابية (غير منعشة)
           if (state.userId) {

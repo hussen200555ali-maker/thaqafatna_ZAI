@@ -103,7 +103,7 @@ export default function HomePage() {
   });
 
   const handleLevelClick = (levelId: number) => {
-    if (!unlockedLevels.includes(levelId)) return;
+    // جميع المراحل مفتوحة للاختبار
     setSelectedLevelId(levelId);
     setView("game");
   };
@@ -427,7 +427,7 @@ function HomeView({
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {chapters.map((chapter) => {
-            const isLocked = totalCompleted < chapter.unlockAt;
+            const isLocked = false; // جميع الفصول مفتوحة
             const isSelected = chapter.id === selectedChapter;
             return (
               <motion.button
@@ -481,7 +481,8 @@ function HomeView({
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
           {levels.map((level, idx) => {
             const isCompleted = completedLevels.includes(level.id);
-            const isUnlocked = unlockedLevels.includes(level.id);
+            // جميع المراحل مفتوحة
+            const isUnlocked = true;
             return (
               <motion.button
                 key={level.id}
@@ -661,7 +662,7 @@ function ChaptersView({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {chapters.map((chapter, idx) => {
-          const isLocked = totalCompleted < chapter.unlockAt;
+          const isLocked = false; // جميع الفصول مفتوحة
           return (
             <motion.button
               key={chapter.id}
