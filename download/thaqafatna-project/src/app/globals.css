@@ -1,0 +1,328 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-cairo);
+  --font-display: var(--font-tajawal);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+  --color-cream: var(--cream);
+  --color-teal: var(--teal);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.875rem;
+  /* خلفية كريمية دافئة محسّنة */
+  --background: oklch(0.99 0.005 85);
+  --foreground: oklch(0.18 0.02 50);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.02 50);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.02 50);
+  /* لون أساسي: فيروزي عميق احترافي */
+  --primary: oklch(0.42 0.11 220);
+  --primary-foreground: oklch(0.98 0.005 80);
+  --secondary: oklch(0.95 0.015 70);
+  --secondary-foreground: oklch(0.42 0.11 220);
+  --muted: oklch(0.96 0.01 70);
+  --muted-foreground: oklch(0.50 0.015 60);
+  /* لون ذهبي للتمييز */
+  --accent: oklch(0.78 0.13 80);
+  --accent-foreground: oklch(0.22 0.03 40);
+  --destructive: oklch(0.58 0.22 25);
+  --border: oklch(0.91 0.012 70);
+  --input: oklch(0.93 0.012 70);
+  --ring: oklch(0.78 0.13 80);
+  /* ألوان الهوية البصرية */
+  --gold: oklch(0.78 0.13 80);
+  --gold-light: oklch(0.92 0.08 85);
+  --gold-dark: oklch(0.62 0.14 65);
+  --cream: oklch(0.99 0.005 85);
+  --teal: oklch(0.60 0.09 195);
+  --teal-dark: oklch(0.45 0.10 200);
+  /* ألوان احترافية جديدة */
+  --success: oklch(0.65 0.17 145);
+  --warning: oklch(0.75 0.15 65);
+  --info: oklch(0.60 0.13 240);
+  /* ألوان الرسوم البيانية */
+  --chart-1: oklch(0.78 0.13 80);
+  --chart-2: oklch(0.60 0.09 195);
+  --chart-3: oklch(0.55 0.18 30);
+  --chart-4: oklch(0.70 0.14 145);
+  --chart-5: oklch(0.65 0.10 290);
+  --sidebar: oklch(0.98 0.008 80);
+  --sidebar-foreground: oklch(0.18 0.02 50);
+  --sidebar-primary: oklch(0.42 0.11 220);
+  --sidebar-primary-foreground: oklch(0.98 0.005 80);
+  --sidebar-accent: oklch(0.92 0.08 85);
+  --sidebar-accent-foreground: oklch(0.22 0.03 40);
+  --sidebar-border: oklch(0.91 0.012 70);
+  --sidebar-ring: oklch(0.78 0.13 80);
+}
+
+.dark {
+  --background: oklch(0.15 0.015 220);
+  --foreground: oklch(0.96 0.01 80);
+  --card: oklch(0.19 0.015 220);
+  --card-foreground: oklch(0.96 0.01 80);
+  --popover: oklch(0.19 0.015 220);
+  --popover-foreground: oklch(0.96 0.01 80);
+  --primary: oklch(0.70 0.13 200);
+  --primary-foreground: oklch(0.15 0.015 220);
+  --secondary: oklch(0.25 0.015 220);
+  --secondary-foreground: oklch(0.96 0.01 80);
+  --muted: oklch(0.25 0.015 220);
+  --muted-foreground: oklch(0.72 0.015 80);
+  --accent: oklch(0.70 0.13 75);
+  --accent-foreground: oklch(0.98 0.005 80);
+  --destructive: oklch(0.70 0.19 22);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.70 0.13 75);
+  --gold: oklch(0.80 0.13 80);
+  --gold-light: oklch(0.30 0.05 70);
+  --gold-dark: oklch(0.60 0.14 65);
+  --cream: oklch(0.20 0.02 70);
+  --teal: oklch(0.60 0.09 195);
+  --teal-dark: oklch(0.45 0.10 200);
+  --success: oklch(0.70 0.17 145);
+  --warning: oklch(0.75 0.15 65);
+  --info: oklch(0.65 0.13 240);
+  --chart-1: oklch(0.80 0.13 80);
+  --chart-2: oklch(0.60 0.09 195);
+  --chart-3: oklch(0.70 0.18 30);
+  --chart-4: oklch(0.70 0.14 145);
+  --chart-5: oklch(0.65 0.10 290);
+  --sidebar: oklch(0.19 0.015 220);
+  --sidebar-foreground: oklch(0.96 0.01 80);
+  --sidebar-primary: oklch(0.70 0.13 200);
+  --sidebar-primary-foreground: oklch(0.15 0.015 220);
+  --sidebar-accent: oklch(0.30 0.05 70);
+  --sidebar-accent-foreground: oklch(0.98 0.005 80);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.70 0.13 75);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* تنسيق شريط التمرير */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--muted);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--gold);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-dark);
+  }
+}
+
+/* ===== تحسينات جمالية احترافية ===== */
+
+/* تأثير ظل ناعم احترافي */
+.shadow-soft {
+  box-shadow: 0 2px 8px -2px rgba(0,0,0,0.08), 0 4px 16px -4px rgba(0,0,0,0.06);
+}
+
+.shadow-soft-lg {
+  box-shadow: 0 4px 12px -2px rgba(0,0,0,0.1), 0 8px 24px -4px rgba(0,0,0,0.08);
+}
+
+/* تأثير زجاجي محسّن */
+.glass-pro {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* خلفية مع نمط هندسي ناعم */
+.pattern-pro {
+  background-color: var(--background);
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(120, 180, 255, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(255, 200, 100, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(100, 200, 150, 0.03) 0%, transparent 40%);
+}
+
+/* تدرج فيروزي احترافي */
+.gradient-teal-pro {
+  background: linear-gradient(135deg, oklch(0.42 0.11 220) 0%, oklch(0.50 0.12 200) 50%, oklch(0.55 0.10 190) 100%);
+}
+
+.gradient-gold-pro {
+  background: linear-gradient(135deg, oklch(0.85 0.12 85) 0%, oklch(0.72 0.14 75) 50%, oklch(0.62 0.14 60) 100%);
+}
+
+/* حركات احترافية */
+@keyframes bounce-in-pro {
+  0% { transform: scale(0.3) translateY(30px); opacity: 0; }
+  50% { transform: scale(1.05) translateY(-5px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes fade-slide-up {
+  from { transform: translateY(15px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 5px rgba(120, 180, 255, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(120, 180, 255, 0.6); }
+}
+
+@keyframes shimmer-bg {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-bounce-in-pro { animation: bounce-in-pro 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.animate-fade-slide-up { animation: fade-slide-up 0.4s ease-out; }
+.animate-pop-in { animation: pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
+
+/* تأثير لمعان */
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer-bg 2s infinite;
+}
+
+/* أزرار احترافية */
+.btn-pro {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-pro::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-pro:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* بطاقات تفاعلية */
+.card-pro {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
+}
+
+.card-pro:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(0,0,0,0.15);
+}
+
+/* مؤثرات النجاح */
+@keyframes success-burst {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  30% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+  60% { transform: scale(0.9) rotate(-5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.animate-success-burst { animation: success-burst 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* اهتزاز الخطأ */
+@keyframes shake-pro {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px) rotate(-1deg); }
+  40% { transform: translateX(8px) rotate(1deg); }
+  60% { transform: translateX(-6px) rotate(-0.5deg); }
+  80% { transform: translateX(6px) rotate(0.5deg); }
+}
+
+.animate-shake-pro { animation: shake-pro 0.4s ease-in-out; }
+
+/* مؤثرات الخلايا */
+@keyframes cell-fill {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-cell-fill { animation: cell-fill 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* مؤثر ضربة قلب */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.15); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.12); }
+  60% { transform: scale(1); }
+}
+
+.animate-heartbeat { animation: heartbeat 1.5s ease-in-out infinite; }
