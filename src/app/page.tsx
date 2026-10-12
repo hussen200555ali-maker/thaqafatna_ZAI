@@ -13,8 +13,10 @@ import { ProfileView } from "@/components/home/profile";
 import { useGameStore } from "@/lib/game-store";
 import { fetchChapters, fetchLevels, Chapter as ApiChapter, Level as ApiLevel } from "@/lib/game-data-api";
 import { cn } from "@/lib/utils";
+import { KnowledgeMap } from "@/components/game/knowledge-map";
+import { LearningAnalytics } from "@/components/game/learning-analytics";
 
-type View = "onboarding" | "home" | "game" | "daily" | "chapters" | "admin" | "profile";
+type View = "onboarding" | "home" | "game" | "daily" | "chapters" | "admin" | "profile" | "knowledge-map" | "analytics";
 
 // مكون داخلي لقراءة حالة onboarding بعد التركيب فقط
 function useMounted() {
@@ -42,7 +44,7 @@ export default function HomePage() {
   const [apiLevels, setApiLevels] = useState<ApiLevel[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  const { completedLevels, unlockedLevels, coins, dailyStreak, initCloudSync, getLevelStars, totalStars } = useGameStore();
+  const { completedLevels, unlockedLevels, coins, dailyStreak, initCloudSync, getLevelStars, totalStars, userId } = useGameStore();
 
   // تحميل البيانات من API عند التركيب
   useEffect(() => {
@@ -201,11 +203,13 @@ export default function HomePage() {
             dailyStreak={dailyStreak}
             getLevelStars={getLevelStars}
             totalStars={totalStars}
+            userId={userId}
             onLevelClick={handleLevelClick}
             onSelectChapter={handleSelectChapter}
             selectedChapter={selectedChapter}
             todayDate={todayDate}
             onDailyChallenge={() => setView("daily")}
+            onNavigate={(v) => setView(v)}
           />
         )}
 
@@ -223,44 +227,120 @@ export default function HomePage() {
         )}
 
         {view === "profile" && <ProfileView onBack={() => setView("home")} />}
+
+        {view === "knowledge-map" && (
+          <div className="space-y-4">
+            <button
+              onClick={() => setView("home")}
+              className="flex items-center gap-2 text-stone-600 hover:text-stone-900"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+              رجوع
+            </button>
+            <KnowledgeMap
+              userId={userId}
+              onLevelSelect={(levelId) => {
+                setSelectedLevelId(levelId);
+                setView("game");
+              }}
+            />
+          </div>
+        )}
+
+        {view === "analytics" && (
+          <div className="space-y-4">
+            <button
+              onClick={() => setView("home")}
+              className="flex items-center gap-2 text-stone-600 hover:text-stone-900"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+              رجوع
+            </button>
+            <LearningAnalytics
+              userId={userId}
+              onLevelSelect={(levelId) => {
+                setSelectedLevelId(levelId);
+                setView("game");
+              }}
+            />
+          </div>
+        )}
       </main>
 
       {/* شريط سفلي للتنقل (للجوال) */}
       <footer className="sticky bottom-0 z-30 glass border-t border-amber-200/30 lg:hidden">
-        <div className="grid grid-cols-3 gap-1 px-2 py-2">
+        <div className="grid grid-cols-5 gap-1 px-2 py-2">
           <button
             onClick={() => setView("home")}
             className={cn(
-              "flex flex-col items-center gap-1 py-2 rounded-lg transition-colors",
+              "flex flex-col items-center gap-1 py-1.5 rounded-lg transition-colors",
               view === "home" ? "bg-amber-100 text-amber-700" : "text-stone-500"
             )}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 12l9-9 9 9M5 10v10h14V10" />
             </svg>
-            <span className="text-xs font-medium">الرئيسية</span>
+            <span className="text-[10px] font-medium">الرئيسية</span>
+          </button>
+          <button
+            onClick={() => setView("knowledge-map")}
+            className={cn(
+              "flex flex-col items-center gap-1 py-1.5 rounded-lg transition-colors",
+              view === "knowledge-map" ? "bg-amber-100 text-amber-700" : "text-stone-500"
+            )}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3" />
+              <circle cx="5" cy="5" r="2" />
+              <circle cx="19" cy="5" r="2" />
+              <circle cx="5" cy="19" r="2" />
+              <circle cx="19" cy="19" r="2" />
+              <line x1="7" y1="6" x2="10" y2="10" />
+              <line x1="17" y1="6" x2="14" y2="10" />
+              <line x1="7" y1="18" x2="10" y2="14" />
+              <line x1="17" y1="18" x2="14" y2="14" />
+            </svg>
+            <span className="text-[10px] font-medium">خريطتي</span>
           </button>
           <button
             onClick={() => setView("daily")}
             className={cn(
-              "flex flex-col items-center gap-1 py-2 rounded-lg transition-colors",
+              "flex flex-col items-center gap-1 py-1.5 rounded-lg transition-colors",
               view === "daily" ? "bg-amber-100 text-amber-700" : "text-stone-500"
             )}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="4" width="18" height="18" rx="2" />
               <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
-            <span className="text-xs font-medium">يومي</span>
+            <span className="text-[10px] font-medium">يومي</span>
+          </button>
+          <button
+            onClick={() => setView("analytics")}
+            className={cn(
+              "flex flex-col items-center gap-1 py-1.5 rounded-lg transition-colors",
+              view === "analytics" ? "bg-amber-100 text-amber-700" : "text-stone-500"
+            )}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
+            <span className="text-[10px] font-medium">تحليلاتي</span>
           </button>
           <button
             onClick={() => setView("chapters")}
             className={cn(
-              "flex flex-col items-center gap-1 py-2 rounded-lg transition-colors",
+              "flex flex-col items-center gap-1 py-1.5 rounded-lg transition-colors",
               view === "chapters" ? "bg-amber-100 text-amber-700" : "text-stone-500"
             )}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="8" y1="6" x2="21" y2="6" />
               <line x1="8" y1="12" x2="21" y2="12" />
               <line x1="8" y1="18" x2="21" y2="18" />
@@ -268,7 +348,7 @@ export default function HomePage() {
               <line x1="3" y1="12" x2="3.01" y2="12" />
               <line x1="3" y1="18" x2="3.01" y2="18" />
             </svg>
-            <span className="text-xs font-medium">الفصول</span>
+            <span className="text-[10px] font-medium">الفصول</span>
           </button>
         </div>
       </footer>
@@ -285,11 +365,13 @@ interface HomeViewProps {
   dailyStreak: number;
   getLevelStars: (levelId: number) => number;
   totalStars: number;
+  userId: string | null;
   onLevelClick: (id: number) => void;
   onSelectChapter: (id: number) => void;
   selectedChapter: number;
   todayDate: string;
   onDailyChallenge: () => void;
+  onNavigate: (view: "knowledge-map" | "analytics") => void;
 }
 
 function HomeView({
@@ -301,15 +383,34 @@ function HomeView({
   dailyStreak,
   getLevelStars,
   totalStars,
+  userId,
   onLevelClick,
   onSelectChapter,
   selectedChapter,
   todayDate,
   onDailyChallenge,
+  onNavigate,
 }: HomeViewProps) {
   const currentChapter = chapters.find((c) => c.id === selectedChapter) || chapters[0];
   const totalCompleted = completedLevels.length;
   const totalLevels = chapters.reduce((sum, c) => sum + c.levelsCount, 0);
+  // جلب التوصية الذكية من API
+  const [recommendation, setRecommendation] = useState<{
+    reason: string;
+    type: "next" | "review" | "challenge" | "explore";
+    recommendedLevelId: number | null;
+  } | null>(null);
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`/api/analytics?userId=${userId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.analytics?.recommendation) {
+          setRecommendation(data.analytics.recommendation);
+        }
+      })
+      .catch((e) => console.error("Error fetching recommendation:", e));
+  }, [userId]);
 
   return (
     <div className="space-y-6">
@@ -380,6 +481,93 @@ function HomeView({
           </div>
         </div>
       </motion.div>
+
+      {/* ===== بطاقة التوصية الذكية الجديدة ===== */}
+      {recommendation && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="card-pro"
+        >
+          <Card className="p-4 sm:p-5 cursor-pointer hover:shadow-soft-lg transition-all border-purple-300 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 overflow-hidden relative">
+            <div className="flex items-center gap-4 relative">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-2xl shadow-soft flex-shrink-0">
+                {recommendation.type === "review" ? "📚"
+                  : recommendation.type === "challenge" ? "🎯"
+                  : recommendation.type === "next" ? "🚀"
+                  : "🧭"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-base font-bold text-stone-800" style={{ fontFamily: "var(--font-tajawal)" }}>
+                    توصية ذكية لك
+                  </h3>
+                  <span className="px-1.5 py-0.5 rounded-md bg-purple-500/20 text-purple-700 text-[10px] font-bold">
+                    {recommendation.type === "review" ? "مراجعة"
+                      : recommendation.type === "challenge" ? "تحدٍّ"
+                      : recommendation.type === "next" ? "التالي"
+                      : "استكشاف"}
+                  </span>
+                </div>
+                <p className="text-stone-700 text-xs line-clamp-2" style={{ fontFamily: "var(--font-tajawal)" }}>
+                  {recommendation.reason}
+                </p>
+              </div>
+              <motion.div animate={{ x: [0, 5, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-stone-400">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </motion.div>
+            </div>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* ===== بطاقتي خريطة المعرفة + التحليلات ===== */}
+      <div className="grid grid-cols-2 gap-3">
+        <motion.button
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          whileHover={{ scale: 1.02, y: -2 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onNavigate("knowledge-map")}
+          className="relative overflow-hidden rounded-2xl p-4 text-right bg-gradient-to-br from-stone-800 to-stone-900 border border-stone-700 shadow-md"
+        >
+          <div className="text-3xl mb-2">🗺️</div>
+          <h4 className="text-sm font-bold text-white mb-0.5" style={{ fontFamily: "var(--font-tajawal)" }}>
+            خريطة المعرفة
+          </h4>
+          <p className="text-[10px] text-stone-400">تتبّع مهاراتك العربية</p>
+          <div className="absolute top-3 left-3 text-stone-500">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
+        </motion.button>
+
+        <motion.button
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          whileHover={{ scale: 1.02, y: -2 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onNavigate("analytics")}
+          className="relative overflow-hidden rounded-2xl p-4 text-right bg-gradient-to-br from-amber-500 to-orange-600 border border-amber-400 shadow-md"
+        >
+          <div className="text-3xl mb-2">📊</div>
+          <h4 className="text-sm font-bold text-white mb-0.5" style={{ fontFamily: "var(--font-tajawal)" }}>
+            تحليلاتي
+          </h4>
+          <p className="text-[10px] text-amber-50">نمو تعلّمك أسبوعياً</p>
+          <div className="absolute top-3 left-3 text-amber-200">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
+        </motion.button>
+      </div>
 
       {/* بطاقة التحدي اليومي المحسّنة */}
       <motion.div

@@ -66,6 +66,8 @@ model Level {
   cells           Cell[]
   playerProgress  PlayerProgress[]
   dailyChallenges DailyChallenge[]
+  // نظام خريطة المعرفة التكيّفية
+  levelSkills     LevelSkill[]
 
   @@index([chapterId])
   @@index([status])
@@ -127,8 +129,13 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  progress PlayerProgress[]
-  streak  UserStreak?
+  progress         PlayerProgress[]
+  streak           UserStreak?
+  // نظام خريطة المعرفة التكيّفية
+  playerSkills     PlayerSkill[]
+  adaptiveState    AdaptiveState?
+  learningEvents   LearningEvent[]
+  questionTypeStats QuestionTypeStat[]
 }
 
 // ===== نموذج تقدم اللاعب =====
@@ -173,4 +180,168 @@ model UserStreak {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId])
+}
+
+// ====================================================================
+// ===== نظام خريطة المعرفة التكيّفية (Adaptive Knowledge Map) =====
+// ====================================================================
+// الركيزة 1: المهارات (Skills)
+// الركيزة 2: إتقان اللاعب لكل مهارة (PlayerSkill)
+// الركيزة 3: الحالة التكيّفية (AdaptiveState)
+// الركيزة 4: سجل أحداث التعلّم (LearningEvent)
+// الركيزة 5: إحصائيات أنواع الألغاز (QuestionTypeStat)
+// ====================================================================
+
+// ===== نموذج المهارات =====
+// المهارة = مفهوم دقيق قابل للقياس (مثل: "مفردات الطبيعة"، "أمثال شائعة")
+// الفصل يحوي عدة مهارات، والمهارة قد تظهر في عدة فصول
+model Skill {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // كود فريد مثل "nature.vocab", "proverbs.common"
+  title       String   // عنوان المهارة
+  description String   @default("")
+  icon        String   @default("🎯")
+  // فئة المهارة: vocabulary | grammar | culture | logic | memory
+  category    String   @default("vocabulary")
+  // المستوى المفترض: 1 (مبتدئ) .. 5 (متقدم)
+  level       Int      @default(1)
+  // هل هذه مهارة جذرية (تتفرع منها مهارات أخرى)؟
+  isRoot      Boolean  @default(false)
+  // المهارة الأصل إن وُجدت (للمهارات الفرعية)
+  parentId    Int?
+  parent      Skill?   @relation("SkillHierarchy", fields: [parentId], references: [id])
+  children    Skill[]  @relation("SkillHierarchy")
+  // العلاقات
+  levelSkills    LevelSkill[]
+  playerSkills   PlayerSkill[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([parentId])
+  @@index([category])
+}
+
+// ===== نموذج ربط المراحل بالمهارات =====
+// كل مرحلة قد تُغطي عدة مهارات، وكل مهارة قد تتكرر في عدة مراحل
+model LevelSkill {
+  id        Int @id @default(autoincrement())
+  levelId   Int
+  skillId   Int
+  // وزن المهارة في هذه المرحلة (1-10): كم تُساهم هذه المرحلة في إتقان المهارة
+  weight    Int @default(5)
+
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([levelId, skillId])
+  @@index([skillId])
+}
+
+// ===== نموذج إتقان اللاعب لكل مهارة =====
+// نموذج إتقان بايرز (Bayers Mastery): 0-100%
+// يحسب بناءً على: عدد الأسئلة الصحيحة / إجمالي الأسئلة في هذه المهارة
+// مع وزن أكبر للأسئلة الأخيرة (decay)
+model PlayerSkill {
+  id           Int      @id @default(autoincrement())
+  userId       String
+  skillId      Int
+  // نسبة الإتقان 0-100 (محسوبة بأخذ متوسط مرجّح)
+  mastery      Float    @default(0)
+  // عدد المرات التي واجه فيها اللاعب هذه المهارة
+  attempts     Int      @default(0)
+  // عدد الإجابات الصحيحة
+  correct      Int      @default(0)
+  // عدد الإجابات الخاطئة
+  incorrect    Int      @default(0)
+  // عدد التلميحات المستخدمة في هذه المهارة
+  hintsUsed    Int      @default(0)
+  // متوسط الوقت المستغرق (ثانية)
+  avgTimeSec   Int      @default(0)
+  // آخر مرة تمارس فيها هذه المهارة
+  lastPracticedAt DateTime?
+  // تاريخ الإتقان الكامل (≥95%)
+  masteredAt   DateTime?
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([userId])
+  @@index([skillId])
+}
+
+// ===== نموذج الحالة التكيّفية للاعب =====
+// يحوي "القرارات" التي اتخذها المحرك التكيّفي للاعب
+// يُحدّث بعد كل إكمال مرحلة
+model AdaptiveState {
+  id                Int      @id @default(autoincrement())
+  userId            String   @unique
+  // المستوى العام للاعب (1-10): يحسب من مجموع النجوم
+  playerLevel       Int      @default(1)
+  // نقاط الخبرة (XP)
+  xp                Int      @default(0)
+  // معامل الصعوبة الحالي (0.7 = سهل، 1.0 = متوسط، 1.3 = صعب)
+  // يضبط ترتيب الأسئلة داخل المرحلة
+  difficultyMultiplier Float @default(1.0)
+  // المهارات الأقوى (Top 3) — JSON array of skill IDs
+  strengths         String   @default("[]")
+  // المهارات الأضعف (Bottom 3) — JSON array of skill IDs
+  weaknesses        String   @default("[]")
+  // المرحلة المُقترَحة التالية
+  recommendedLevelId Int?
+  // سبب التوصية (نص يظهر للاعب)
+  recommendationReason String @default("")
+  // نوع التوصية: next | review | challenge | explore
+  recommendationType String @default("next")
+  // آخر تحديث للخريطة
+  lastMapUpdate     DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ===== نموذج سجل أحداث التعلّم =====
+// كل تفاعل مهم يُسجّل هنا للتحليلات والـ analytics
+// يُستخدم لـ:
+//   - رسم نمو التعلم في الملف الشخصي
+//   - اكتشاف أنماط الضعف
+//   - حساب إحصائيات الأداء
+model LearningEvent {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  // نوع الحدث
+  // level_start | level_complete | question_correct | question_wrong
+  // hint_used | bonus_found | star_earned | daily_complete
+  eventType   String
+  // السياق: ID المرحلة / السؤال / المهارة (JSON)
+  context     String   @default("{}")
+  // القيمة المرتبطة بالحدث (مثل: عدد النجوم، النقاط المكتسبة)
+  value       Int      @default(0)
+  // الطابع الزمني
+  timestamp   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, eventType])
+  @@index([userId, timestamp])
+  @@index([timestamp])
+}
+
+// ===== نموذج إحصائيات أنواع الألغاز =====
+// لكل لاعب + نوع لغز: كم مرة لعب، نسبة النجاح، متوسط الوقت
+// يُستخدم لاقتراح أنواع ألغاز جديدة وتجنّب الإرهاق
+model QuestionTypeStat {
+  id           Int      @id @default(autoincrement())
+  userId       String
+  puzzleType   String   // text | image | emoji | crossword | ...
+  attempts     Int      @default(0)
+  correct      Int      @default(0)
+  avgTimeSec   Int      @default(0)
+  lastPlayedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, puzzleType])
+  @@index([userId])
 }

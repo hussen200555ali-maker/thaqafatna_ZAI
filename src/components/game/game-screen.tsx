@@ -200,6 +200,23 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
               hintsUsed: levelHintsUsed, timeSpent,
               coinsEarned: level.reward + bonusWords.length * 20,
             }).catch((e) => console.error("Cloud sync error:", e));
+
+            // ===== نظام خريطة المعرفة: تسجيل حدث التعلّم =====
+            fetch("/api/analytics", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                userId,
+                levelId: level.id,
+                stars,
+                hintsUsed: levelHintsUsed,
+                timeSpentSec: timeSpent,
+                correctCount: foundWords.length,
+                wrongCount: 0, // يتم تحديثه لاحقاً إذا أضفنا تتبع أخطاء
+                bonusWordsFound: bonusWords.length,
+                puzzleType: level.puzzleType || "text",
+              }),
+            }).catch((e) => console.error("Analytics sync error:", e));
           }
         }
       }, 800);
@@ -525,6 +542,23 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
                                 hintsUsed: levelHintsUsed, timeSpent,
                                 coinsEarned: level.reward,
                               }).catch((e) => console.error("Cloud sync error:", e));
+
+                              // ===== نظام خريطة المعرفة: تسجيل حدث التعلّم =====
+                              fetch("/api/analytics", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  userId,
+                                  levelId: level.id,
+                                  stars,
+                                  hintsUsed: levelHintsUsed,
+                                  timeSpentSec: timeSpent,
+                                  correctCount: foundWords.length + 1,
+                                  wrongCount: 0,
+                                  bonusWordsFound: bonusWords.length,
+                                  puzzleType: level.puzzleType || "multiple",
+                                }),
+                              }).catch((e) => console.error("Analytics sync error:", e));
                             }
                           }
                         }, 800);

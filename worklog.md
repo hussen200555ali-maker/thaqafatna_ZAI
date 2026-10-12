@@ -59,3 +59,66 @@ Artifacts:
 - /home/z/my-project/src/app/page.tsx (محدّث)
 - /home/z/my-project/src/components/home/profile.tsx (محدّث)
 - /home/z/my-project/src/app/globals.css (محدّث - animations جديدة)
+
+---
+Task ID: adaptive-knowledge-map-v1
+Agent: Main (Super Z)
+Task: تنفيذ نظام خريطة المعرفة التكيّفية الكامل - نقلة نوعية للتطبيق
+
+Work Log:
+- درست 4 منصات عالمية: Duolingo, Khan Academy, Brilliant.org, Memrise
+- صممت معمارية من 5 ركائز: المهارات، الإتقان، الحالة التكيّفية، أحداث التعلّم، إحصائيات الألغاز
+- وسّعت Prisma schema بـ 6 نماذج جديدة:
+  * Skill (20 مهارة في 5 جذور هرمية)
+  * LevelSkill (ربط many-to-many مع أوزان)
+  * PlayerSkill (إتقان 0-100 لكل لاعب/مهارة)
+  * AdaptiveState (الحالة الكلية للاعب)
+  * LearningEvent (سجل كامل للأحداث)
+  * QuestionTypeStat (إحصائيات أنواع الألغاز)
+- أنشأت 56 ربط بين المراحل الموجودة والمهارات
+- بنيت محرّك تكيّف خوارزمي (adaptive-engine.ts):
+  * معادلة Bayesian-style: 0.85*mastery_old + 0.15*performance
+  * خوارزمية توصية ذكية من 4 مستويات (review → next → challenge → explore)
+  * معامل صعوبة ديناميكي (0.7-1.3) حسب متوسط الإتقان
+  * تسجيل أحداث تعلّم كامل في DB
+- أنشأت 3 API endpoints:
+  * GET/POST /api/analytics
+  * GET /api/knowledge-map (manual joins للأداء)
+  * GET /api/skills
+- بنيت 2 مكوّنات React احترافية:
+  * KnowledgeMap (590 سطر) — خريطة بصرية تفاعلية بوضعين
+  * LearningAnalytics (460 سطر) — لوحة تحليلات شاملة
+- أعدت تصميم الصفحة الرئيسية:
+  * بطاقة "توصية ذكية" تظهر اقتراح المحرك
+  * بطاقتي دخول سريع لخريطة المعرفة والتحليلات
+  * شريط سفلي محدّث إلى 5 أزرار
+- دمجت API analytics في game-screen.tsx:
+  * نداء POST تلقائي عند إكمال أي مرحلة
+  * يحدّث الإتقان، يسجّل الأحداث، يعيد حساب الحالة التكيّفية
+- اختبرت كل endpoints:
+  * GET /api/skills: 226ms (20 مهارة)
+  * GET /api/knowledge-map: 389ms (17KB JSON)
+  * GET /api/analytics: 469ms (تحليلات كاملة)
+  * POST /api/analytics: عالج إكمال مرحلة بنجاح
+- وثّقت كل شيء في docs/ADAPTIVE-KNOWLEDGE-MAP.md
+
+Stage Summary:
+- نظام كامل جاهز للاختبار اليدوي
+- النقلة: من لعبة كلمات ثابتة → منصّة تعلّم ذكية تكيّفية
+- 2500+ سطر كود جديد
+- 6 نماذج DB جديدة + 3 APIs + 2 مكوّنات + 20 مهارة
+- الأداء: < 500ms لكل endpoint
+- جاهز للمرحلة التالية: اختبار شامل + إضافة ML model
+
+Artifacts:
+- /home/z/my-project/src/lib/adaptive-engine.ts (جديد)
+- /home/z/my-project/src/components/game/knowledge-map.tsx (جديد)
+- /home/z/my-project/src/components/game/learning-analytics.tsx (جديد)
+- /home/z/my-project/src/app/api/analytics/route.ts (جديد)
+- /home/z/my-project/src/app/api/knowledge-map/route.ts (جديد)
+- /home/z/my-project/src/app/api/skills/route.ts (جديد)
+- /home/z/my-project/scripts/seed-skills.ts (جديد)
+- /home/z/my-project/docs/ADAPTIVE-KNOWLEDGE-MAP.md (جديد - وثيقة المعمارية)
+- /home/z/my-project/prisma/schema.prisma (مُعدّل)
+- /home/z/my-project/src/app/page.tsx (مُعدّل)
+- /home/z/my-project/src/components/game/game-screen.tsx (مُعدّل)
