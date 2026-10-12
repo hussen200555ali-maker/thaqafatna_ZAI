@@ -672,8 +672,8 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
             </div>
           )}
 
-          {/* خانات الإجابة (للأنواع التي تستخدم الكتابة - عدا crossword) */}
-          {puzzleType !== "multiple" && puzzleType !== "matching" && puzzleType !== "crossword" && (
+          {/* خانات الإجابة (لجميع الأنواع عدا multiple و matching) */}
+          {puzzleType !== "multiple" && puzzleType !== "matching" && (
             <div className="flex flex-wrap gap-2 justify-center max-w-sm">
               {answerLetters.map((letter, idx) => {
                 const isRevealed = revealedLetters.has(idx);
@@ -726,8 +726,8 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
         )}
       </main>
 
-      {/* لوحة المفاتيح العربية - تظهر فقط للأنواع التي تحتاج كتابة */}
-      {(puzzleType === "text" || puzzleType === "image" || puzzleType === "images4" || puzzleType === "emoji" || puzzleType === "scrambled" || puzzleType === "fillblank" || puzzleType === "logic" || puzzleType === "progressive" || puzzleType === "mixed") && (
+      {/* لوحة المفاتيح العربية - تظهر لجميع الأنواع عدا multiple و matching */}
+      {puzzleType !== "multiple" && puzzleType !== "matching" && (
       <div className="bg-teal-950/60 backdrop-blur-md border-t border-white/10 p-3">
         {/* أزرار المساعدة */}
         <div className="flex items-center justify-center gap-3 mb-3">
