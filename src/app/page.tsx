@@ -9,11 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { GameScreen } from "@/components/game/game-screen";
 import { OnboardingScreen } from "@/components/home/onboarding";
 import { AdminPanel } from "@/components/admin/admin-panel";
+import { ProfileView } from "@/components/home/profile";
 import { useGameStore } from "@/lib/game-store";
 import { fetchChapters, fetchLevels, Chapter as ApiChapter, Level as ApiLevel } from "@/lib/game-data-api";
 import { cn } from "@/lib/utils";
 
-type View = "onboarding" | "home" | "game" | "daily" | "chapters" | "admin";
+type View = "onboarding" | "home" | "game" | "daily" | "chapters" | "admin" | "profile";
 
 // مكون داخلي لقراءة حالة onboarding بعد التركيب فقط
 function useMounted() {
@@ -161,6 +162,18 @@ export default function HomePage() {
               <span className="font-bold text-amber-700">{coins}</span>
             </div>
 
+            {/* زر الملف الشخصي */}
+            <button
+              onClick={() => setView("profile")}
+              title="ملفي الشخصي"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </button>
+
             {/* زر لوحة الإدارة */}
             <button
               onClick={() => setView("admin")}
@@ -210,6 +223,8 @@ export default function HomePage() {
             }}
           />
         )}
+
+        {view === "profile" && <ProfileView onBack={() => setView("home")} />}
       </main>
 
       {/* شريط سفلي للتنقل (للجوال) */}
