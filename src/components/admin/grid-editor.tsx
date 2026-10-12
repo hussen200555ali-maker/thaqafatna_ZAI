@@ -48,6 +48,13 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ row: number; col: number } | null>(null);
   const [dragEnd, setDragEnd] = useState<{ row: number; col: number } | null>(null);
+  // pendingDrag: المسار الذي تم رسمه ويبقى مرئياً بعد إفلات الضغط حتى يكتب المستخدم الكلمة
+  const [pendingDrag, setPendingDrag] = useState<{
+    start: { row: number; col: number };
+    end: { row: number; col: number };
+    direction: "across" | "down";
+    length: number;
+  } | null>(null);
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
   const [inputWord, setInputWord] = useState("");
   const [inputClue, setInputClue] = useState("");
@@ -166,6 +173,7 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
     setInputWord("");
     setInputClue("");
     setSelectedCell(null);
+    setPendingDrag(null);
   };
 
   // حذف كلمة
@@ -184,8 +192,11 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
   const handleCellMouseDown = (row: number, col: number) => {
     if (tool === "select") {
       setSelectedCell({ row, col });
+      setPendingDrag(null);
       return;
     }
+    // مسح المسار المعلّق عند بدء سحب جديد
+    setPendingDrag(null);
     setIsDragging(true);
     setDragStart({ row, col });
     setDragEnd({ row, col });
@@ -230,39 +241,83 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
       return;
     }
 
-    setSelectedCell(dragStart);
-    setInputDirection(isHorizontal ? "across" : "down");
-
     // حساب طول المسار
     const length = isHorizontal
       ? Math.abs(dragEnd.col - dragStart.col) + 1
       : Math.abs(dragEnd.row - dragStart.row) + 1;
 
+    // إذا كان السحب على خلية واحدة فقط (length === 1)، اعتبره نقرة عادية
+    if (length < 2) {
+      setSelectedCell(dragStart);
+      setInputDirection(isHorizontal ? "across" : "down");
+      setIsDragging(false);
+      setDragStart(null);
+      setDragEnd(null);
+      setPendingDrag(null);
+      return;
+    }
+
+    // إبقاء المسار مرئياً بعد إفلات الضغط عبر pendingDrag
+    setPendingDrag({
+      start: dragStart,
+      end: dragEnd,
+      direction: isHorizontal ? "across" : "down",
+      length,
+    });
+
+    setSelectedCell(dragStart);
+    setInputDirection(isHorizontal ? "across" : "down");
+
+    // إيقاف حالة السحب النشط لكن الإبقاء على pendingDrag
     setIsDragging(false);
     setDragStart(null);
     setDragEnd(null);
   };
 
-  // فحص إذا كانت خلية في مسار السحب
+  // فحص إذا كانت خلية في مسار السحب (نشط أو معلّق)
   const isCellInDrag = (row: number, col: number): boolean => {
-    if (!isDragging || !dragStart || !dragEnd) return false;
-    if (dragStart.row === dragEnd.row) {
-      return row === dragStart.row && col >= Math.min(dragStart.col, dragEnd.col) && col <= Math.max(dragStart.col, dragEnd.col);
+    // السحب النشط
+    if (isDragging && dragStart && dragEnd) {
+      if (dragStart.row === dragEnd.row) {
+        return row === dragStart.row && col >= Math.min(dragStart.col, dragEnd.col) && col <= Math.max(dragStart.col, dragEnd.col);
+      }
+      if (dragStart.col === dragEnd.col) {
+        return col === dragStart.col && row >= Math.min(dragStart.row, dragEnd.row) && row <= Math.max(dragStart.row, dragEnd.row);
+      }
     }
-    if (dragStart.col === dragEnd.col) {
-      return col === dragStart.col && row >= Math.min(dragStart.row, dragEnd.row) && row <= Math.max(dragStart.row, dragEnd.row);
+    // المسار المعلّق بعد إفلات الضغط
+    if (pendingDrag) {
+      const { start, end } = pendingDrag;
+      if (start.row === end.row) {
+        return row === start.row && col >= Math.min(start.col, end.col) && col <= Math.max(start.col, end.col);
+      }
+      if (start.col === end.col) {
+        return col === start.col && row >= Math.min(start.row, end.row) && row <= Math.max(start.row, end.row);
+      }
     }
     return false;
   };
 
-  // هل الخلية هي بداية السحب؟
+  // هل الخلية هي بداية السحب (النشط أو المعلّق)؟
   const isDragStart = (row: number, col: number): boolean => {
-    return dragStart?.row === row && dragStart?.col === col;
+    if (isDragging && dragStart) {
+      return dragStart.row === row && dragStart.col === col;
+    }
+    if (pendingDrag) {
+      return pendingDrag.start.row === row && pendingDrag.start.col === col;
+    }
+    return false;
   };
 
-  // هل الخلية هي نهاية السحب؟
+  // هل الخلية هي نهاية السحب (النشط أو المعلّق)؟
   const isDragEnd = (row: number, col: number): boolean => {
-    return dragEnd?.row === row && dragEnd?.col === col;
+    if (isDragging && dragEnd) {
+      return dragEnd.row === row && dragEnd.col === col;
+    }
+    if (pendingDrag) {
+      return pendingDrag.end.row === row && pendingDrag.end.col === col;
+    }
+    return false;
   };
 
   const isCellSelected = (row: number, col: number): boolean => {
@@ -342,6 +397,12 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
         {isDragging && dragStart && dragEnd && (
           <span className="text-xs text-amber-700 font-bold">
             رسم: {Math.abs(dragEnd.row - dragStart.row) + Math.abs(dragEnd.col - dragStart.col) + 1} خلايا
+          </span>
+        )}
+        {!isDragging && pendingDrag && (
+          <span className="text-xs text-amber-700 font-bold flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            مسار جاهز: {pendingDrag.length} خلايا
           </span>
         )}
       </div>
@@ -488,7 +549,7 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
               );
             })}
 
-            {/* خط السحب الحالي */}
+            {/* خط السحب الحالي (أثناء السحب) */}
             {isDragging && dragStart && dragEnd && (
               <g>
                 <line
@@ -521,6 +582,52 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
                 />
               </g>
             )}
+
+            {/* خط المسار المعلّق (بعد إفلات الضغط، يبقى مرئياً حتى كتابة الكلمة) */}
+            {!isDragging && pendingDrag && (
+              <g>
+                <line
+                  x1={getCellCenter(pendingDrag.start.row, pendingDrag.start.col).x}
+                  y1={getCellCenter(pendingDrag.start.row, pendingDrag.start.col).y}
+                  x2={getCellCenter(pendingDrag.end.row, pendingDrag.end.col).x}
+                  y2={getCellCenter(pendingDrag.end.row, pendingDrag.end.col).y}
+                  stroke={DRAG_COLOR.line}
+                  strokeWidth={Math.max(cellSize * 0.7, 24)}
+                  strokeLinecap="round"
+                  opacity={0.6}
+                />
+                {/* دائرة البداية */}
+                <circle
+                  cx={getCellCenter(pendingDrag.start.row, pendingDrag.start.col).x}
+                  cy={getCellCenter(pendingDrag.start.row, pendingDrag.start.col).y}
+                  r={cellSize * 0.24}
+                  fill={DRAG_COLOR.line}
+                />
+                {/* دائرة النهاية */}
+                <circle
+                  cx={getCellCenter(pendingDrag.end.row, pendingDrag.end.col).x}
+                  cy={getCellCenter(pendingDrag.end.row, pendingDrag.end.col).y}
+                  r={cellSize * 0.24}
+                  fill="none"
+                  stroke={DRAG_COLOR.line}
+                  strokeWidth={4}
+                />
+                {/* نص يظهر طول المسار */}
+                <text
+                  x={(getCellCenter(pendingDrag.start.row, pendingDrag.start.col).x + getCellCenter(pendingDrag.end.row, pendingDrag.end.col).x) / 2}
+                  y={(getCellCenter(pendingDrag.start.row, pendingDrag.start.col).y + getCellCenter(pendingDrag.end.row, pendingDrag.end.col).y) / 2}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill="white"
+                  fontSize={cellSize * 0.32}
+                  fontWeight="bold"
+                  className="pointer-events-none select-none"
+                  style={{ fontFamily: "var(--font-cairo)" }}
+                >
+                  {pendingDrag.length}
+                </text>
+              </g>
+            )}
           </svg>
         </div>
       </div>
@@ -538,9 +645,22 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
           animate={{ opacity: 1, y: 0 }}
           className="p-4 rounded-xl bg-white border-2 border-amber-300 shadow-md"
         >
-          <h4 className="font-bold text-stone-800 mb-3">
-            إضافة كلمة في الخلية ({selectedCell.row + 1}, {selectedCell.col + 1})
-          </h4>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-bold text-stone-800">
+              إضافة كلمة في الخلية ({selectedCell.row + 1}, {selectedCell.col + 1})
+            </h4>
+            {pendingDrag && (
+              <span className="px-2 py-1 rounded-md bg-amber-100 text-amber-700 text-xs font-bold">
+                طول المسار: {pendingDrag.length} حروف
+              </span>
+            )}
+          </div>
+          {pendingDrag && (
+            <div className="mb-3 p-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-700 flex items-center gap-2">
+              <span>🎯</span>
+              <span>المسار جاهز! اكتب كلمة من {pendingDrag.length} حروف لتملأ الخلايا المحددة تلقائياً</span>
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
             <div>
               <label className="text-sm font-medium text-stone-600">الكلمة</label>
@@ -609,7 +729,12 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
             </Button>
             <Button
               variant="ghost"
-              onClick={() => setSelectedCell(null)}
+              onClick={() => {
+                setSelectedCell(null);
+                setPendingDrag(null);
+                setInputWord("");
+                setInputClue("");
+              }}
             >
               إلغاء
             </Button>
