@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,20 +10,137 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ===== نموذج الفصول =====
+model Chapter {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @default("")
+  icon        String   @default("⭐")
+  color       String   @default("oklch(0.78 0.13 80)")
+  order       Int      @default(0)
+  unlockAt    Int      @default(0) // عدد المراحل المطلوبة لفتح الفصل
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  levels Level[]
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ===== نموذج المراحل =====
+model Level {
+  id            Int      @id @default(autoincrement())
+  chapterId     Int
+  number        Int      @default(1)
+  title         String
+  difficulty    String   @default("easy") // easy | medium | hard
+  gridSizeRows  Int      @default(5)
+  gridSizeCols  Int      @default(5)
+  availableLetters String // حروف مفصولة بفواصل
+  bonusWords    String   @default("") // كلمات إضافية مفصولة بفواصل
+  reward        Int      @default(50)
+  hintCost      Int      @default(10)
+  status        String   @default("draft") // draft | review | published | archived
+  version       Int      @default(1)
+  isPublished   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  chapter         Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  words           Word[]
+  cells           Cell[]
+  playerProgress  PlayerProgress[]
+  dailyChallenges DailyChallenge[]
+
+  @@index([chapterId])
+  @@index([status])
+}
+
+// ===== نموذج الكلمات =====
+model Word {
+  id          Int      @id @default(autoincrement())
+  levelId     Int
+  text        String
+  clue        String
+  direction   String // across | down
+  startRow    Int
+  startCol    Int
+  number      Int
+  createdAt   DateTime @default(now())
+
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@index([levelId])
+}
+
+// ===== نموذج خلايا الشبكة =====
+model Cell {
+  id      Int    @id @default(autoincrement())
+  levelId Int
+  row     Int
+  col     Int
+  letter  String
+  number  Int?
+
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@index([levelId])
+  @@unique([levelId, row, col])
+}
+
+// ===== نموذج المستخدمين =====
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  name         String?
+  role         String   @default("player") // player | editor | admin
+  coins        Int      @default(100)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  progress PlayerProgress[]
+  streak  UserStreak?
+}
+
+// ===== نموذج تقدم اللاعب =====
+model PlayerProgress {
+  id           Int      @id @default(autoincrement())
+  userId       String
+  levelId      Int
+  isCompleted  Boolean  @default(false)
+  stars        Int      @default(0)
+  score        Int      @default(0)
+  hintsUsed    Int      @default(0)
+  timeSpent    Int      @default(0) // بالثواني
+  completedAt  DateTime?
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level Level  @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, levelId])
+  @@index([userId])
+}
+
+// ===== نموذج التحديات اليومية =====
+model DailyChallenge {
+  id          Int      @id @default(autoincrement())
+  date        String   @unique // YYYY-MM-DD
+  levelId     Int
+  bonusReward Int      @default(100)
+  createdAt   DateTime @default(now())
+
+  level Level @relation(fields: [levelId], references: [id])
+}
+
+// ===== نموذج سلاسل المستخدمين اليومية =====
+model UserStreak {
+  id              Int      @id @default(autoincrement())
+  userId          String
+  lastChallengeDate String?
+  currentStreak   Int      @default(0)
+  longestStreak   Int      @default(0)
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
 }

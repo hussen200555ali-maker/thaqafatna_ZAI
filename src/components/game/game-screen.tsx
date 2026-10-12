@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useGameStore } from "@/lib/game-store";
-import { Level, getLevelById } from "@/lib/game-data";
+import { Level } from "@/lib/game-data";
+import { fetchLevelById } from "@/lib/game-data-api";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,8 @@ interface GameScreenProps {
 export function GameScreen({ levelId, onExit }: GameScreenProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const level = getLevelById(levelId);
+  const [level, setLevel] = useState<Level | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const { completeLevel, addCoins, spendCoins, useHint: recordHintUsed, coins, hintsUsed, getLevelStars } =
     useGameStore();
@@ -31,12 +33,31 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [hintsRevealed, setHintsRevealed] = useState<Set<string>>(new Set());
 
+  // تحميل المرحلة من API
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
     setFoundWords([]);
     setBonusWords([]);
     setShowSuccess(false);
     setHintsRevealed(new Set());
+
+    fetchLevelById(levelId).then((data) => {
+      if (!cancelled) {
+        setLevel(data);
+        setLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
   }, [levelId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!level) {
     return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GameScreen } from "@/components/game/game-screen";
 import { OnboardingScreen } from "@/components/home/onboarding";
+import { AdminPanel } from "@/components/admin/admin-panel";
 import { useGameStore } from "@/lib/game-store";
-import { chapters, getLevelsByChapter, getAllChapters, Level } from "@/lib/game-data";
+import { fetchChapters, fetchLevels, Chapter as ApiChapter, Level as ApiLevel } from "@/lib/game-data-api";
 import { cn } from "@/lib/utils";
 
-type View = "onboarding" | "home" | "game" | "daily" | "chapters";
+type View = "onboarding" | "home" | "game" | "daily" | "chapters" | "admin";
 
 // مكون داخلي لقراءة حالة onboarding بعد التركيب فقط
 function useMounted() {
@@ -37,8 +38,43 @@ export default function HomePage() {
   const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<number>(1);
   const [initialized, setInitialized] = useState(false);
+  const [apiChapters, setApiChapters] = useState<ApiChapter[]>([]);
+  const [apiLevels, setApiLevels] = useState<ApiLevel[]>([]);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
-  const { completedLevels, unlockedLevels, coins, dailyStreak } = useGameStore();
+  const { completedLevels, unlockedLevels, coins, dailyStreak, initCloudSync } = useGameStore();
+
+  // تحميل البيانات من API عند التركيب
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // تهيئة المزامنة السحابية
+        await initCloudSync();
+
+        // تحميل الفصول
+        const chaptersData = await fetchChapters();
+        setApiChapters(chaptersData);
+
+        if (chaptersData.length > 0) {
+          // تحميل مراحل الفصل الأول
+          const levelsData = await fetchLevels(chaptersData[0].id);
+          setApiLevels(levelsData);
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
+      } finally {
+        setDataLoaded(true);
+      }
+    };
+    loadData();
+  }, [initCloudSync]);
+
+  // تحميل المراحل عند تغيير الفصل
+  const handleSelectChapter = async (chapterId: number) => {
+    setSelectedChapter(chapterId);
+    const levelsData = await fetchLevels(chapterId);
+    setApiLevels(levelsData);
+  };
 
   // تعيين العرض بعد التركيب
   if (mounted && !initialized) {
@@ -46,10 +82,23 @@ export default function HomePage() {
     setView(onboardingSeen ? "home" : "onboarding");
   }
 
+  // فحص إذا كان المستخدم يريد وضع الإدارة عبر URL hash
+  if (typeof window !== "undefined") {
+    const hash = window.location.hash;
+    if (hash === "#admin" && view !== "admin") {
+      setView("admin");
+    }
+  }
+
   const handleOnboardingComplete = () => {
     localStorage.setItem("thaqafatna-onboarding-seen", "true");
     setView("home");
   };
+
+  // عرض لوحة الإدارة
+  if (view === "admin") {
+    return <AdminPanel />;
+  }
 
   const todayDate = new Date().toLocaleDateString("ar-SA", {
     weekday: "long",
@@ -111,19 +160,38 @@ export default function HomePage() {
               </svg>
               <span className="font-bold text-amber-700">{coins}</span>
             </div>
+
+            {/* زر لوحة الإدارة */}
+            <button
+              onClick={() => setView("admin")}
+              title="لوحة الإدارة"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </button>
           </div>
         </div>
       </header>
 
       {/* المحتوى */}
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 sm:py-8">
-        {view === "home" && (
+        {!dataLoaded && (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
+          </div>
+        )}
+
+        {dataLoaded && view === "home" && (
           <HomeView
-            chapters={chapters}
+            chapters={apiChapters.length > 0 ? apiChapters : []}
+            levels={apiLevels}
             completedLevels={completedLevels}
             unlockedLevels={unlockedLevels}
             onLevelClick={handleLevelClick}
-            onSelectChapter={setSelectedChapter}
+            onSelectChapter={handleSelectChapter}
             selectedChapter={selectedChapter}
             todayDate={todayDate}
             onDailyChallenge={() => setView("daily")}
@@ -134,8 +202,10 @@ export default function HomePage() {
 
         {view === "chapters" && (
           <ChaptersView
+            chapters={apiChapters}
+            completedLevels={completedLevels}
             onSelectChapter={(id) => {
-              setSelectedChapter(id);
+              handleSelectChapter(id);
               setView("home");
             }}
           />
@@ -194,7 +264,8 @@ export default function HomePage() {
 }
 
 interface HomeViewProps {
-  chapters: typeof import("@/lib/game-data").chapters;
+  chapters: ApiChapter[];
+  levels: ApiLevel[];
   completedLevels: number[];
   unlockedLevels: number[];
   onLevelClick: (id: number) => void;
@@ -206,6 +277,7 @@ interface HomeViewProps {
 
 function HomeView({
   chapters,
+  levels,
   completedLevels,
   unlockedLevels,
   onLevelClick,
@@ -215,7 +287,6 @@ function HomeView({
   onDailyChallenge,
 }: HomeViewProps) {
   const currentChapter = chapters.find((c) => c.id === selectedChapter) || chapters[0];
-  const levels = getLevelsByChapter(currentChapter.id);
   const totalCompleted = completedLevels.length;
   const totalLevels = chapters.reduce((sum, c) => sum + c.levelsCount, 0);
 
@@ -496,8 +567,15 @@ function DailyChallengeView({ onBack }: { onBack: () => void }) {
   );
 }
 
-function ChaptersView({ onSelectChapter }: { onSelectChapter: (id: number) => void }) {
-  const { completedLevels } = useGameStore();
+function ChaptersView({
+  chapters,
+  completedLevels,
+  onSelectChapter,
+}: {
+  chapters: ApiChapter[];
+  completedLevels: number[];
+  onSelectChapter: (id: number) => void;
+}) {
   const totalCompleted = completedLevels.length;
 
   return (
@@ -507,7 +585,7 @@ function ChaptersView({ onSelectChapter }: { onSelectChapter: (id: number) => vo
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {getAllChapters().map((chapter, idx) => {
+        {chapters.map((chapter, idx) => {
           const isLocked = totalCompleted < chapter.unlockAt;
           return (
             <motion.button
