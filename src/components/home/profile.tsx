@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useGameStore } from "@/lib/game-store";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { playSound } from "@/lib/sound-effects";
 
 interface ProfileViewProps {
@@ -18,9 +18,21 @@ export function ProfileView({ onBack }: ProfileViewProps) {
     hintsUsed,
     dailyStreak,
     totalStars,
+    levelStars,
     userId,
     resetProgress,
   } = useGameStore();
+
+  // إحصائيات تفصيلية للنجوم
+  const starStats = useMemo(() => {
+    const allStars = Object.values(levelStars);
+    const threeStar = allStars.filter(s => s === 3).length;
+    const twoStar = allStars.filter(s => s === 2).length;
+    const oneStar = allStars.filter(s => s === 1).length;
+    const maxPossible = completedLevels.length * 3;
+    const completionRate = maxPossible > 0 ? Math.round((totalStars / maxPossible) * 100) : 0;
+    return { threeStar, twoStar, oneStar, completionRate, maxPossible };
+  }, [levelStars, completedLevels, totalStars]);
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -51,6 +63,14 @@ export function ProfileView({ onBack }: ProfileViewProps) {
       color: "from-yellow-400 to-orange-500",
       bgColor: "bg-yellow-50",
       borderColor: "border-yellow-100",
+    },
+    {
+      icon: "🏆",
+      label: "مراحل 3 نجوم",
+      value: starStats.threeStar,
+      color: "from-amber-500 to-yellow-600",
+      bgColor: "bg-orange-50",
+      borderColor: "border-orange-100",
     },
     {
       icon: "🪙",
@@ -114,6 +134,18 @@ export function ProfileView({ onBack }: ProfileViewProps) {
       title: "ذكي",
       description: "أكمل مرحلة بدون تلميح",
       unlocked: hintsUsed === 0 && completedLevels.length > 0,
+    },
+    {
+      icon: "⭐⭐⭐",
+      title: "بطل النجوم",
+      description: "احصل على 3 نجوم في 5 مراحل",
+      unlocked: starStats.threeStar >= 5,
+    },
+    {
+      icon: "👑",
+      title: "أسطورة",
+      description: "اجمع 50 نجمة",
+      unlocked: totalStars >= 50,
     },
   ];
 
@@ -181,6 +213,88 @@ export function ProfileView({ onBack }: ProfileViewProps) {
           </div>
         </div>
       </motion.div>
+
+      {/* لوحة النجوم التفصيلية */}
+      {completedLevels.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="rounded-3xl bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border border-amber-200 p-5 sm:p-6 shadow-soft"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-stone-800 flex items-center gap-2" style={{ fontFamily: "var(--font-tajawal)" }}>
+              ⭐ لوحة النجوم
+            </h3>
+            <span className="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
+              {totalStars} / {starStats.maxPossible} نجمة
+            </span>
+          </div>
+
+          {/* شريط نسبة الإكمال */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between text-xs text-amber-700 mb-1">
+              <span>نسبة الإتقان</span>
+              <span className="font-bold">{starStats.completionRate}%</span>
+            </div>
+            <div className="h-3 bg-white/60 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${starStats.completionRate}%` }}
+                transition={{ duration: 0.8, type: "spring" }}
+                className="h-full rounded-full bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-400"
+              />
+            </div>
+          </div>
+
+          {/* توزيع النجوم */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="flex flex-col items-center p-3 rounded-2xl bg-white/70 border border-amber-100">
+              <div className="flex items-center gap-0.5 mb-1">
+                {[1, 2, 3].map(s => (
+                  <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="#FFD700">
+                    <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.4-4.9-2.6L7 17.1l.9-5.4-4-3.9 5.5-.8z" />
+                  </svg>
+                ))}
+              </div>
+              <div className="text-2xl font-bold text-amber-600">{starStats.threeStar}</div>
+              <div className="text-[10px] text-stone-600">مراحل مثالية</div>
+            </div>
+            <div className="flex flex-col items-center p-3 rounded-2xl bg-white/70 border border-amber-100">
+              <div className="flex items-center gap-0.5 mb-1">
+                {[1, 2].map(s => (
+                  <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="#FFD700">
+                    <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.4-4.9-2.6L7 17.1l.9-5.4-4-3.9 5.5-.8z" />
+                  </svg>
+                ))}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(0,0,0,0.1)">
+                  <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.4-4.9-2.6L7 17.1l.9-5.4-4-3.9 5.5-.8z" />
+                </svg>
+              </div>
+              <div className="text-2xl font-bold text-amber-500">{starStats.twoStar}</div>
+              <div className="text-[10px] text-stone-600">مراحل جيدة</div>
+            </div>
+            <div className="flex flex-col items-center p-3 rounded-2xl bg-white/70 border border-amber-100">
+              <div className="flex items-center gap-0.5 mb-1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFD700">
+                  <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.4-4.9-2.6L7 17.1l.9-5.4-4-3.9 5.5-.8z" />
+                </svg>
+                {[1, 2].map(s => (
+                  <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="rgba(0,0,0,0.1)">
+                    <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.4-4.9-2.6L7 17.1l.9-5.4-4-3.9 5.5-.8z" />
+                  </svg>
+                ))}
+              </div>
+              <div className="text-2xl font-bold text-amber-400">{starStats.oneStar}</div>
+              <div className="text-[10px] text-stone-600">مراحل مكتملة</div>
+            </div>
+          </div>
+
+          <p className="text-xs text-stone-500 text-center mt-3">
+            💡 أعد المحاولة لتحسين نتائجك — ستُحفظ أعلى نتيجة دائماً
+          </p>
+        </motion.div>
+      )}
 
       {/* الإحصائيات */}
       <div>

@@ -42,7 +42,7 @@ export default function HomePage() {
   const [apiLevels, setApiLevels] = useState<ApiLevel[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  const { completedLevels, unlockedLevels, coins, dailyStreak, initCloudSync } = useGameStore();
+  const { completedLevels, unlockedLevels, coins, dailyStreak, initCloudSync, getLevelStars, totalStars } = useGameStore();
 
   // تحميل البيانات من API عند التركيب
   useEffect(() => {
@@ -199,6 +199,8 @@ export default function HomePage() {
             unlockedLevels={unlockedLevels}
             coins={coins}
             dailyStreak={dailyStreak}
+            getLevelStars={getLevelStars}
+            totalStars={totalStars}
             onLevelClick={handleLevelClick}
             onSelectChapter={handleSelectChapter}
             selectedChapter={selectedChapter}
@@ -281,6 +283,8 @@ interface HomeViewProps {
   unlockedLevels: number[];
   coins: number;
   dailyStreak: number;
+  getLevelStars: (levelId: number) => number;
+  totalStars: number;
   onLevelClick: (id: number) => void;
   onSelectChapter: (id: number) => void;
   selectedChapter: number;
@@ -295,6 +299,8 @@ function HomeView({
   unlockedLevels,
   coins,
   dailyStreak,
+  getLevelStars,
+  totalStars,
   onLevelClick,
   onSelectChapter,
   selectedChapter,
@@ -352,6 +358,10 @@ function HomeView({
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20">
               <span className="text-yellow-300 text-sm">🪙</span>
               <span className="text-white font-bold">{coins}</span>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20">
+              <span className="text-yellow-300 text-sm">⭐</span>
+              <span className="text-white font-bold">{totalStars}</span>
             </div>
             <div className="flex-1 max-w-xs">
               <div className="flex items-center justify-between text-xs text-teal-100 mb-1">
@@ -483,6 +493,7 @@ function HomeView({
             const isCompleted = completedLevels.includes(level.id);
             // جميع المراحل مفتوحة
             const isUnlocked = true;
+            const levelStars = getLevelStars(level.id);
             return (
               <motion.button
                 key={level.id}
@@ -516,17 +527,21 @@ function HomeView({
 
                 {/* الجزء السفلي - النجوم */}
                 <div className="bg-stone-800 w-full py-1.5 flex items-center justify-center gap-0.5">
-                  {[1, 2, 3].map((star) => (
-                    <svg
-                      key={star}
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill={isCompleted ? "#FFD700" : "rgba(255,255,255,0.2)"}
-                    >
-                      <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.4-4.9-2.6L7 17.1l.9-5.4-4-3.9 5.5-.8z" />
-                    </svg>
-                  ))}
+                  {[1, 2, 3].map((star) => {
+                    const isEarned = isCompleted && star <= levelStars;
+                    return (
+                      <svg
+                        key={star}
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill={isEarned ? "#FFD700" : isCompleted ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.08)"}
+                        className={isEarned ? "drop-shadow-[0_0_3px_rgba(255,215,0,0.8)]" : ""}
+                      >
+                        <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.4-4.9-2.6L7 17.1l.9-5.4-4-3.9 5.5-.8z" />
+                      </svg>
+                    );
+                  })}
                 </div>
               </motion.button>
             );

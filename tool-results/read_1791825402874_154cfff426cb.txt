@@ -1,0 +1,935 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import { useState, useEffect, useMemo, useCallback } from "react";
+     4→     4→import { useRouter } from "next/navigation";
+     5→     5→import { motion, AnimatePresence } from "framer-motion";
+     6→     6→import { Button } from "@/components/ui/button";
+     7→     7→import { Card } from "@/components/ui/card";
+     8→     8→import { Badge } from "@/components/ui/badge";
+     9→     9→import { useGameStore } from "@/lib/game-store";
+    10→    10→import { Level, Word } from "@/lib/game-data";
+    11→    11→import { CrosswordGrid } from "./crossword-grid";
+    12→    12→import { fetchLevelById, saveProgress } from "@/lib/game-data-api";
+    13→    13→import { useToast } from "@/hooks/use-toast";
+    14→    14→import { playSound, getMuted, setMuted } from "@/lib/sound-effects";
+    15→    15→import { cn } from "@/lib/utils";
+    16→    16→
+    17→    17→// الأبجدية العربية الكاملة مرتبة
+    18→    18→const ARABIC_KEYBOARD = [
+    19→    19→  ["ض", "ص", "ث", "ق", "ف", "غ", "ع", "ه", "خ", "ح", "ج", "د"],
+    20→    20→  ["ش", "س", "ي", "ب", "ل", "ا", "ت", "ن", "م", "ك", "ط", "ئ"],
+    21→    21→  ["ء", "ؤ", "ر", "لا", "ى", "ة", "و", "ز", "ظ", "ذ"],
+    22→    22→];
+    23→    23→
+    24→    24→interface GameScreenProps {
+    25→    25→  levelId: number;
+    26→    26→  onExit?: () => void;
+    27→    27→}
+    28→    28→
+    29→    29→export function GameScreen({ levelId, onExit }: GameScreenProps) {
+    30→    30→  const router = useRouter();
+    31→    31→  const { toast } = useToast();
+    32→    32→  const [level, setLevel] = useState<Level | null>(null);
+    33→    33→  const [loading, setLoading] = useState(true);
+    34→    34→
+    35→    35→  const { completeLevel, addCoins, spendCoins, useHint: recordHintUsed, resetLevelStats, coins, hintsUsed: globalHintsUsed, getLevelStars, userId } =
+    36→    36→    useGameStore();
+    37→    37→
+    38→    38→  const [foundWords, setFoundWords] = useState<string[]>([]);
+    39→    39→  const [bonusWords, setBonusWords] = useState<string[]>([]);
+    40→    40→  const [showSuccess, setShowSuccess] = useState(false);
+    41→    41→  const [startTime, setStartTime] = useState<number>(Date.now());
+    42→    42→  const [isMuted, setIsMuted] = useState(false);
+    43→    43→  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+    44→    44→  const [selectedLetters, setSelectedLetters] = useState<{ letter: string; used: boolean }[]>([]);
+    45→    45→  const [answerOrder, setAnswerOrder] = useState<number[]>([]); // أرقام index في selectedLetters بترتيب النقر
+    46→    46→  const [revealedLetters, setRevealedLetters] = useState<Set<number>>(new Set());
+    47→    47→  const [wrongShake, setWrongShake] = useState(false);
+    48→    48→  const [levelHintsUsed, setLevelHintsUsed] = useState(0); // تلميحات المرحلة الحالية فقط
+    49→    49→
+    50→    50→  useEffect(() => {
+    51→    51→    setIsMuted(getMuted());
+    52→    52→  }, []);
+    53→    53→
+    54→    54→  useEffect(() => {
+    55→    55→    let cancelled = false;
+    56→    56→    setLoading(true);
+    57→    57→    setFoundWords([]);
+    58→    58→    setBonusWords([]);
+    59→    59→    setShowSuccess(false);
+    60→    60→    setStartTime(Date.now());
+    61→    61→    setCurrentWordIndex(0);
+    62→    62→    setSelectedLetters([]);
+    63→    63→    setAnswerOrder([]);
+    64→    64→    setRevealedLetters(new Set());
+    65→    65→    setLevelHintsUsed(0); // إعادة تعيين تلميحات المرحلة
+    66→    66→
+    67→    67→    fetchLevelById(levelId).then((data) => {
+    68→    68→      if (!cancelled) {
+    69→    69→        setLevel(data);
+    70→    70→        setLoading(false);
+    71→    71→        if (data) {
+    72→    72→          setTimeout(() => playSound("levelStart"), 200);
+    73→    73→          // تهيئة الحروف المتاحة مع لوحة المفاتيح الكاملة
+    74→    74→          if (data.availableLetters && data.availableLetters.length > 0) {
+    75→    75→            const letters = data.availableLetters.map(l => ({ letter: l, used: false }));
+    76→    76→            setSelectedLetters(letters);
+    77→    77→          }
+    78→    78→        }
+    79→    79→      }
+    80→    80→    });
+    81→    81→    return () => { cancelled = true; };
+    82→    82→  }, [levelId]);
+    83→    83→
+    84→    84→  const currentWord = level?.words[currentWordIndex];
+    85→    85→  const currentWordText = currentWord?.text || "";
+    86→    86→
+    87→    87→  // الحروف المعروضة في خانات الإجابة (مكشوفة + مختارة من المستخدم بترتيب النقر)
+    88→    88→  const answerLetters = useMemo(() => {
+    89→    89→    if (!currentWord) return [];
+    90→    90→    const letters: (string | null)[] = Array(currentWordText.length).fill(null);
+    91→    91→    // ملء الحروف المكتشفة بالتلميح أولاً
+    92→    92→    revealedLetters.forEach((idx) => {
+    93→    93→      if (idx < currentWordText.length) {
+    94→    94→        letters[idx] = currentWordText[idx];
+    95→    95→      }
+    96→    96→    });
+    97→    97→    // ملء الحروف المختارة من المستخدم بترتيب النقر
+    98→    98→    let letterIdx = 0;
+    99→    99→    for (const selIdx of answerOrder) {
+   100→   100→      // إيجاد أول خانة فارغة
+   101→   101→      while (letterIdx < currentWordText.length && letters[letterIdx] !== null) {
+   102→   102→        letterIdx++;
+   103→   103→      }
+   104→   104→      if (letterIdx < currentWordText.length && selectedLetters[selIdx]) {
+   105→   105→        letters[letterIdx] = selectedLetters[selIdx].letter;
+   106→   106→        letterIdx++;
+   107→   107→      }
+   108→   108→    }
+   109→   109→    return letters;
+   110→   110→  }, [currentWord, currentWordText, revealedLetters, selectedLetters, answerOrder]);
+   111→   111→
+   112→   112→  const toggleMute = () => {
+   113→   113→    const newMuted = !isMuted;
+   114→   114→    setIsMuted(newMuted);
+   115→   115→    setMuted(newMuted);
+   116→   116→  };
+   117→   117→
+   118→   118→  const handleLetterClick = useCallback((letter: string) => {
+   119→   119→    // البحث عن أول حرف غير مستخدم مطابق
+   120→   120→    const idx = selectedLetters.findIndex(l => l.letter === letter && !l.used);
+   121→   121→    if (idx === -1) return;
+   122→   122→
+   123→   123→    const newLetters = [...selectedLetters];
+   124→   124→    newLetters[idx] = { ...newLetters[idx], used: true };
+   125→   125→    const newOrder = [...answerOrder, idx];
+   126→   126→    setSelectedLetters(newLetters);
+   127→   127→    setAnswerOrder(newOrder);
+   128→   128→    playSound("selectLetter");
+   129→   129→
+   130→   130→    // حساب عدد الخانات المملوءة بعد هذا الاختيار
+   131→   131→    const filledCount = revealedLetters.size + newOrder.length;
+   132→   132→    if (filledCount >= currentWordText.length) {
+   133→   133→      const word = buildCurrentWord(newLetters, newOrder);
+   134→   134→      setTimeout(() => checkWord(word, newLetters, newOrder), 200);
+   135→   135→    }
+   136→   136→  }, [selectedLetters, answerOrder, revealedLetters, currentWordText]);
+   137→   137→
+   138→   138→  const buildCurrentWord = (letters: { letter: string; used: boolean }[], order: number[]): string => {
+   139→   139→    if (!currentWord) return "";
+   140→   140→    const result: (string | null)[] = Array(currentWordText.length).fill(null);
+   141→   141→    // ملء الحروف المكتشفة بالتلميح
+   142→   142→    revealedLetters.forEach((idx) => {
+   143→   143→      if (idx < currentWordText.length) {
+   144→   144→        result[idx] = currentWordText[idx];
+   145→   145→      }
+   146→   146→    });
+   147→   147→    // ملء الحروف المختارة من المستخدم بترتيب النقر
+   148→   148→    let letterIdx = 0;
+   149→   149→    for (const selIdx of order) {
+   150→   150→      while (letterIdx < currentWordText.length && result[letterIdx] !== null) {
+   151→   151→        letterIdx++;
+   152→   152→      }
+   153→   153→      if (letterIdx < currentWordText.length && letters[selIdx]) {
+   154→   154→        result[letterIdx] = letters[selIdx].letter;
+   155→   155→        letterIdx++;
+   156→   156→      }
+   157→   157→    }
+   158→   158→    return result.join("");
+   159→   159→  };
+   160→   160→
+   161→   161→  const checkWord = (word: string, letters: { letter: string; used: boolean }[], order: number[]) => {
+   162→   162→    if (!level || !currentWord) return;
+   163→   163→
+   164→   164→    const isCorrect = word === currentWordText;
+   165→   165→    const isBonus = level.bonusWords.includes(word) && !bonusWords.includes(word);
+   166→   166→
+   167→   167→    if (isCorrect) {
+   168→   168→      const newFound = [...foundWords, word];
+   169→   169→      setFoundWords(newFound);
+   170→   170→      playSound("correctWord");
+   171→   171→      toast({ title: "🎉 إجابة صحيحة!", description: currentWord.clue });
+   172→   172→
+   173→   173→      setTimeout(() => {
+   174→   174→        if (currentWordIndex + 1 < level.words.length) {
+   175→   175→          setCurrentWordIndex(currentWordIndex + 1);
+   176→   176→          setRevealedLetters(new Set());
+   177→   177→          // إعادة تعيين الحروف المستخدمة
+   178→   178→          setSelectedLetters(prev => prev.map(l => ({ ...l, used: false }))); setAnswerOrder([]);
+   179→   179→        } else {
+   180→   180→          playSound("levelComplete");
+   181→   181→          setShowSuccess(true);
+   182→   182→          completeLevel(level.id, level.reward);
+   183→   183→          addCoins(bonusWords.length * 20);
+   184→   184→          const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+   185→   185→          if (userId) {
+   186→   186→            saveProgress({
+   187→   187→              userId, levelId: level.id, isCompleted: true, stars: 1,
+   188→   188→              score: level.reward + bonusWords.length * 20,
+   189→   189→              hintsUsed: levelHintsUsed, timeSpent,
+   190→   190→              coinsEarned: level.reward + bonusWords.length * 20,
+   191→   191→            }).catch((e) => console.error("Cloud sync error:", e));
+   192→   192→          }
+   193→   193→        }
+   194→   194→      }, 800);
+   195→   195→    } else if (isBonus) {
+   196→   196→      setBonusWords([...bonusWords, word]);
+   197→   197→      addCoins(20);
+   198→   198→      playSound("bonusWord");
+   199→   199→      toast({ title: "✨ كلمة إضافية!", description: `+20 عملة (${word})` });
+   200→   200→      setSelectedLetters(prev => prev.map(l => ({ ...l, used: false }))); setAnswerOrder([]);
+   201→   201→    } else {
+   202→   202→      playSound("wrongWord");
+   203→   203→      setWrongShake(true);
+   204→   204→      setTimeout(() => setWrongShake(false), 500);
+   205→   205→      toast({ title: "❌ إجابة خاطئة", description: "حاول مرة أخرى", variant: "destructive" });
+   206→   206→      setTimeout(() => {
+   207→   207→        setSelectedLetters(prev => prev.map(l => ({ ...l, used: false }))); setAnswerOrder([]);
+   208→   208→      }, 500);
+   209→   209→    }
+   210→   210→  };
+   211→   211→
+   212→   212→  const handleRemoveLast = () => {
+   213→   213→    if (answerOrder.length === 0) return;
+   214→   214→    // إزالة آخر حرف من ترتيب النقر
+   215→   215→    const lastIdx = answerOrder[answerOrder.length - 1];
+   216→   216→    const newOrder = answerOrder.slice(0, -1);
+   217→   217→    const newLetters = [...selectedLetters];
+   218→   218→    newLetters[lastIdx] = { ...newLetters[lastIdx], used: false };
+   219→   219→    setSelectedLetters(newLetters);
+   220→   220→    setAnswerOrder(newOrder);
+   221→   221→    playSound("removeLetter");
+   222→   222→  };
+   223→   223→
+   224→   224→  const handleClear = () => {
+   225→   225→    setSelectedLetters(prev => prev.map(l => ({ ...l, used: false }))); setAnswerOrder([]);
+   226→   226→    playSound("removeLetter");
+   227→   227→  };
+   228→   228→
+   229→   229→  const handleRevealLetter = () => {
+   230→   230→    if (!level || !currentWord) return;
+   231→   231→    if (coins < level.hintCost) {
+   232→   232→      toast({ title: "عملات غير كافية", description: `تحتاج ${level.hintCost} عملة`, variant: "destructive" });
+   233→   233→      return;
+   234→   234→    }
+   235→   235→    const emptyIdx = answerLetters.findIndex(l => l === null);
+   236→   236→    if (emptyIdx === -1) {
+   237→   237→      toast({ title: "اكتملت الكلمة", description: "اضغط تأكيد للتحقق" });
+   238→   238→      return;
+   239→   239→    }
+   240→   240→    if (spendCoins(level.hintCost)) {
+   241→   241→      recordHintUsed();
+   242→   242→      setLevelHintsUsed(prev => prev + 1);
+   243→   243→      const newRevealed = new Set(revealedLetters);
+   244→   244→      newRevealed.add(emptyIdx);
+   245→   245→      setRevealedLetters(newRevealed);
+   246→   246→      playSound("hint");
+   247→   247→      toast({ title: "💡 كشف حرف", description: `الحرف ${emptyIdx + 1}: ${currentWordText[emptyIdx]}` });
+   248→   248→    }
+   249→   249→  };
+   250→   250→
+   251→   251→  if (loading) {
+   252→   252→    return (
+   253→   253→      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-teal-900 to-cyan-950">
+   254→   254→        <motion.div
+   255→   255→          animate={{ rotate: 360 }}
+   256→   256→          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+   257→   257→          className="w-16 h-16 rounded-full border-4 border-teal-400 border-t-transparent"
+   258→   258→        />
+   259→   259→        <p className="text-teal-200 text-sm">جاري تحميل اللغز...</p>
+   260→   260→      </div>
+   261→   261→    );
+   262→   262→  }
+   263→   263→
+   264→   264→  if (!level || !currentWord) {
+   265→   265→    return (
+   266→   266→      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-teal-900 to-cyan-950">
+   267→   267→        <Card className="p-8 text-center bg-white/10 border-white/20 backdrop-blur-md">
+   268→   268→          <p className="text-white mb-4">المرحلة غير موجودة</p>
+   269→   269→          <Button onClick={() => onExit?.() || router.push("/")} variant="outline">العودة</Button>
+   270→   270→        </Card>
+   271→   271→      </div>
+   272→   272→    );
+   273→   273→  }
+   274→   274→
+   275→   275→  const puzzleType = level.puzzleType || "text";
+   276→   276→  const progress = (foundWords.length / level.words.length) * 100;
+   277→   277→  const difficultyLabels: Record<string, { label: string; color: string }> = {
+   278→   278→    easy: { label: "سهل", color: "bg-green-500/20 text-green-300" },
+   279→   279→    medium: { label: "متوسط", color: "bg-amber-500/20 text-amber-300" },
+   280→   280→    hard: { label: "صعب", color: "bg-red-500/20 text-red-300" },
+   281→   281→  };
+   282→   282→
+   283→   283→  return (
+   284→   284→    <div className="min-h-screen bg-gradient-to-b from-teal-800 via-teal-900 to-cyan-950 flex flex-col pattern-pro">
+   285→   285→      {/* شريط علوي محسّن */}
+   286→   286→      <header className="bg-teal-950/60 backdrop-blur-xl border-b border-white/10 sticky top-0 z-30">
+   287→   287→        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+   288→   288→          <button
+   289→   289→            onClick={() => { playSound("buttonClick"); if (onExit) onExit(); else router.push("/"); }}
+   290→   290→            className="flex items-center gap-2 text-white/80 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
+   291→   291→          >
+   292→   292→            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+   293→   293→              <polyline points="15 18 9 12 15 6" />
+   294→   294→            </svg>
+   295→   295→            <span className="text-sm font-medium hidden sm:inline">رجوع</span>
+   296→   296→          </button>
+   297→   297→
+   298→   298→          <div className="flex items-center gap-3">
+   299→   299→            <span className="text-white font-bold text-lg">مرحلة {level.number}</span>
+   300→   300→            {difficultyLabels[level.difficulty] && (
+   301→   301→              <Badge className={cn("text-xs border-0", difficultyLabels[level.difficulty].color)}>
+   302→   302→                {difficultyLabels[level.difficulty].label}
+   303→   303→              </Badge>
+   304→   304→            )}
+   305→   305→          </div>
+   306→   306→
+   307→   307→          <div className="flex items-center gap-2">
+   308→   308→            <button onClick={toggleMute} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/80">
+   309→   309→              {isMuted ? (
+   310→   310→                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+   311→   311→                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+   312→   312→                  <line x1="23" y1="9" x2="17" y2="15" />
+   313→   313→                  <line x1="17" y1="9" x2="23" y2="15" />
+   314→   314→                </svg>
+   315→   315→              ) : (
+   316→   316→                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+   317→   317→                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+   318→   318→                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+   319→   319→                </svg>
+   320→   320→              )}
+   321→   321→            </button>
+   322→   322→            <div className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm">
+   323→   323→              <span className="text-yellow-400 text-sm">🪙</span>
+   324→   324→              <span className="text-sm font-bold text-white">{coins}</span>
+   325→   325→            </div>
+   326→   326→          </div>
+   327→   327→        </div>
+   328→   328→        {/* شريط التقدم */}
+   329→   329→        <div className="h-1 bg-teal-950/50">
+   330→   330→          <motion.div
+   331→   331→            className="h-full bg-gradient-to-r from-yellow-400 to-amber-500"
+   332→   332→            animate={{ width: `${progress}%` }}
+   333→   333→            transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
+   334→   334→          />
+   335→   335→        </div>
+   336→   336→      </header>
+   337→   337→
+   338→   338→      {/* المحتوى الرئيسي */}
+   339→   339→      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-4 flex flex-col gap-4">
+   340→   340→        {/* مؤشر الأسئلة */}
+   341→   341→        <div className="flex items-center gap-2 justify-center">
+   342→   342→          {level.words.map((w, idx) => (
+   343→   343→            <div
+   344→   344→              key={idx}
+   345→   345→              className={cn(
+   346→   346→                "h-2 rounded-full transition-all",
+   347→   347→                foundWords.includes(w.text)
+   348→   348→                  ? "w-8 bg-green-400"
+   349→   349→                  : idx === currentWordIndex
+   350→   350→                  ? "w-8 bg-yellow-400 animate-pulse"
+   351→   351→                  : "w-2 bg-white/20"
+   352→   352→              )}
+   353→   353→            />
+   354→   354→          ))}
+   355→   355→        </div>
+   356→   356→
+   357→   357→        {/* منطقة اللغز */}
+   358→   358→        <motion.div
+   359→   359→          key={currentWordIndex}
+   360→   360→          initial={{ opacity: 0, y: 20 }}
+   361→   361→          animate={{ opacity: 1, y: 0 }}
+   362→   362→          className={cn("flex-1 flex flex-col items-center justify-center gap-4", wrongShake && "animate-shake")}
+   363→   363→          style={wrongShake ? { animation: "shake 0.5s" } : {}}
+   364→   364→        >
+   365→   365→          {/* 1. عرض الصورة إذا كان اللغز بصري */}
+   366→   366→          {puzzleType === "image" && currentWord.imageUrl && (
+   367→   367→            <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20">
+   368→   368→              <img src={currentWord.imageUrl} alt="لغز" className="w-full h-full object-cover"
+   369→   369→                onError={(e) => { (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-teal-700 text-white text-6xl">🖼️</div>'; }}
+   370→   370→              />
+   371→   371→            </div>
+   372→   372→          )}
+   373→   373→
+   374→   374→          {/* 2. عرض 4 صور */}
+   375→   375→          {puzzleType === "images4" && (
+   376→   376→            <div className="grid grid-cols-2 gap-2 w-64 sm:w-72">
+   377→   377→              {[currentWord.imageUrl, currentWord.image2Url, currentWord.image3Url, currentWord.image4Url].map((url, i) => (
+   378→   378→                url ? (
+   379→   379→                  <div key={i} className="aspect-square rounded-xl overflow-hidden shadow-lg border border-white/10">
+   380→   380→                    <img src={url} alt={`صورة ${i+1}`} className="w-full h-full object-cover"
+   381→   381→                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-teal-700 text-white text-3xl">🖼️</div>'; }}
+   382→   382→                    />
+   383→   383→                  </div>
+   384→   384→                ) : (
+   385→   385→                  <div key={i} className="aspect-square rounded-xl bg-teal-700/50 flex items-center justify-center text-white/30 text-3xl">🖼️</div>
+   386→   386→                )
+   387→   387→              ))}
+   388→   388→            </div>
+   389→   389→          )}
+   390→   390→
+   391→   391→          {/* 3. عرض الإيموجي */}
+   392→   392→          {puzzleType === "emoji" && currentWord.emojis && (
+   393→   393→            <div className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-2xl px-8 py-6 border-2 border-amber-400/30">
+   394→   394→              <div className="flex items-center justify-center gap-2 text-5xl sm:text-6xl">
+   395→   395→                {currentWord.emojis.split("").map((emoji, i) => (
+   396→   396→                  <motion.span
+   397→   397→                    key={i}
+   398→   398→                    initial={{ scale: 0, rotate: -180 }}
+   399→   399→                    animate={{ scale: 1, rotate: 0 }}
+   400→   400→                    transition={{ delay: i * 0.1, type: "spring" }}
+   401→   401→                  >
+   402→   402→                    {emoji}
+   403→   403→                  </motion.span>
+   404→   404→                ))}
+   405→   405→              </div>
+   406→   406→              {currentWord.clue && (
+   407→   407→                <p className="text-white/70 text-sm text-center mt-3">{currentWord.clue}</p>
+   408→   408→              )}
+   409→   409→            </div>
+   410→   410→          )}
+   411→   411→
+   412→   412→          {/* 4. عرض الحروف المبعثرة */}
+   413→   413→          {puzzleType === "scrambled" && currentWord.sequence && (
+   414→   414→            <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-2xl px-6 py-4 border-2 border-purple-400/30 w-full max-w-md">
+   415→   415→              <p className="text-white/70 text-sm text-center mb-3">{currentWord.clue}</p>
+   416→   416→              <div className="flex items-center justify-center gap-2">
+   417→   417→                {currentWord.sequence.split("").map((letter, i) => (
+   418→   418→                  <motion.div
+   419→   419→                    key={i}
+   420→   420→                    initial={{ scale: 0, y: -20 }}
+   421→   421→                    animate={{ scale: 1, y: 0 }}
+   422→   422→                    transition={{ delay: i * 0.1, type: "spring" }}
+   423→   423→                    className="w-12 h-12 rounded-xl bg-white/20 border-2 border-purple-400/50 flex items-center justify-center text-white text-xl font-bold"
+   424→   424→                  >
+   425→   425→                    {letter}
+   426→   426→                  </motion.div>
+   427→   427→                ))}
+   428→   428→              </div>
+   429→   429→              <p className="text-white/50 text-xs text-center mt-3">↑ رتب هذه الحروف لتكوين كلمة</p>
+   430→   430→            </div>
+   431→   431→          )}
+   432→   432→
+   433→   433→          {/* 5. عرض الفراغات */}
+   434→   434→          {puzzleType === "fillblank" && currentWord.fillBlanks && (
+   435→   435→            <div className="bg-gradient-to-br from-teal-600 to-cyan-700 rounded-2xl px-6 py-4 shadow-xl max-w-md w-full">
+   436→   436→              <p className="text-white text-lg sm:text-xl font-bold text-center leading-relaxed" style={{ fontFamily: "var(--font-tajawal)" }}>
+   437→   437→                {currentWord.fillBlanks.split("___").map((part, i, arr) => (
+   438→   438→                  <span key={i}>
+   439→   439→                    {part}
+   440→   440→                    {i < arr.length - 1 && (
+   441→   441→                      <span className="inline-block mx-1 px-3 py-0.5 rounded-lg bg-yellow-400/30 border-b-2 border-yellow-400 text-yellow-200">
+   442→   442→                        {"?".repeat(currentWord.text.length)}
+   443→   443→                      </span>
+   444→   444→                    )}
+   445→   445→                  </span>
+   446→   446→                ))}
+   447→   447→              </p>
+   448→   448→              <p className="text-white/60 text-xs text-center mt-2">الإجابة: {currentWord.text.length} حروف</p>
+   449→   449→            </div>
+   450→   450→          )}
+   451→   451→
+   452→   452→          {/* 6. عرض التوصيل والربط */}
+   453→   453→          {puzzleType === "matching" && currentWord.matchPairs && currentWord.matchPairs.length > 0 && (
+   454→   454→            <div className="bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-2xl px-6 py-4 border-2 border-blue-400/30 w-full max-w-lg">
+   455→   455→              <p className="text-white text-sm text-center mb-4">{currentWord.clue}</p>
+   456→   456→              <div className="grid grid-cols-2 gap-3">
+   457→   457→                {currentWord.matchPairs.flatMap((pair: string) => pair.split("|")).map((word, i) => (
+   458→   458→                  <motion.button
+   459→   459→                    key={i}
+   460→   460→                    initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
+   461→   461→                    animate={{ opacity: 1, x: 0 }}
+   462→   462→                    transition={{ delay: i * 0.1 }}
+   463→   463→                    className="px-4 py-2.5 rounded-xl bg-white/15 border-2 border-white/20 text-white text-sm font-bold hover:bg-white/25 transition-colors cursor-pointer"
+   464→   464→                  >
+   465→   465→                    {word}
+   466→   466→                  </motion.button>
+   467→   467→                ))}
+   468→   468→              </div>
+   469→   469→              <p className="text-white/50 text-xs text-center mt-3">اضغط على الكلمات المتطابقة</p>
+   470→   470→            </div>
+   471→   471→          )}
+   472→   472→
+   473→   473→          {/* 7. عرض الاختيار من متعدد */}
+   474→   474→          {puzzleType === "multiple" && currentWord.options && currentWord.options.length > 0 && (
+   475→   475→            <div className="bg-gradient-to-br from-teal-600 to-cyan-700 rounded-2xl px-6 py-4 shadow-xl max-w-md w-full">
+   476→   476→              <p className="text-white text-lg font-bold text-center mb-4" style={{ fontFamily: "var(--font-tajawal)" }}>
+   477→   477→                {currentWord.clue}
+   478→   478→              </p>
+   479→   479→              <div className="space-y-2">
+   480→   480→                {currentWord.options.map((option: string, i: number) => (
+   481→   481→                  <motion.button
+   482→   482→                    key={i}
+   483→   483→                    initial={{ opacity: 0, y: 10 }}
+   484→   484→                    animate={{ opacity: 1, y: 0 }}
+   485→   485→                    transition={{ delay: i * 0.1 }}
+   486→   486→                    onClick={() => {
+   487→   487→                      if (i === currentWord.correctOption) {
+   488→   488→                        playSound("correctWord");
+   489→   489→                        const newFound = [...foundWords, currentWord.text];
+   490→   490→                        setFoundWords(newFound);
+   491→   491→                        toast({ title: "🎉 إجابة صحيحة!", description: currentWord.text });
+   492→   492→                        setTimeout(() => {
+   493→   493→                          if (currentWordIndex + 1 < level.words.length) {
+   494→   494→                            setCurrentWordIndex(currentWordIndex + 1);
+   495→   495→                            setRevealedLetters(new Set());
+   496→   496→                            setSelectedLetters(prev => prev.map(l => ({ ...l, used: false })));
+   497→   497→                            setAnswerOrder([]);
+   498→   498→                          } else {
+   499→   499→                            playSound("levelComplete");
+   500→   500→                            setShowSuccess(true);
+   501→   501→                            completeLevel(level.id, level.reward);
+   502→   502→                          }
+   503→   503→                        }, 800);
+   504→   504→                      } else {
+   505→   505→                        playSound("wrongWord");
+   506→   506→                        setWrongShake(true);
+   507→   507→                        setTimeout(() => setWrongShake(false), 500);
+   508→   508→                        toast({ title: "❌ خطأ", description: "حاول مرة أخرى", variant: "destructive" });
+   509→   509→                      }
+   510→   510→                    }}
+   511→   511→                    className="w-full px-4 py-2.5 rounded-xl bg-white/15 border-2 border-white/20 text-white text-sm font-bold hover:bg-white/25 transition-colors text-right flex items-center gap-2"
+   512→   512→                  >
+   513→   513→                    <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
+   514→   514→                      {["أ", "ب", "ج", "د"][i]}
+   515→   515→                    </span>
+   516→   516→                    {option}
+   517→   517→                  </motion.button>
+   518→   518→                ))}
+   519→   519→              </div>
+   520→   520→            </div>
+   521→   521→          )}
+   522→   522→
+   523→   523→          {/* 8. عرض اللغز المنطقي */}
+   524→   524→          {puzzleType === "logic" && (
+   525→   525→            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl px-6 py-4 shadow-xl max-w-md w-full">
+   526→   526→              {currentWord.sequence && (
+   527→   527→                <div className="mb-3">
+   528→   528→                  <p className="text-white/70 text-sm text-center mb-2">{currentWord.clue}</p>
+   529→   529→                  <div className="flex items-center justify-center gap-2">
+   530→   530→                    {currentWord.sequence.split(",").map((num, i) => (
+   531→   531→                      <motion.div
+   532→   532→                        key={i}
+   533→   533→                        initial={{ scale: 0 }}
+   534→   534→                        animate={{ scale: 1 }}
+   535→   535→                        transition={{ delay: i * 0.15 }}
+   536→   536→                        className="w-12 h-12 rounded-xl bg-white/20 border-2 border-indigo-400/50 flex items-center justify-center text-white text-lg font-bold"
+   537→   537→                      >
+   538→   538→                        {num}
+   539→   539→                      </motion.div>
+   540→   540→                    ))}
+   541→   541→                    <motion.div
+   542→   542→                      initial={{ scale: 0 }}
+   543→   543→                      animate={{ scale: 1 }}
+   544→   544→                      transition={{ delay: currentWord.sequence.split(",").length * 0.15 }}
+   545→   545→                      className="w-12 h-12 rounded-xl bg-yellow-400/30 border-2 border-yellow-400 border-dashed flex items-center justify-center text-yellow-200 text-lg"
+   546→   546→                    >
+   547→   547→                      ?
+   548→   548→                    </motion.div>
+   549→   549→                  </div>
+   550→   550→                </div>
+   551→   551→              )}
+   552→   552→              {!currentWord.sequence && (
+   553→   553→                <p className="text-white text-lg font-bold text-center" style={{ fontFamily: "var(--font-tajawal)" }}>
+   554→   554→                  {currentWord.clue}
+   555→   555→                </p>
+   556→   556→              )}
+   557→   557→            </div>
+   558→   558→          )}
+   559→   559→
+   560→   560→          {/* 9. عرض التلميحات المتدرجة */}
+   561→   561→          {puzzleType === "progressive" && (
+   562→   562→            <div className="bg-gradient-to-br from-amber-500/20 to-yellow-500/20 rounded-2xl px-6 py-4 border-2 border-amber-400/30 max-w-md w-full">
+   563→   563→              <div className="flex items-center justify-center gap-2 mb-2">
+   564→   564→                <span className="px-2 py-1 rounded-lg bg-amber-400/20 text-amber-300 text-xs font-bold">
+   565→   565→                  💡 تلميحات متدرجة
+   566→   566→                </span>
+   567→   567→              </div>
+   568→   568→              <p className="text-white text-lg font-bold text-center leading-relaxed" style={{ fontFamily: "var(--font-tajawal)" }}>
+   569→   569→                {currentWord.clue}
+   570→   570→              </p>
+   571→   571→              <div className="flex items-center justify-center gap-2 mt-3">
+   572→   572→                <span className="text-white/50 text-xs">عدد الحروف: {currentWord.text.length}</span>
+   573→   573→                {revealedLetters.size > 0 && (
+   574→   574→                  <span className="text-white/50 text-xs">• أول حرف: {currentWord.text[0]}</span>
+   575→   575→                )}
+   576→   576→              </div>
+   577→   577→            </div>
+   578→   578→          )}
+   579→   579→
+   580→   580→          {/* 10. عرض المرحلة المختلطة (بوس) */}
+   581→   581→          {puzzleType === "mixed" && (
+   582→   582→            <div className="w-full max-w-md space-y-3">
+   583→   583→              {/* شارة البوس */}
+   584→   584→              <div className="flex items-center justify-center gap-2">
+   585→   585→                <span className="px-3 py-1 rounded-full bg-gradient-to-r from-red-500 to-purple-600 text-white text-xs font-bold animate-pulse">
+   586→   586→                  👑 تحدي البوس
+   587→   587→                </span>
+   588→   588→              </div>
+   589→   589→              {/* محتوى مختلط حسب البيانات */}
+   590→   590→              {currentWord.emojis && (
+   591→   591→                <div className="flex items-center justify-center gap-2 text-4xl">
+   592→   592→                  {currentWord.emojis.split("").map((emoji, i) => (
+   593→   593→                    <motion.span key={i} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 }}>
+   594→   594→                      {emoji}
+   595→   595→                    </motion.span>
+   596→   596→                  ))}
+   597→   597→                </div>
+   598→   598→              )}
+   599→   599→              {currentWord.sequence && (
+   600→   600→                <div className="flex items-center justify-center gap-2">
+   601→   601→                  {currentWord.sequence.split("").map((letter, i) => (
+   602→   602→                    <div key={i} className="w-10 h-10 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center text-white font-bold">
+   603→   603→                      {letter}
+   604→   604→                    </div>
+   605→   605→                  ))}
+   606→   606→                </div>
+   607→   607→              )}
+   608→   608→              <div className="bg-gradient-to-br from-purple-600 to-red-700 rounded-2xl px-6 py-4 shadow-xl">
+   609→   609→                <p className="text-white text-lg font-bold text-center" style={{ fontFamily: "var(--font-tajawal)" }}>
+   610→   610→                  {currentWord.clue}
+   611→   611→                </p>
+   612→   612→              </div>
+   613→   613→            </div>
+   614→   614→          )}
+   615→   615→
+   616→   616→          {/* عرض الشبكة المتقاطعة */}
+   617→   617→          {puzzleType === "crossword" && (
+   618→   618→            <div className="bg-gradient-to-br from-amber-50/10 to-amber-100/5 rounded-2xl p-4 border-2 border-amber-300/30 w-full max-w-lg">
+   619→   619→              {/* قائمة الكلمات */}
+   620→   620→              <div className="flex flex-wrap gap-2 justify-center mb-4">
+   621→   621→                {level.words.map((word, idx) => {
+   622→   622→                  const found = foundWords.includes(word.text);
+   623→   623→                  return (
+   624→   624→                    <div
+   625→   625→                      key={idx}
+   626→   626→                      className={cn(
+   627→   627→                        "px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all",
+   628→   628→                        found
+   629→   629→                          ? "bg-gradient-to-br from-amber-400 to-amber-500 text-white border-amber-500"
+   630→   630→                          : idx === currentWordIndex
+   631→   631→                          ? "bg-amber-400/20 text-amber-300 border-amber-400 animate-pulse"
+   632→   632→                          : "bg-white/5 text-white/40 border-white/10"
+   633→   633→                      )}
+   634→   634→                    >
+   635→   635→                      {word.number}. {word.direction === "across" ? "→" : "↓"} {found ? word.text : "؟".repeat(word.text.length)}
+   636→   636→                    </div>
+   637→   637→                  );
+   638→   638→                })}
+   639→   639→              </div>
+   640→   640→
+   641→   641→              {/* التلميح الحالي */}
+   642→   642→              <div className="bg-gradient-to-br from-teal-600 to-cyan-700 rounded-xl px-4 py-3 mb-4">
+   643→   643→                {currentWord.category && (
+   644→   644→                  <div className="text-center mb-1">
+   645→   645→                    <span className="px-2 py-0.5 rounded bg-white/20 text-white text-xs font-bold">
+   646→   646→                      {currentWord.category}
+   647→   647→                    </span>
+   648→   648→                  </div>
+   649→   649→                )}
+   650→   650→                <p className="text-white text-sm sm:text-base font-bold text-center">
+   651→   651→                  {currentWord.number}. {currentWord.direction === "across" ? "أفقي" : "عمودي"} — {currentWord.clue}
+   652→   652→                </p>
+   653→   653→              </div>
+   654→   654→
+   655→   655→              {/* شبكة الكلمات المتقاطعة */}
+   656→   656→              <div className="flex justify-center">
+   657→   657→                <CrosswordGrid level={level} foundWords={foundWords} />
+   658→   658→              </div>
+   659→   659→            </div>
+   660→   660→          )}
+   661→   661→
+   662→   662→          {/* عرض النص للغز النصي العادي */}
+   663→   663→          {puzzleType === "text" && (
+   664→   664→            <div className="bg-gradient-to-br from-teal-600 to-cyan-700 rounded-2xl px-6 py-4 shadow-xl max-w-md w-full">
+   665→   665→              {currentWord.category && (
+   666→   666→                <div className="text-center mb-2">
+   667→   667→                  <span className="px-3 py-1 rounded-lg bg-white/20 text-white text-sm font-bold">
+   668→   668→                    {currentWord.category}
+   669→   669→                  </span>
+   670→   670→                </div>
+   671→   671→              )}
+   672→   672→              <p className="text-white text-lg sm:text-xl font-bold text-center leading-relaxed" style={{ fontFamily: "var(--font-tajawal)" }}>
+   673→   673→                {currentWord.clue}
+   674→   674→              </p>
+   675→   675→            </div>
+   676→   676→          )}
+   677→   677→
+   678→   678→          {/* خانات الإجابة (لجميع الأنواع عدا multiple و matching) */}
+   679→   679→          {puzzleType !== "multiple" && puzzleType !== "matching" && (
+   680→   680→            <div className="flex flex-wrap gap-2 justify-center max-w-sm">
+   681→   681→              {answerLetters.map((letter, idx) => {
+   682→   682→                const isRevealed = revealedLetters.has(idx);
+   683→   683→                return (
+   684→   684→                  <motion.div
+   685→   685→                    key={idx}
+   686→   686→                    initial={{ scale: 0.8, opacity: 0 }}
+   687→   687→                    animate={{ scale: 1, opacity: 1 }}
+   688→   688→                    transition={{ delay: idx * 0.05 }}
+   689→   689→                    className={cn(
+   690→   690→                      "w-11 h-11 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center font-bold text-xl shadow-md transition-all border-2",
+   691→   691→                      isRevealed
+   692→   692→                        ? "bg-gradient-to-br from-blue-400 to-blue-500 text-white border-blue-300"
+   693→   693→                        : letter !== null
+   694→   694→                        ? "bg-white text-stone-800 border-stone-300"
+   695→   695→                        : "bg-teal-950/60 border-teal-700/50"
+   696→   696→                    )}
+   697→   697→                  >
+   698→   698→                    {letter && (
+   699→   699→                      <motion.span
+   700→   700→                        initial={{ scale: 0, rotate: -180 }}
+   701→   701→                        animate={{ scale: 1, rotate: 0 }}
+   702→   702→                        transition={{ type: "spring", stiffness: 300 }}
+   703→   703→                      >
+   704→   704→                        {letter}
+   705→   705→                      </motion.span>
+   706→   706→                    )}
+   707→   707→                  </motion.div>
+   708→   708→                );
+   709→   709→              })}
+   710→   710→            </div>
+   711→   711→          )}
+   712→   712→        </motion.div>
+   713→   713→
+   714→   714→        {/* الكلمات الإضافية */}
+   715→   715→        {bonusWords.length > 0 && (
+   716→   716→          <div className="flex flex-wrap gap-2 justify-center">
+   717→   717→            {bonusWords.map((word, idx) => (
+   718→   718→              <motion.span
+   719→   719→                key={word}
+   720→   720→                initial={{ scale: 0 }}
+   721→   721→                animate={{ scale: 1 }}
+   722→   722→                transition={{ delay: idx * 0.1, type: "spring" }}
+   723→   723→                className="px-3 py-1 rounded-lg bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-purple-200 text-sm font-medium border border-purple-400/30"
+   724→   724→              >
+   725→   725→                ✨ {word} +20
+   726→   726→              </motion.span>
+   727→   727→            ))}
+   728→   728→          </div>
+   729→   729→        )}
+   730→   730→      </main>
+   731→   731→
+   732→   732→      {/* لوحة المفاتيح العربية - تظهر لجميع الأنواع عدا multiple و matching */}
+   733→   733→      {puzzleType !== "multiple" && puzzleType !== "matching" && (
+   734→   734→      <div className="bg-teal-950/60 backdrop-blur-md border-t border-white/10 p-3">
+   735→   735→        {/* أزرار المساعدة */}
+   736→   736→        <div className="flex items-center justify-center gap-3 mb-3">
+   737→   737→          <button
+   738→   738→            onClick={handleRevealLetter}
+   739→   739→            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors"
+   740→   740→          >
+   741→   741→            💡 تلميح
+   742→   742→            <span className="text-yellow-400">{level.hintCost}🪙</span>
+   743→   743→          </button>
+   744→   744→          <button
+   745→   745→            onClick={handleRemoveLast}
+   746→   746→            disabled={answerOrder.length === 0}
+   747→   747→            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors disabled:opacity-30"
+   748→   748→          >
+   749→   749→            ⌫ حذف
+   750→   750→          </button>
+   751→   751→          <button
+   752→   752→            onClick={handleClear}
+   753→   753→            disabled={answerOrder.length === 0}
+   754→   754→            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors disabled:opacity-30"
+   755→   755→          >
+   756→   756→            🗑️ مسح
+   757→   757→          </button>
+   758→   758→        </div>
+   759→   759→
+   760→   760→        {/* لوحة المفاتيح */}
+   761→   761→        <div className="flex flex-col gap-1.5 max-w-2xl mx-auto">
+   762→   762→          {ARABIC_KEYBOARD.map((row, rowIdx) => (
+   763→   763→            <div key={rowIdx} className="flex justify-center gap-1">
+   764→   764→              {row.map((letter, idx) => {
+   765→   765→                // البحث عن الحرف في الحروف المتاحة
+   766→   766→                const availableLetter = selectedLetters.find(l => l.letter === letter && !l.used);
+   767→   767→                const isAvailable = !!availableLetter;
+   768→   768→                const isUsed = selectedLetters.some(l => l.letter === letter && l.used) && !isAvailable;
+   769→   769→
+   770→   770→                return (
+   771→   771→                  <motion.button
+   772→   772→                    key={`${letter}-${idx}`}
+   773→   773→                    whileTap={{ scale: 0.9 }}
+   774→   774→                    whileHover={isAvailable ? { scale: 1.1, y: -2 } : {}}
+   775→   775→                    onClick={() => handleLetterClick(letter)}
+   776→   776→                    disabled={!isAvailable}
+   777→   777→                    className={cn(
+   778→   778→                      "w-8 h-9 sm:w-9 sm:h-10 rounded-lg font-bold text-sm sm:text-base transition-all",
+   779→   779→                      isAvailable
+   780→   780→                        ? "bg-gradient-to-br from-white to-stone-100 text-stone-800 shadow-md hover:shadow-lg border border-white/50 cursor-pointer"
+   781→   781→                        : "bg-white/5 text-white/20 cursor-not-allowed"
+   782→   782→                    )}
+   783→   783→                  >
+   784→   784→                    {letter}
+   785→   785→                  </motion.button>
+   786→   786→                );
+   787→   787→              })}
+   788→   788→            </div>
+   789→   789→          ))}
+   790→   790→        </div>
+   791→   791→      </div>
+   792→   792→      )}
+   793→   793→
+   794→   794→      {/* شاشة النجاح */}
+   795→   795→      <AnimatePresence>
+   796→   796→        {showSuccess && (
+   797→   797→          <SuccessModal
+   798→   798→            level={level}
+   799→   799→            foundWords={foundWords.length}
+   800→   800→            bonusWords={bonusWords.length}
+   801→   801→            timeSpent={Math.floor((Date.now() - startTime) / 1000)}
+   802→   802→            hintsUsed={levelHintsUsed}
+   803→   803→            onClose={() => {
+   804→   804→              setShowSuccess(false);
+   805→   805→              if (onExit) onExit();
+   806→   806→              else router.push("/");
+   807→   807→            }}
+   808→   808→          />
+   809→   809→        )}
+   810→   810→      </AnimatePresence>
+   811→   811→
+   812→   812→      <style>{`
+   813→   813→        @keyframes shake {
+   814→   814→          0%, 100% { transform: translateX(0); }
+   815→   815→          25% { transform: translateX(-10px); }
+   816→   816→          75% { transform: translateX(10px); }
+   817→   817→        }
+   818→   818→      `}</style>
+   819→   819→    </div>
+   820→   820→  );
+   821→   821→}
+   822→   822→
+   823→   823→function SuccessModal({ level, foundWords, bonusWords, timeSpent, hintsUsed, onClose }: {
+   824→   824→  level: Level; foundWords: number; bonusWords: number; timeSpent: number; hintsUsed: number; onClose: () => void;
+   825→   825→}) {
+   826→   826→  const totalReward = level.reward + bonusWords * 20;
+   827→   827→  const minutes = Math.floor(timeSpent / 60);
+   828→   828→  const seconds = timeSpent % 60;
+   829→   829→  const timeStr = minutes > 0 ? `${minutes} د ${seconds} ث` : `${seconds} ثانية`;
+   830→   830→  // نظام نجوم محسّن: 3 نجوم = دون تلميحات وسريع، 2 نجوم = دون/مع تلميح قليل، نجمة واحدة = أكمل على الأقل
+   831→   831→  const stars = hintsUsed === 0 && timeSpent < 120 ? 3 : hintsUsed <= 3 && timeSpent < 300 ? 2 : 1;
+   832→   832→
+   833→   833→  return (
+   834→   834→    <motion.div
+   835→   835→      initial={{ opacity: 0 }}
+   836→   836→      animate={{ opacity: 1 }}
+   837→   837→      exit={{ opacity: 0 }}
+   838→   838→      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+   839→   839→      onClick={onClose}
+   840→   840→    >
+   841→   841→      <motion.div
+   842→   842→        initial={{ scale: 0.3, y: 80, rotateX: 45 }}
+   843→   843→        animate={{ scale: 1, y: 0, rotateX: 0 }}
+   844→   844→        exit={{ scale: 0.3, y: 80, rotateX: 45 }}
+   845→   845→        transition={{ type: "spring", stiffness: 200, damping: 18 }}
+   846→   846→        className="bg-gradient-to-br from-teal-700 via-cyan-800 to-teal-900 rounded-3xl p-8 max-w-md w-full shadow-2xl border-2 border-teal-300/30 relative overflow-hidden"
+   847→   847→        onClick={(e) => e.stopPropagation()}
+   848→   848→      >
+   849→   849→        {/* خلفية متوهجة */}
+   850→   850→        <motion.div
+   851→   851→          animate={{ opacity: [0.3, 0.6, 0.3] }}
+   852→   852→          transition={{ duration: 3, repeat: Infinity }}
+   853→   853→          className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-transparent to-purple-400/10"
+   854→   854→        />
+   855→   855→
+   856→   856→        {/* رموز متطايرة أكثر */}
+   857→   857→        {[...Array(15)].map((_, i) => (
+   858→   858→          <motion.div
+   859→   859→            key={i}
+   860→   860→            initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
+   861→   861→            animate={{
+   862→   862→              scale: [0, 1.2, 0],
+   863→   863→              x: (Math.random() - 0.5) * 500,
+   864→   864→              y: (Math.random() - 0.5) * 500,
+   865→   865→              opacity: [0, 1, 0],
+   866→   866→              rotate: Math.random() * 360,
+   867→   867→            }}
+   868→   868→            transition={{ duration: 2.5, delay: i * 0.08, repeat: Infinity, repeatDelay: 0.5 }}
+   869→   869→            className="absolute top-1/2 left-1/2 text-2xl pointer-events-none"
+   870→   870→          >
+   871→   871→            {["⭐", "🎉", "✨", "💫", "🌟", "🎊", "🏆", "💎"][i % 8]}
+   872→   872→          </motion.div>
+   873→   873→        ))}
+   874→   874→
+   875→   875→        <div className="relative text-center">
+   876→   876→          <div className="flex items-center justify-center gap-2 mb-4">
+   877→   877→            {[1, 2, 3].map((starNum) => (
+   878→   878→              <motion.div
+   879→   879→                key={starNum}
+   880→   880→                initial={{ scale: 0, rotate: -180, y: -50 }}
+   881→   881→                animate={{ scale: 1, rotate: 0, y: 0 }}
+   882→   882→                transition={{ delay: 0.3 + starNum * 0.15, type: "spring", stiffness: 200 }}
+   883→   883→              >
+   884→   884→                <svg width={starNum <= stars ? "44" : "36"} height={starNum <= stars ? "44" : "36"} viewBox="0 0 24 24"
+   885→   885→                  fill={starNum <= stars ? "#FFD700" : "rgba(255,255,255,0.1)"} className={starNum <= stars ? "drop-shadow-lg" : ""}>
+   886→   886→                  <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.4-4.9-2.6L7 17.1l.9-5.4-4-3.9 5.5-.8z" />
+   887→   887→                </svg>
+   888→   888→              </motion.div>
+   889→   889→            ))}
+   890→   890→          </div>
+   891→   891→
+   892→   892→          <motion.h2
+   893→   893→            initial={{ opacity: 0, y: 10 }}
+   894→   894→            animate={{ opacity: 1, y: 0 }}
+   895→   895→            transition={{ delay: 0.6 }}
+   896→   896→            className="text-3xl font-bold text-white mb-2"
+   897→   897→            style={{ fontFamily: "var(--font-tajawal)" }}
+   898→   898→          >
+   899→   899→            {stars === 3 ? "🏆 رائع!" : stars === 2 ? "🎉 أحسنت!" : "✅ أكملت!"}
+   900→   900→          </motion.h2>
+   901→   901→
+   902→   902→          <p className="text-teal-200 mb-6">مرحلة {level.number} مكتملة</p>
+   903→   903→
+   904→   904→          <div className="grid grid-cols-2 gap-3 mb-6">
+   905→   905→            {[
+   906→   906→              { label: "⏱️ الوقت", value: timeStr, color: "bg-amber-500/20 text-amber-300" },
+   907→   907→              { label: "✨ إضافية", value: bonusWords, color: "bg-purple-500/20 text-purple-300" },
+   908→   908→              { label: "💡 تلميحات", value: hintsUsed, color: "bg-blue-500/20 text-blue-300" },
+   909→   909→              { label: "🪙 مكافأة", value: `+${totalReward}`, color: "bg-green-500/20 text-green-300" },
+   910→   910→            ].map((stat, i) => (
+   911→   911→              <motion.div
+   912→   912→                key={i}
+   913→   913→                initial={{ opacity: 0, scale: 0.8 }}
+   914→   914→                animate={{ opacity: 1, scale: 1 }}
+   915→   915→                transition={{ delay: 0.7 + i * 0.1 }}
+   916→   916→                className={cn("p-3 rounded-xl border border-white/10", stat.color)}
+   917→   917→              >
+   918→   918→                <div className="text-xs opacity-80 mb-1">{stat.label}</div>
+   919→   919→                <div className="text-lg font-bold">{stat.value}</div>
+   920→   920→              </motion.div>
+   921→   921→            ))}
+   922→   922→          </div>
+   923→   923→
+   924→   924→          <Button
+   925→   925→            onClick={onClose}
+   926→   926→            className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-stone-900 font-bold py-3 rounded-xl shadow-lg"
+   927→   927→          >
+   928→   928→            متابعة 🚀
+   929→   929→          </Button>
+   930→   930→        </div>
+   931→   931→      </motion.div>
+   932→   932→    </motion.div>
+   933→   933→  );
+   934→   934→}
+   935→   935→

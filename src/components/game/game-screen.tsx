@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useGameStore } from "@/lib/game-store";
 import { Level, Word } from "@/lib/game-data";
 import { CrosswordGrid } from "./crossword-grid";
+import { StarReward, computeStars, type StarInfo } from "./star-reward";
 import { fetchLevelById, saveProgress } from "@/lib/game-data-api";
 import { useToast } from "@/hooks/use-toast";
 import { playSound, getMuted, setMuted } from "@/lib/sound-effects";
@@ -32,7 +33,7 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
   const [level, setLevel] = useState<Level | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { completeLevel, addCoins, spendCoins, useHint: recordHintUsed, resetLevelStats, coins, hintsUsed: globalHintsUsed, getLevelStars, userId } =
+  const { completeLevel, addCoins, spendCoins, useHint: recordHintUsed, resetLevelStats, coins, hintsUsed: globalHintsUsed, getLevelStars, userId, levelStars, levelTimes, levelHints } =
     useGameStore();
 
   const [foundWords, setFoundWords] = useState<string[]>([]);
@@ -46,6 +47,7 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
   const [revealedLetters, setRevealedLetters] = useState<Set<number>>(new Set());
   const [wrongShake, setWrongShake] = useState(false);
   const [levelHintsUsed, setLevelHintsUsed] = useState(0); // تلميحات المرحلة الحالية فقط
+  const [finalTimeSpent, setFinalTimeSpent] = useState(0); // وقت الإكمال النهائي
 
   useEffect(() => {
     setIsMuted(getMuted());
@@ -177,15 +179,24 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
           // إعادة تعيين الحروف المستخدمة
           setSelectedLetters(prev => prev.map(l => ({ ...l, used: false }))); setAnswerOrder([]);
         } else {
+          // حساب النجوم بناءً على الأداء الفعلي
+          const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+          setFinalTimeSpent(timeSpent);
+          const { stars } = computeStars({
+            timeSpent,
+            hintsUsed: levelHintsUsed,
+            difficulty: level.difficulty,
+            wordCount: level.words.length,
+          });
           playSound("levelComplete");
           setShowSuccess(true);
-          completeLevel(level.id, level.reward);
+          // النجوم + العملات (العملات الإضافية للنجوم تتواجد داخل completeLevel)
+          completeLevel(level.id, level.reward, stars, timeSpent, levelHintsUsed);
           addCoins(bonusWords.length * 20);
-          const timeSpent = Math.floor((Date.now() - startTime) / 1000);
           if (userId) {
             saveProgress({
-              userId, levelId: level.id, isCompleted: true, stars: 1,
-              score: level.reward + bonusWords.length * 20,
+              userId, levelId: level.id, isCompleted: true, stars,
+              score: level.reward + bonusWords.length * 20 + (stars - 1) * 30,
               hintsUsed: levelHintsUsed, timeSpent,
               coinsEarned: level.reward + bonusWords.length * 20,
             }).catch((e) => console.error("Cloud sync error:", e));
@@ -496,9 +507,25 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
                             setSelectedLetters(prev => prev.map(l => ({ ...l, used: false })));
                             setAnswerOrder([]);
                           } else {
+                            const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+                            setFinalTimeSpent(timeSpent);
+                            const { stars } = computeStars({
+                              timeSpent,
+                              hintsUsed: levelHintsUsed,
+                              difficulty: level.difficulty,
+                              wordCount: level.words.length,
+                            });
                             playSound("levelComplete");
                             setShowSuccess(true);
-                            completeLevel(level.id, level.reward);
+                            completeLevel(level.id, level.reward, stars, timeSpent, levelHintsUsed);
+                            if (userId) {
+                              saveProgress({
+                                userId, levelId: level.id, isCompleted: true, stars,
+                                score: level.reward + (stars - 1) * 30,
+                                hintsUsed: levelHintsUsed, timeSpent,
+                                coinsEarned: level.reward,
+                              }).catch((e) => console.error("Cloud sync error:", e));
+                            }
                           }
                         }, 800);
                       } else {
@@ -793,12 +820,12 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
 
       {/* شاشة النجاح */}
       <AnimatePresence>
-        {showSuccess && (
+        {showSuccess && level && (
           <SuccessModal
             level={level}
             foundWords={foundWords.length}
             bonusWords={bonusWords.length}
-            timeSpent={Math.floor((Date.now() - startTime) / 1000)}
+            timeSpent={finalTimeSpent || Math.floor((Date.now() - startTime) / 1000)}
             hintsUsed={levelHintsUsed}
             onClose={() => {
               setShowSuccess(false);
@@ -827,15 +854,25 @@ function SuccessModal({ level, foundWords, bonusWords, timeSpent, hintsUsed, onC
   const minutes = Math.floor(timeSpent / 60);
   const seconds = timeSpent % 60;
   const timeStr = minutes > 0 ? `${minutes} د ${seconds} ث` : `${seconds} ثانية`;
-  // نظام نجوم محسّن: 3 نجوم = دون تلميحات وسريع، 2 نجوم = دون/مع تلميح قليل، نجمة واحدة = أكمل على الأقل
-  const stars = hintsUsed === 0 && timeSpent < 120 ? 3 : hintsUsed <= 3 && timeSpent < 300 ? 2 : 1;
+
+  // نظام النجوم الإيجابي
+  const { stars, infos } = useMemo(
+    () => computeStars({ timeSpent, hintsUsed, difficulty: level.difficulty, wordCount: level.words.length }),
+    [timeSpent, hintsUsed, level.difficulty, level.words.length]
+  );
+
+  const titles = stars === 3 ? "🏆 أسطوري!" : stars === 2 ? "🎉 رائع جداً!" : "✅ أحسنت!";
+  const subtitles =
+    stars === 3 ? "أداء مثالي — أنت بطل حقيقي!" :
+    stars === 2 ? "أداء قوي — يمكنك تحسينه أكثر!" :
+    "أكملتَ المرحلة — حاول كسب المزيد من النجوم!";
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto"
       onClick={onClose}
     >
       <motion.div
@@ -843,7 +880,7 @@ function SuccessModal({ level, foundWords, bonusWords, timeSpent, hintsUsed, onC
         animate={{ scale: 1, y: 0, rotateX: 0 }}
         exit={{ scale: 0.3, y: 80, rotateX: 45 }}
         transition={{ type: "spring", stiffness: 200, damping: 18 }}
-        className="bg-gradient-to-br from-teal-700 via-cyan-800 to-teal-900 rounded-3xl p-8 max-w-md w-full shadow-2xl border-2 border-teal-300/30 relative overflow-hidden"
+        className="bg-gradient-to-br from-teal-700 via-cyan-800 to-teal-900 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border-2 border-teal-300/30 relative overflow-hidden my-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* خلفية متوهجة */}
@@ -853,8 +890,8 @@ function SuccessModal({ level, foundWords, bonusWords, timeSpent, hintsUsed, onC
           className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-transparent to-purple-400/10"
         />
 
-        {/* رموز متطايرة أكثر */}
-        {[...Array(15)].map((_, i) => (
+        {/* رموز متطايرة حسب عدد النجوم */}
+        {[...Array(12 + stars * 3)].map((_, i) => (
           <motion.div
             key={i}
             initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
@@ -873,38 +910,44 @@ function SuccessModal({ level, foundWords, bonusWords, timeSpent, hintsUsed, onC
         ))}
 
         <div className="relative text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            {[1, 2, 3].map((starNum) => (
-              <motion.div
-                key={starNum}
-                initial={{ scale: 0, rotate: -180, y: -50 }}
-                animate={{ scale: 1, rotate: 0, y: 0 }}
-                transition={{ delay: 0.3 + starNum * 0.15, type: "spring", stiffness: 200 }}
-              >
-                <svg width={starNum <= stars ? "44" : "36"} height={starNum <= stars ? "44" : "36"} viewBox="0 0 24 24"
-                  fill={starNum <= stars ? "#FFD700" : "rgba(255,255,255,0.1)"} className={starNum <= stars ? "drop-shadow-lg" : ""}>
-                  <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.4-4.9-2.6L7 17.1l.9-5.4-4-3.9 5.5-.8z" />
-                </svg>
-              </motion.div>
-            ))}
-          </div>
-
+          {/* العنوان الرئيسي */}
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.1 }}
             className="text-3xl font-bold text-white mb-2"
             style={{ fontFamily: "var(--font-tajawal)" }}
           >
-            {stars === 3 ? "🏆 رائع!" : stars === 2 ? "🎉 أحسنت!" : "✅ أكملت!"}
+            {titles}
           </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-teal-200 text-sm mb-5"
+            style={{ fontFamily: "var(--font-tajawal)" }}
+          >
+            {subtitles}
+          </motion.p>
 
-          <p className="text-teal-200 mb-6">مرحلة {level.number} مكتملة</p>
+          {/* عرض النجوم الإيجابي */}
+          <StarReward stars={stars} starInfos={infos} size="lg" showReasons={true} />
 
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          {/* عداد النجوم الإجمالي */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 + infos.length * 0.85 }}
+            className="mt-6 mb-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400/15 border border-yellow-400/30"
+          >
+            <span className="text-yellow-300 text-sm">⭐ نجوم المرحلة: {stars}/3</span>
+          </motion.div>
+
+          {/* إحصائيات تفصيلية */}
+          <div className="grid grid-cols-2 gap-2 mb-5 mt-3">
             {[
               { label: "⏱️ الوقت", value: timeStr, color: "bg-amber-500/20 text-amber-300" },
-              { label: "✨ إضافية", value: bonusWords, color: "bg-purple-500/20 text-purple-300" },
+              { label: "✨ كلمات إضافية", value: bonusWords, color: "bg-purple-500/20 text-purple-300" },
               { label: "💡 تلميحات", value: hintsUsed, color: "bg-blue-500/20 text-blue-300" },
               { label: "🪙 مكافأة", value: `+${totalReward}`, color: "bg-green-500/20 text-green-300" },
             ].map((stat, i) => (
@@ -913,13 +956,30 @@ function SuccessModal({ level, foundWords, bonusWords, timeSpent, hintsUsed, onC
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.7 + i * 0.1 }}
-                className={cn("p-3 rounded-xl border border-white/10", stat.color)}
+                className={cn("p-2.5 rounded-xl border border-white/10", stat.color)}
               >
-                <div className="text-xs opacity-80 mb-1">{stat.label}</div>
-                <div className="text-lg font-bold">{stat.value}</div>
+                <div className="text-xs opacity-80 mb-0.5">{stat.label}</div>
+                <div className="text-base font-bold">{stat.value}</div>
               </motion.div>
             ))}
           </div>
+
+          {/* نصائح لكسب المزيد من النجوم (إذا لم يحصل على 3) */}
+          {stars < 3 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.2 + infos.length * 0.85 }}
+              className="bg-white/5 border border-white/10 rounded-xl p-3 mb-4 text-right"
+            >
+              <p className="text-teal-100 text-xs font-bold mb-1">💡 كيف تكسب نجوم أكثر؟</p>
+              <ul className="text-white/70 text-[11px] space-y-0.5 list-disc pr-4">
+                {!infos[1].earned && <li>{infos[1].hint}</li>}
+                {!infos[2].earned && <li>{infos[2].hint}</li>}
+                <li>أعد المحاولة — ستُحفظ أعلى نتيجة لك</li>
+              </ul>
+            </motion.div>
+          )}
 
           <Button
             onClick={onClose}

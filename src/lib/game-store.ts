@@ -13,11 +13,17 @@ export interface GameProgress {
   totalStars: number;
   userId: string | null; // معرف المستخدم السحابي
   isSyncing: boolean;
+  /** نجوم كل مرحلة على حدة (مفتاح = رقم المرحلة، قيمة = عدد النجوم 1..3) */
+  levelStars: Record<number, number>;
+  /** وقت إكمال كل مرحلة بالثواني */
+  levelTimes: Record<number, number>;
+  /** عدد التلميحات المستخدمة في كل مرحلة */
+  levelHints: Record<number, number>;
 }
 
 interface GameState extends GameProgress {
   // Actions
-  completeLevel: (levelId: number, reward: number) => void;
+  completeLevel: (levelId: number, reward: number, stars: number, timeSpent: number, hintsUsed: number) => void;
   unlockLevel: (levelId: number) => void;
   setCurrentLevel: (levelId: number | null) => void;
   addCoins: (amount: number) => boolean;
@@ -42,6 +48,9 @@ const initialState: GameProgress = {
   totalStars: 0,
   userId: null,
   isSyncing: false,
+  levelStars: {},
+  levelTimes: {},
+  levelHints: {},
 };
 
 export const useGameStore = create<GameState>()(
@@ -74,9 +83,9 @@ export const useGameStore = create<GameState>()(
             userId: state.userId,
             levelId,
             isCompleted,
-            stars: isCompleted ? 1 : 0,
+            stars: state.levelStars[levelId] || 0,
             score,
-            hintsUsed: state.hintsUsed,
+            hintsUsed: state.levelHints[levelId] || 0,
             timeSpent,
             coinsEarned: 0, // العملات تُضاف محلياً
           });
@@ -85,30 +94,55 @@ export const useGameStore = create<GameState>()(
         }
       },
 
-      completeLevel: (levelId, reward) =>
+      completeLevel: (levelId, reward, stars, timeSpent, hintsUsed) =>
         set((state) => {
-          if (state.completedLevels.includes(levelId)) return state;
-          // فتح جميع المراحل — بما فيها المراحل ذات IDs غير متتابعة
-          const newState = {
-            completedLevels: [...state.completedLevels, levelId],
-            coins: state.coins + reward,
-            totalStars: state.totalStars + 1,
-            unlockedLevels: state.unlockedLevels,
+          // الاحتفاظ بأعلى نتيجة إذا أعاد اللاعب المرحلة
+          const previousStars = state.levelStars[levelId] || 0;
+          const bestStars = Math.max(previousStars, stars);
+          const isFirstCompletion = !state.completedLevels.includes(levelId);
+          const previousTime = state.levelTimes[levelId] || Infinity;
+          const bestTime = Math.min(previousTime, timeSpent);
+          const previousHints = state.levelHints[levelId] ?? Infinity;
+          const bestHints = Math.min(previousHints, hintsUsed);
+
+          // النجوم المكتسبة حديثاً (فقط الزيادة)
+          const gainedStars = bestStars - previousStars;
+
+          // المكافأة الكاملة تُضاف فقط عند أول إكمال
+          const coinsToAdd = isFirstCompletion ? reward : Math.floor(reward * 0.2 * gainedStars);
+
+          const newLevelStars = { ...state.levelStars, [levelId]: bestStars };
+          const newTotalStars = Object.values(newLevelStars).reduce((sum, s) => sum + s, 0);
+
+          const newState: Partial<GameProgress> = {
+            levelStars: newLevelStars,
+            levelTimes: { ...state.levelTimes, [levelId]: bestTime },
+            levelHints: { ...state.levelHints, [levelId]: bestHints },
+            totalStars: newTotalStars,
           };
+
+          if (isFirstCompletion) {
+            newState.completedLevels = [...state.completedLevels, levelId];
+            newState.coins = state.coins + coinsToAdd;
+          } else if (gainedStars > 0) {
+            newState.coins = state.coins + coinsToAdd;
+          }
+
           // مزامنة سحابية (غير منعشة)
           if (state.userId) {
             saveProgress({
               userId: state.userId,
               levelId,
               isCompleted: true,
-              stars: 1,
-              score: reward,
-              hintsUsed: state.hintsUsed,
-              timeSpent: 0,
-              coinsEarned: reward,
+              stars: bestStars,
+              score: reward + gainedStars * 30,
+              hintsUsed: bestHints,
+              timeSpent: bestTime,
+              coinsEarned: coinsToAdd,
             }).catch((e) => console.error("Cloud sync error:", e));
           }
-          return newState;
+
+          return newState as GameState;
         }),
 
       unlockLevel: (levelId) =>
@@ -151,11 +185,11 @@ export const useGameStore = create<GameState>()(
 
       getLevelStars: (levelId) => {
         const state = get();
-        return state.completedLevels.includes(levelId) ? 1 : 0;
+        return state.levelStars[levelId] || (state.completedLevels.includes(levelId) ? 1 : 0);
       },
     }),
     {
-      name: "thaqafatna-progress",
+      name: "thaqafatuna-progress",
     }
   )
 );

@@ -1,0 +1,716 @@
+     1→"use client";
+     2→
+     3→import { useState, useMemo, useEffect } from "react";
+     4→import { motion, AnimatePresence } from "framer-motion";
+     5→import { Logo } from "@/components/logo";
+     6→import { Button } from "@/components/ui/button";
+     7→import { Card } from "@/components/ui/card";
+     8→import { Badge } from "@/components/ui/badge";
+     9→import { GameScreen } from "@/components/game/game-screen";
+    10→import { OnboardingScreen } from "@/components/home/onboarding";
+    11→import { AdminPanel } from "@/components/admin/admin-panel";
+    12→import { ProfileView } from "@/components/home/profile";
+    13→import { useGameStore } from "@/lib/game-store";
+    14→import { fetchChapters, fetchLevels, Chapter as ApiChapter, Level as ApiLevel } from "@/lib/game-data-api";
+    15→import { cn } from "@/lib/utils";
+    16→
+    17→type View = "onboarding" | "home" | "game" | "daily" | "chapters" | "admin" | "profile";
+    18→
+    19→// مكون داخلي لقراءة حالة onboarding بعد التركيب فقط
+    20→function useMounted() {
+    21→  const [mounted, setMounted] = useState(false);
+    22→  useEffect(() => {
+    23→    const timer = setTimeout(() => setMounted(true), 0);
+    24→    return () => clearTimeout(timer);
+    25→  }, []);
+    26→  return mounted;
+    27→}
+    28→
+    29→export default function HomePage() {
+    30→  const mounted = useMounted();
+    31→
+    32→  // قراءة localStorage بعد التركيب فقط
+    33→  const onboardingSeen = mounted
+    34→    ? typeof window !== "undefined" && localStorage.getItem("thaqafatna-onboarding-seen") === "true"
+    35→    : false;
+    36→
+    37→  const [view, setView] = useState<View>("onboarding");
+    38→  const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
+    39→  const [selectedChapter, setSelectedChapter] = useState<number>(1);
+    40→  const [initialized, setInitialized] = useState(false);
+    41→  const [apiChapters, setApiChapters] = useState<ApiChapter[]>([]);
+    42→  const [apiLevels, setApiLevels] = useState<ApiLevel[]>([]);
+    43→  const [dataLoaded, setDataLoaded] = useState(false);
+    44→
+    45→  const { completedLevels, unlockedLevels, coins, dailyStreak, initCloudSync } = useGameStore();
+    46→
+    47→  // تحميل البيانات من API عند التركيب
+    48→  useEffect(() => {
+    49→    const loadData = async () => {
+    50→      try {
+    51→        // تهيئة المزامنة السحابية
+    52→        await initCloudSync();
+    53→
+    54→        // تحميل الفصول
+    55→        const chaptersData = await fetchChapters();
+    56→        setApiChapters(chaptersData);
+    57→
+    58→        if (chaptersData.length > 0) {
+    59→          // تحميل مراحل الفصل الأول
+    60→          const levelsData = await fetchLevels(chaptersData[0].id);
+    61→          setApiLevels(levelsData);
+    62→        }
+    63→      } catch (error) {
+    64→        console.error("Error loading data:", error);
+    65→      } finally {
+    66→        setDataLoaded(true);
+    67→      }
+    68→    };
+    69→    loadData();
+    70→  }, [initCloudSync]);
+    71→
+    72→  // تحميل المراحل عند تغيير الفصل
+    73→  const handleSelectChapter = async (chapterId: number) => {
+    74→    setSelectedChapter(chapterId);
+    75→    const levelsData = await fetchLevels(chapterId);
+    76→    setApiLevels(levelsData);
+    77→  };
+    78→
+    79→  // تعيين العرض بعد التركيب - استخدام useEffect
+    80→  useEffect(() => {
+    81→    if (mounted && !initialized) {
+    82→      setInitialized(true);
+    83→      const seen = typeof window !== "undefined" && localStorage.getItem("thaqafatna-onboarding-seen") === "true";
+    84→      setView(seen ? "home" : "onboarding");
+    85→    }
+    86→  }, [mounted, initialized]);
+    87→
+    88→  const handleOnboardingComplete = () => {
+    89→    localStorage.setItem("thaqafatna-onboarding-seen", "true");
+    90→    setView("home");
+    91→  };
+    92→
+    93→  // عرض لوحة الإدارة
+    94→  if (view === "admin") {
+    95→    return <AdminPanel />;
+    96→  }
+    97→
+    98→  const todayDate = new Date().toLocaleDateString("ar-SA", {
+    99→    weekday: "long",
+   100→    year: "numeric",
+   101→    month: "long",
+   102→    day: "numeric",
+   103→  });
+   104→
+   105→  const handleLevelClick = (levelId: number) => {
+   106→    // جميع المراحل مفتوحة للاختبار
+   107→    setSelectedLevelId(levelId);
+   108→    setView("game");
+   109→  };
+   110→
+   111→  const handleExitGame = () => {
+   112→    setSelectedLevelId(null);
+   113→    setView("home");
+   114→  };
+   115→
+   116→  if (view === "game" && selectedLevelId) {
+   117→    return <GameScreen levelId={selectedLevelId} onExit={handleExitGame} />;
+   118→  }
+   119→
+   120→  if (view === "onboarding") {
+   121→    return <OnboardingScreen onComplete={handleOnboardingComplete} />;
+   122→  }
+   123→
+   124→  return (
+   125→    <div className="min-h-screen pattern-arabic flex flex-col">
+   126→      {/* شريط علوي */}
+   127→      <header className="sticky top-0 z-30 glass border-b border-amber-200/30">
+   128→        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+   129→          <Logo size={36} />
+   130→
+   131→          <div className="flex items-center gap-2">
+   132→            {/* العرض اليومي */}
+   133→            <button
+   134→              onClick={() => setView("daily")}
+   135→              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-white transition-all shadow-md"
+   136→            >
+   137→              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+   138→                <rect x="3" y="4" width="18" height="18" rx="2" />
+   139→                <line x1="16" y1="2" x2="16" y2="6" />
+   140→                <line x1="8" y1="2" x2="8" y2="6" />
+   141→                <line x1="3" y1="10" x2="21" y2="10" />
+   142→              </svg>
+   143→              <span className="text-xs font-bold hidden sm:inline">تحدّ يومي</span>
+   144→              {dailyStreak > 0 && (
+   145→                <span className="text-[10px] bg-white/20 px-1 rounded">🔥 {dailyStreak}</span>
+   146→              )}
+   147→            </button>
+   148→
+   149→            {/* العملات */}
+   150→            <div className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-100/80 border border-amber-200">
+   151→              <svg width="18" height="18" viewBox="0 0 24 24">
+   152→                <circle cx="12" cy="12" r="10" fill="oklch(0.78 0.13 80)" />
+   153→                <circle cx="12" cy="12" r="7" fill="none" stroke="oklch(0.62 0.14 65)" strokeWidth="1.5" />
+   154→                <text x="12" y="16" textAnchor="middle" fontSize="11" fill="white" fontWeight="bold">★</text>
+   155→              </svg>
+   156→              <span className="font-bold text-amber-700">{coins}</span>
+   157→            </div>
+   158→
+   159→            {/* زر الملف الشخصي */}
+   160→            <button
+   161→              onClick={() => setView("profile")}
+   162→              title="ملفي الشخصي"
+   163→              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors"
+   164→            >
+   165→              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+   166→                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+   167→                <circle cx="12" cy="7" r="4" />
+   168→              </svg>
+   169→            </button>
+   170→
+   171→            {/* زر لوحة الإدارة */}
+   172→            <button
+   173→              onClick={() => setView("admin")}
+   174→              title="لوحة الإدارة"
+   175→              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors"
+   176→            >
+   177→              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+   178→                <circle cx="12" cy="12" r="3" />
+   179→                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+   180→              </svg>
+   181→            </button>
+   182→          </div>
+   183→        </div>
+   184→      </header>
+   185→
+   186→      {/* المحتوى */}
+   187→      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 sm:py-8">
+   188→        {!dataLoaded && (
+   189→          <div className="flex items-center justify-center py-12">
+   190→            <div className="w-8 h-8 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
+   191→          </div>
+   192→        )}
+   193→
+   194→        {dataLoaded && view === "home" && (
+   195→          <HomeView
+   196→            chapters={apiChapters.length > 0 ? apiChapters : []}
+   197→            levels={apiLevels}
+   198→            completedLevels={completedLevels}
+   199→            unlockedLevels={unlockedLevels}
+   200→            coins={coins}
+   201→            dailyStreak={dailyStreak}
+   202→            onLevelClick={handleLevelClick}
+   203→            onSelectChapter={handleSelectChapter}
+   204→            selectedChapter={selectedChapter}
+   205→            todayDate={todayDate}
+   206→            onDailyChallenge={() => setView("daily")}
+   207→          />
+   208→        )}
+   209→
+   210→        {view === "daily" && <DailyChallengeView onBack={() => setView("home")} />}
+   211→
+   212→        {view === "chapters" && (
+   213→          <ChaptersView
+   214→            chapters={apiChapters}
+   215→            completedLevels={completedLevels}
+   216→            onSelectChapter={(id) => {
+   217→              handleSelectChapter(id);
+   218→              setView("home");
+   219→            }}
+   220→          />
+   221→        )}
+   222→
+   223→        {view === "profile" && <ProfileView onBack={() => setView("home")} />}
+   224→      </main>
+   225→
+   226→      {/* شريط سفلي للتنقل (للجوال) */}
+   227→      <footer className="sticky bottom-0 z-30 glass border-t border-amber-200/30 lg:hidden">
+   228→        <div className="grid grid-cols-3 gap-1 px-2 py-2">
+   229→          <button
+   230→            onClick={() => setView("home")}
+   231→            className={cn(
+   232→              "flex flex-col items-center gap-1 py-2 rounded-lg transition-colors",
+   233→              view === "home" ? "bg-amber-100 text-amber-700" : "text-stone-500"
+   234→            )}
+   235→          >
+   236→            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+   237→              <path d="M3 12l9-9 9 9M5 10v10h14V10" />
+   238→            </svg>
+   239→            <span className="text-xs font-medium">الرئيسية</span>
+   240→          </button>
+   241→          <button
+   242→            onClick={() => setView("daily")}
+   243→            className={cn(
+   244→              "flex flex-col items-center gap-1 py-2 rounded-lg transition-colors",
+   245→              view === "daily" ? "bg-amber-100 text-amber-700" : "text-stone-500"
+   246→            )}
+   247→          >
+   248→            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+   249→              <rect x="3" y="4" width="18" height="18" rx="2" />
+   250→              <line x1="3" y1="10" x2="21" y2="10" />
+   251→            </svg>
+   252→            <span className="text-xs font-medium">يومي</span>
+   253→          </button>
+   254→          <button
+   255→            onClick={() => setView("chapters")}
+   256→            className={cn(
+   257→              "flex flex-col items-center gap-1 py-2 rounded-lg transition-colors",
+   258→              view === "chapters" ? "bg-amber-100 text-amber-700" : "text-stone-500"
+   259→            )}
+   260→          >
+   261→            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+   262→              <line x1="8" y1="6" x2="21" y2="6" />
+   263→              <line x1="8" y1="12" x2="21" y2="12" />
+   264→              <line x1="8" y1="18" x2="21" y2="18" />
+   265→              <line x1="3" y1="6" x2="3.01" y2="6" />
+   266→              <line x1="3" y1="12" x2="3.01" y2="12" />
+   267→              <line x1="3" y1="18" x2="3.01" y2="18" />
+   268→            </svg>
+   269→            <span className="text-xs font-medium">الفصول</span>
+   270→          </button>
+   271→        </div>
+   272→      </footer>
+   273→    </div>
+   274→  );
+   275→}
+   276→
+   277→interface HomeViewProps {
+   278→  chapters: ApiChapter[];
+   279→  levels: ApiLevel[];
+   280→  completedLevels: number[];
+   281→  unlockedLevels: number[];
+   282→  coins: number;
+   283→  dailyStreak: number;
+   284→  onLevelClick: (id: number) => void;
+   285→  onSelectChapter: (id: number) => void;
+   286→  selectedChapter: number;
+   287→  todayDate: string;
+   288→  onDailyChallenge: () => void;
+   289→}
+   290→
+   291→function HomeView({
+   292→  chapters,
+   293→  levels,
+   294→  completedLevels,
+   295→  unlockedLevels,
+   296→  coins,
+   297→  dailyStreak,
+   298→  onLevelClick,
+   299→  onSelectChapter,
+   300→  selectedChapter,
+   301→  todayDate,
+   302→  onDailyChallenge,
+   303→}: HomeViewProps) {
+   304→  const currentChapter = chapters.find((c) => c.id === selectedChapter) || chapters[0];
+   305→  const totalCompleted = completedLevels.length;
+   306→  const totalLevels = chapters.reduce((sum, c) => sum + c.levelsCount, 0);
+   307→
+   308→  return (
+   309→    <div className="space-y-6">
+   310→      {/* بطاقة الترحيب المحسّنة */}
+   311→      <motion.div
+   312→        initial={{ opacity: 0, y: 20 }}
+   313→        animate={{ opacity: 1, y: 0 }}
+   314→        className="relative overflow-hidden rounded-3xl gradient-teal-pro p-6 sm:p-8 shadow-soft-lg"
+   315→      >
+   316→        {/* زخارف متحركة */}
+   317→        <motion.div
+   318→          animate={{ rotate: 360 }}
+   319→          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+   320→          className="absolute -top-20 -right-20 w-60 h-60 rounded-full opacity-10"
+   321→          style={{ background: "radial-gradient(circle, white 0%, transparent 70%)" }}
+   322→        />
+   323→        <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-amber-400/5" />
+   324→
+   325→        <div className="relative">
+   326→          <div className="flex items-center justify-between mb-3">
+   327→            <p className="text-teal-100 text-sm">{todayDate}</p>
+   328→            {/* شارة المستوى */}
+   329→            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20">
+   330→              <span className="text-yellow-300 text-xs">⭐</span>
+   331→              <span className="text-white text-xs font-bold">المستوى {Math.floor(totalCompleted / 5) + 1}</span>
+   332→            </div>
+   333→          </div>
+   334→
+   335→          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-tajawal)" }}>
+   336→            أهلاً بك في ثقافتنا
+   337→          </h1>
+   338→          <p className="text-teal-100/90 text-sm sm:text-base mb-4 max-w-lg">
+   339→            اكتشف عالم الكلمات العربية، حل الألغاز، وتعلّم كل يوم
+   340→          </p>
+   341→
+   342→          {/* إحصائيات محسّنة */}
+   343→          <div className="flex items-center gap-3">
+   344→            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20">
+   345→              <div className="text-center">
+   346→                <div className="text-xs text-teal-100">مكتمل</div>
+   347→                <div className="text-lg font-bold text-white">
+   348→                  {totalCompleted}<span className="text-teal-200/60 text-sm">/{totalLevels}</span>
+   349→                </div>
+   350→              </div>
+   351→            </div>
+   352→            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20">
+   353→              <span className="text-yellow-300 text-sm">🪙</span>
+   354→              <span className="text-white font-bold">{coins}</span>
+   355→            </div>
+   356→            <div className="flex-1 max-w-xs">
+   357→              <div className="flex items-center justify-between text-xs text-teal-100 mb-1">
+   358→                <span>التقدم</span>
+   359→                <span>{Math.round((totalCompleted / totalLevels) * 100)}%</span>
+   360→              </div>
+   361→              <div className="h-2.5 bg-white/15 rounded-full overflow-hidden">
+   362→                <motion.div
+   363→                  initial={{ width: 0 }}
+   364→                  animate={{ width: `${(totalCompleted / totalLevels) * 100}%` }}
+   365→                  transition={{ duration: 0.8, type: "spring" }}
+   366→                  className="h-full rounded-full bg-gradient-to-r from-yellow-300 to-amber-400"
+   367→                />
+   368→              </div>
+   369→            </div>
+   370→          </div>
+   371→        </div>
+   372→      </motion.div>
+   373→
+   374→      {/* بطاقة التحدي اليومي المحسّنة */}
+   375→      <motion.div
+   376→        initial={{ opacity: 0, y: 20 }}
+   377→        animate={{ opacity: 1, y: 0 }}
+   378→        transition={{ delay: 0.1 }}
+   379→        className="card-pro"
+   380→      >
+   381→        <Card
+   382→          className="p-4 sm:p-5 cursor-pointer hover:shadow-soft-lg transition-all border-purple-200 bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 overflow-hidden relative"
+   383→          onClick={onDailyChallenge}
+   384→        >
+   385→          {/* أيقونة متحركة */}
+   386→          <motion.div
+   387→            animate={{ scale: [1, 1.1, 1] }}
+   388→            transition={{ duration: 2, repeat: Infinity }}
+   389→            className="absolute top-3 left-3 text-3xl opacity-20"
+   390→          >
+   391→            🎯
+   392→          </motion.div>
+   393→          <div className="flex items-center gap-4 relative">
+   394→            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 via-pink-400 to-orange-400 flex items-center justify-center text-2xl shadow-soft">
+   395→              🎯
+   396→            </div>
+   397→            <div className="flex-1">
+   398→              <div className="flex items-center gap-2 mb-1">
+   399→                <h3 className="text-lg font-bold text-stone-800">تحدّ اليوم</h3>
+   400→                {dailyStreak > 0 && (
+   401→                  <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-bold flex items-center gap-1">
+   402→                    <span>🔥</span> {dailyStreak} يوم
+   403→                  </span>
+   404→                )}
+   405→              </div>
+   406→              <p className="text-sm text-stone-600">لغز جديد كل يوم مع مكافآت مضاعفة</p>
+   407→            </div>
+   408→            <motion.div
+   409→              animate={{ x: [0, 5, 0] }}
+   410→              transition={{ duration: 1.5, repeat: Infinity }}
+   411→            >
+   412→              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-400">
+   413→                <polyline points="15 18 9 12 15 6" />
+   414→              </svg>
+   415→            </motion.div>
+   416→          </div>
+   417→        </Card>
+   418→      </motion.div>
+   419→
+   420→      {/* اختيار الفصل - شبكة بطاقات */}
+   421→      <div>
+   422→        <div className="flex items-center justify-between mb-3">
+   423→          <h2 className="text-xl font-bold text-stone-800" style={{ fontFamily: "var(--font-tajawal)" }}>
+   424→            📚 الفصول الثقافية
+   425→          </h2>
+   426→          <span className="text-sm text-stone-500">{chapters.length} فصول</span>
+   427→        </div>
+   428→        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+   429→          {chapters.map((chapter) => {
+   430→            const isLocked = false; // جميع الفصول مفتوحة
+   431→            const isSelected = chapter.id === selectedChapter;
+   432→            return (
+   433→              <motion.button
+   434→                key={chapter.id}
+   435→                initial={{ opacity: 0, scale: 0.9 }}
+   436→                animate={{ opacity: 1, scale: 1 }}
+   437→                whileHover={!isLocked ? { scale: 1.03, y: -2 } : {}}
+   438→                whileTap={!isLocked ? { scale: 0.97 } : {}}
+   439→                onClick={() => !isLocked && onSelectChapter(chapter.id)}
+   440→                disabled={isLocked}
+   441→                className={cn(
+   442→                  "relative overflow-hidden rounded-2xl p-4 border-2 transition-all text-right",
+   443→                  isSelected
+   444→                    ? "bg-white shadow-lg"
+   445→                    : isLocked
+   446→                    ? "bg-stone-100 border-stone-200 opacity-60 cursor-not-allowed"
+   447→                    : "bg-white/70 hover:bg-white border-transparent"
+   448→                )}
+   449→                style={{ borderColor: isSelected ? chapter.color : "transparent" }}
+   450→              >
+   451→                {/* خلفية ملونة */}
+   452→                <div
+   453→                  className="absolute top-0 left-0 w-full h-1"
+   454→                  style={{ backgroundColor: chapter.color }}
+   455→                />
+   456→                <div className="flex items-start gap-3">
+   457→                  <div
+   458→                    className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+   459→                    style={{ backgroundColor: chapter.color + "33" }}
+   460→                  >
+   461→                    {isLocked ? "🔒" : chapter.icon}
+   462→                  </div>
+   463→                  <div className="flex-1 min-w-0">
+   464→                    <h3 className="font-bold text-stone-800 text-sm truncate">{chapter.title}</h3>
+   465→                    <p className="text-xs text-stone-500 line-clamp-1 mt-0.5">{chapter.description}</p>
+   466→                  </div>
+   467→                </div>
+   468→              </motion.button>
+   469→            );
+   470→          })}
+   471→        </div>
+   472→      </div>
+   473→
+   474→      {/* المراحل */}
+   475→      <div>
+   476→        <h2 className="text-xl font-bold text-stone-800 mb-3" style={{ fontFamily: "var(--font-tajawal)" }}>
+   477→          {currentChapter.icon} {currentChapter.title}
+   478→        </h2>
+   479→        <p className="text-stone-600 text-sm mb-4">{currentChapter.description}</p>
+   480→
+   481→        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+   482→          {levels.map((level, idx) => {
+   483→            const isCompleted = completedLevels.includes(level.id);
+   484→            // جميع المراحل مفتوحة
+   485→            const isUnlocked = true;
+   486→            return (
+   487→              <motion.button
+   488→                key={level.id}
+   489→                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+   490→                animate={{ opacity: 1, scale: 1, y: 0 }}
+   491→                transition={{ delay: idx * 0.05, type: "spring", stiffness: 200 }}
+   492→                whileHover={isUnlocked ? { scale: 1.05, y: -4 } : {}}
+   493→                whileTap={isUnlocked ? { scale: 0.95 } : {}}
+   494→                onClick={() => onLevelClick(level.id)}
+   495→                disabled={!isUnlocked}
+   496→                className={cn(
+   497→                  "relative overflow-hidden rounded-2xl border-2 flex flex-col items-center justify-center transition-all shadow-md",
+   498→                  isUnlocked
+   499→                    ? "bg-gradient-to-b from-yellow-300 to-amber-400 border-amber-500 text-stone-800"
+   500→                    : "bg-gradient-to-b from-stone-700 to-stone-800 border-stone-600 text-stone-400 cursor-not-allowed"
+   501→                )}
+   502→              >
+   503→                {/* الجزء العلوي - الرقم */}
+   504→                <div className="flex-1 flex items-center justify-center pt-3 pb-1">
+   505→                  {isUnlocked ? (
+   506→                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-stone-800 flex items-center justify-center">
+   507→                      <span className="text-white font-bold text-lg">{level.number}</span>
+   508→                    </div>
+   509→                  ) : (
+   510→                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-500">
+   511→                      <rect x="3" y="11" width="18" height="11" rx="2" />
+   512→                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+   513→                    </svg>
+   514→                  )}
+   515→                </div>
+   516→
+   517→                {/* الجزء السفلي - النجوم */}
+   518→                <div className="bg-stone-800 w-full py-1.5 flex items-center justify-center gap-0.5">
+   519→                  {[1, 2, 3].map((star) => (
+   520→                    <svg
+   521→                      key={star}
+   522→                      width="12"
+   523→                      height="12"
+   524→                      viewBox="0 0 24 24"
+   525→                      fill={isCompleted ? "#FFD700" : "rgba(255,255,255,0.2)"}
+   526→                    >
+   527→                      <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.4-4.9-2.6L7 17.1l.9-5.4-4-3.9 5.5-.8z" />
+   528→                    </svg>
+   529→                  ))}
+   530→                </div>
+   531→              </motion.button>
+   532→            );
+   533→          })}
+   534→
+   535→          {/* مراحل قادمة */}
+   536→          {Array.from({ length: Math.max(0, currentChapter.levelsCount - levels.length) }).map((_, idx) => (
+   537→            <div
+   538→              key={`locked-${idx}`}
+   539→              className="aspect-square rounded-2xl border-2 border-dashed border-stone-300 flex items-center justify-center text-stone-300 bg-stone-50"
+   540→            >
+   541→              <span className="text-2xl">🔒</span>
+   542→            </div>
+   543→          ))}
+   544→        </div>
+   545→      </div>
+   546→    </div>
+   547→  );
+   548→}
+   549→
+   550→function DailyChallengeView({ onBack }: { onBack: () => void }) {
+   551→  const { lastDailyChallenge, dailyStreak, completeDailyChallenge, addCoins } = useGameStore();
+   552→  const today = new Date().toISOString().split("T")[0];
+   553→  const isCompletedToday = lastDailyChallenge === today;
+   554→
+   555→  const handleComplete = () => {
+   556→    if (isCompletedToday) return;
+   557→    completeDailyChallenge(today, 100);
+   558→    addCoins(50);
+   559→  };
+   560→
+   561→  return (
+   562→    <div className="space-y-6">
+   563→      <button
+   564→        onClick={onBack}
+   565→        className="flex items-center gap-2 text-stone-600 hover:text-stone-900"
+   566→      >
+   567→        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+   568→          <polyline points="9 18 15 12 9 6" />
+   569→        </svg>
+   570→        رجوع
+   571→      </button>
+   572→
+   573→      <motion.div
+   574→        initial={{ opacity: 0, y: 20 }}
+   575→        animate={{ opacity: 1, y: 0 }}
+   576→        className="rounded-3xl bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 p-8 text-white shadow-xl"
+   577→      >
+   578→        <div className="flex items-center gap-4 mb-4">
+   579→          <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-3xl">
+   580→            🎯
+   581→          </div>
+   582→          <div>
+   583→            <h2 className="text-2xl font-bold mb-1">تحدّ اليوم</h2>
+   584→            <p className="text-purple-100 text-sm">
+   585→              {new Date().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long" })}
+   586→            </p>
+   587→          </div>
+   588→        </div>
+   589→
+   590→        <div className="grid grid-cols-2 gap-4 mb-6">
+   591→          <div className="p-3 rounded-xl bg-white/10">
+   592→            <p className="text-purple-100 text-xs mb-1">المكافأة</p>
+   593→            <p className="text-2xl font-bold">+100 🪙</p>
+   594→          </div>
+   595→          <div className="p-3 rounded-xl bg-white/10">
+   596→            <p className="text-purple-100 text-xs mb-1">السلسلة</p>
+   597→            <p className="text-2xl font-bold">🔥 {dailyStreak} يوم</p>
+   598→          </div>
+   599→        </div>
+   600→
+   601→        {isCompletedToday ? (
+   602→          <div className="p-4 rounded-xl bg-white/15 text-center">
+   603→            <p className="text-xl font-bold mb-1">✅ أكملت تحدّ اليوم!</p>
+   604→            <p className="text-purple-100 text-sm">عُد غداً لتحدٍّ جديد</p>
+   605→          </div>
+   606→        ) : (
+   607→          <Button
+   608→            onClick={handleComplete}
+   609→            className="w-full bg-white text-purple-600 hover:bg-purple-50 font-bold py-3 rounded-xl text-lg"
+   610→          >
+   611→            ابدأ التحدّي
+   612→          </Button>
+   613→        )}
+   614→      </motion.div>
+   615→
+   616→      {/* المكافآت الأسبوعية */}
+   617→      <Card className="p-5">
+   618→        <h3 className="font-bold text-stone-800 mb-3">مكافآت الأسبوع</h3>
+   619→        <div className="grid grid-cols-7 gap-2">
+   620→          {["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"].map((day, idx) => {
+   621→            const dayDate = new Date();
+   622→            dayDate.setDate(dayDate.getDate() - dayDate.getDay() + idx + 1);
+   623→            const dateStr = dayDate.toISOString().split("T")[0];
+   624→            const isDone = dateStr <= today && dailyStreak > 0;
+   625→            return (
+   626→              <div
+   627→                key={day}
+   628→                className={cn(
+   629→                  "p-2 rounded-lg text-center text-xs border",
+   630→                  isDone
+   631→                    ? "bg-gradient-to-br from-amber-300 to-amber-500 text-white border-amber-500"
+   632→                    : "bg-stone-50 text-stone-500 border-stone-200"
+   633→                )}
+   634→              >
+   635→                <div className="font-bold mb-1">{day.slice(0, 3)}</div>
+   636→                <div className="text-lg">{isDone ? "★" : "○"}</div>
+   637→              </div>
+   638→            );
+   639→          })}
+   640→        </div>
+   641→      </Card>
+   642→    </div>
+   643→  );
+   644→}
+   645→
+   646→function ChaptersView({
+   647→  chapters,
+   648→  completedLevels,
+   649→  onSelectChapter,
+   650→}: {
+   651→  chapters: ApiChapter[];
+   652→  completedLevels: number[];
+   653→  onSelectChapter: (id: number) => void;
+   654→}) {
+   655→  const totalCompleted = completedLevels.length;
+   656→
+   657→  return (
+   658→    <div className="space-y-6">
+   659→      <h2 className="text-2xl font-bold text-stone-800" style={{ fontFamily: "var(--font-tajawal)" }}>
+   660→        الفصول
+   661→      </h2>
+   662→
+   663→      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+   664→        {chapters.map((chapter, idx) => {
+   665→          const isLocked = false; // جميع الفصول مفتوحة
+   666→          return (
+   667→            <motion.button
+   668→              key={chapter.id}
+   669→              initial={{ opacity: 0, y: 20 }}
+   670→              animate={{ opacity: 1, y: 0 }}
+   671→              transition={{ delay: idx * 0.05 }}
+   672→              whileHover={!isLocked ? { scale: 1.02, y: -2 } : {}}
+   673→              onClick={() => !isLocked && onSelectChapter(chapter.id)}
+   674→              disabled={isLocked}
+   675→              className={cn(
+   676→                "relative overflow-hidden rounded-2xl p-5 text-right transition-all border-2",
+   677→                isLocked
+   678→                  ? "bg-stone-100 border-stone-200 cursor-not-allowed"
+   679→                  : "bg-white border-stone-200 hover:shadow-lg"
+   680→              )}
+   681→            >
+   682→              <div
+   683→                className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10"
+   684→                style={{ backgroundColor: chapter.color, transform: "translate(40%, -40%)" }}
+   685→              />
+   686→              <div className="relative flex items-start gap-4">
+   687→                <div
+   688→                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+   689→                  style={{ backgroundColor: isLocked ? "#E5E7EB" : chapter.color + "33" }}
+   690→                >
+   691→                  {isLocked ? "🔒" : chapter.icon}
+   692→                </div>
+   693→                <div className="flex-1">
+   694→                  <h3 className="font-bold text-stone-800 mb-1">{chapter.title}</h3>
+   695→                  <p className="text-sm text-stone-600 mb-2">{chapter.description}</p>
+   696→                  <div className="flex items-center gap-3 text-xs">
+   697→                    <span className="text-stone-500">{chapter.levelsCount} مرحلة</span>
+   698→                    {!isLocked && (
+   699→                      <span
+   700→                        className="px-2 py-0.5 rounded-full text-white"
+   701→                        style={{ backgroundColor: chapter.color }}
+   702→                      >
+   703→                        مفتوح
+   704→                      </span>
+   705→                    )}
+   706→                  </div>
+   707→                </div>
+   708→              </div>
+   709→            </motion.button>
+   710→          );
+   711→        })}
+   712→      </div>
+   713→    </div>
+   714→  );
+   715→}
+   716→

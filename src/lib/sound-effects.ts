@@ -136,6 +136,31 @@ export const soundEffects = {
     playTone(1319, 0.15, "triangle", 0.15, 0.08);
     vibrate([10, 10]);
   },
+
+  // صوت إظهار نجمة (متدرّج حسب الترتيب)
+  starReveal: (starNumber: number = 1) => {
+    // كل نجمة لها نغمة أعلى من سابقتها
+    const baseFreq = 523 * Math.pow(1.2599, (starNumber - 1) * 2); // نصف تون مضاعف
+    playTone(baseFreq, 0.12, "sine", 0.2, 0);
+    playTone(baseFreq * 1.5, 0.12, "sine", 0.2, 0.1); // quinte
+    playTone(baseFreq * 2, 0.2, "sine", 0.2, 0.22); // octave
+    vibrate([30, 20, 40]);
+  },
+
+  // صوت توهج النجمة (للحظة التوهج الكامل)
+  starShine: () => {
+    playTone(1318, 0.05, "triangle", 0.18, 0);
+    playTone(1568, 0.05, "triangle", 0.18, 0.05);
+    playTone(1976, 0.08, "triangle", 0.2, 0.1);
+    playTone(2637, 0.25, "triangle", 0.18, 0.18);
+    vibrate([10, 10, 10, 50]);
+  },
+
+  // صوت "نجمة مفقودة" (لا تزعج - مجرد نغمة لطيفة)
+  starMiss: () => {
+    playTone(330, 0.08, "sine", 0.08);
+    playTone(247, 0.12, "sine", 0.08, 0.06);
+  },
 };
 
 // إعداد صامت (للوضع الصامت)
@@ -158,6 +183,16 @@ export function playSound(effect: keyof typeof soundEffects) {
   if (getMuted()) return;
   try {
     soundEffects[effect]();
+  } catch (e) {
+    // تجاهل الأخطاء
+  }
+}
+
+// wrapper خاص بالنجوم (يدعم رقم النجمة)
+export function playStarSound(starNumber: number) {
+  if (getMuted()) return;
+  try {
+    soundEffects.starReveal(starNumber);
   } catch (e) {
     // تجاهل الأخطاء
   }
