@@ -149,8 +149,16 @@ export async function fetchLevelById(id: number): Promise<Level | null> {
         startCol: w.startCol,
         number: w.number,
       })),
-      availableLetters: level.availableLetters ? level.availableLetters.split(",") : [],
-      bonusWords: level.bonusWords ? level.bonusWords.split(",").filter((w: string) => w) : [],
+      availableLetters: Array.isArray(level.availableLetters)
+        ? level.availableLetters
+        : level.availableLetters
+        ? level.availableLetters.split(",")
+        : [],
+      bonusWords: Array.isArray(level.bonusWords)
+        ? level.bonusWords
+        : level.bonusWords
+        ? level.bonusWords.split(",").filter((w: string) => w)
+        : [],
       reward: level.reward,
       hintCost: level.hintCost,
     };
