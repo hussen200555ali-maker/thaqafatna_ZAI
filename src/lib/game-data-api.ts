@@ -204,27 +204,60 @@ export async function saveProgress(progress: {
 }
 
 // ===== إنشاء مستخدم ضيف =====
+// يعالج الحالات التالية بأناقة:
+//   - لا يوجد userId محفوظ → ينشئ مستخدم جديد
+//   - userId محفوظ لكن لم يعد موجوداً في DB (404) → ينظّف وينشئ جديد
+//   - خطأ شبكة/خادم → يعيد null بهدوء (التطبيق يبقى قابل للاستخدام بدون مزامنة)
 export async function getOrCreateUser(): Promise<{ id: string; coins: number } | null> {
   try {
-    // فحص إذا كان لدينا معرف مستخدم محفوظ
-    const storedUserId = typeof window !== "undefined"
+    const isClient = typeof window !== "undefined";
+    const storedUserId = isClient
       ? localStorage.getItem("thaqafatna-user-id")
       : null;
 
-    const url = storedUserId ? `/api/progress?userId=${storedUserId}` : "/api/progress";
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Failed to fetch user");
-    const data = await response.json();
-
-    if (data.user) {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("thaqafatna-user-id", data.user.id);
+    // محاولة جلب المستخدم المحفوظ إن وُجد
+    if (storedUserId) {
+      try {
+        const response = await fetch(`/api/progress?userId=${storedUserId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            return { id: data.user.id, coins: data.user.coins };
+          }
+        } else if (response.status === 404) {
+          // المستخدم لم يعد موجوداً في DB (ربما بعد reset) — ننظّف ونتابع لإنشاء جديد
+          if (isClient) {
+            localStorage.removeItem("thaqafatna-user-id");
+          }
+        }
+        // أي حالة أخرى (5xx مثلاً): نسقط لإنشاء جديد كمحاولة أخيرة
+      } catch (e) {
+        // فشل شبكي عند محاولة المستخدم المحفوظ — نتابع لإنشاء جديد
+        console.warn("Failed to fetch existing user, will create a new one:", e);
       }
-      return { id: data.user.id, coins: data.user.coins };
     }
+
+    // إنشاء مستخدم ضيف جديد
+    try {
+      const response = await fetch("/api/progress");
+      if (!response.ok) {
+        console.warn("User creation API returned non-OK status:", response.status);
+        return null;
+      }
+      const data = await response.json();
+      if (data.user) {
+        if (isClient) {
+          localStorage.setItem("thaqafatna-user-id", data.user.id);
+        }
+        return { id: data.user.id, coins: data.user.coins };
+      }
+    } catch (e) {
+      console.error("Error creating new user:", e);
+    }
+
     return null;
   } catch (error) {
-    console.error("Error getting user:", error);
+    console.error("Unexpected error in getOrCreateUser:", error);
     return null;
   }
 }

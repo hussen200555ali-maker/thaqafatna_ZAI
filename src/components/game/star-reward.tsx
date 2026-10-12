@@ -290,8 +290,8 @@ function SingleStar({
         )}
       </motion.div>
 
-      {/* تسمية النجمة تحت الرمز */}
-      {size !== "sm" && (
+      {/* تسمية النجمة تحت الرمز — تظهر فقط للنجوم الكبيرة */}
+      {starSize >= 36 && (
         <motion.div
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
