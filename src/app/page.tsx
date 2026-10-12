@@ -19,11 +19,10 @@ type View = "onboarding" | "home" | "game" | "daily" | "chapters" | "admin" | "p
 // مكون داخلي لقراءة حالة onboarding بعد التركيب فقط
 function useMounted() {
   const [mounted, setMounted] = useState(false);
-  // استخدام useInsertionEffect أو قراءة مباشرة
-  if (typeof window !== "undefined" && !mounted) {
-    // تعيين مباشر بدون useEffect
-    queueMicrotask(() => setMounted(true));
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
   return mounted;
 }
 
@@ -77,19 +76,14 @@ export default function HomePage() {
     setApiLevels(levelsData);
   };
 
-  // تعيين العرض بعد التركيب
-  if (mounted && !initialized) {
-    setInitialized(true);
-    setView(onboardingSeen ? "home" : "onboarding");
-  }
-
-  // فحص إذا كان المستخدم يريد وضع الإدارة عبر URL hash
-  if (typeof window !== "undefined") {
-    const hash = window.location.hash;
-    if (hash === "#admin" && view !== "admin") {
-      setView("admin");
+  // تعيين العرض بعد التركيب - استخدام useEffect
+  useEffect(() => {
+    if (mounted && !initialized) {
+      setInitialized(true);
+      const seen = typeof window !== "undefined" && localStorage.getItem("thaqafatna-onboarding-seen") === "true";
+      setView(seen ? "home" : "onboarding");
     }
-  }
+  }, [mounted, initialized]);
 
   const handleOnboardingComplete = () => {
     localStorage.setItem("thaqafatna-onboarding-seen", "true");
@@ -203,6 +197,8 @@ export default function HomePage() {
             levels={apiLevels}
             completedLevels={completedLevels}
             unlockedLevels={unlockedLevels}
+            coins={coins}
+            dailyStreak={dailyStreak}
             onLevelClick={handleLevelClick}
             onSelectChapter={handleSelectChapter}
             selectedChapter={selectedChapter}
@@ -283,6 +279,8 @@ interface HomeViewProps {
   levels: ApiLevel[];
   completedLevels: number[];
   unlockedLevels: number[];
+  coins: number;
+  dailyStreak: number;
   onLevelClick: (id: number) => void;
   onSelectChapter: (id: number) => void;
   selectedChapter: number;
@@ -295,6 +293,8 @@ function HomeView({
   levels,
   completedLevels,
   unlockedLevels,
+  coins,
+  dailyStreak,
   onLevelClick,
   onSelectChapter,
   selectedChapter,
@@ -307,40 +307,63 @@ function HomeView({
 
   return (
     <div className="space-y-6">
-      {/* بطاقة الترحيب */}
+      {/* بطاقة الترحيب المحسّنة */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 p-6 sm:p-8 shadow-gold-lg"
+        className="relative overflow-hidden rounded-3xl gradient-teal-pro p-6 sm:p-8 shadow-soft-lg"
       >
-        {/* زخارف */}
-        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-amber-300/20" />
-        <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-amber-400/10" />
+        {/* زخارف متحركة */}
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+          className="absolute -top-20 -right-20 w-60 h-60 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, white 0%, transparent 70%)" }}
+        />
+        <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-amber-400/5" />
 
         <div className="relative">
-          <p className="text-amber-100 text-sm mb-2">{todayDate}</p>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-3" style={{ fontFamily: "var(--font-tajawal)" }}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-teal-100 text-sm">{todayDate}</p>
+            {/* شارة المستوى */}
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20">
+              <span className="text-yellow-300 text-xs">⭐</span>
+              <span className="text-white text-xs font-bold">المستوى {Math.floor(totalCompleted / 5) + 1}</span>
+            </div>
+          </div>
+
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-tajawal)" }}>
             أهلاً بك في ثقافتنا
           </h1>
-          <p className="text-amber-50/90 text-sm sm:text-base mb-4 max-w-lg">
+          <p className="text-teal-100/90 text-sm sm:text-base mb-4 max-w-lg">
             اكتشف عالم الكلمات العربية، حل الألغاز، وتعلّم كل يوم
           </p>
 
-          {/* إحصائيات */}
+          {/* إحصائيات محسّنة */}
           <div className="flex items-center gap-3">
-            <div className="px-3 py-1.5 rounded-lg bg-white/15 backdrop-blur-sm border border-white/20">
-              <span className="text-xs text-amber-100">تقدمك</span>
-              <div className="text-lg font-bold text-white">
-                {totalCompleted} / {totalLevels}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20">
+              <div className="text-center">
+                <div className="text-xs text-teal-100">مكتمل</div>
+                <div className="text-lg font-bold text-white">
+                  {totalCompleted}<span className="text-teal-200/60 text-sm">/{totalLevels}</span>
+                </div>
               </div>
             </div>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20">
+              <span className="text-yellow-300 text-sm">🪙</span>
+              <span className="text-white font-bold">{coins}</span>
+            </div>
             <div className="flex-1 max-w-xs">
-              <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+              <div className="flex items-center justify-between text-xs text-teal-100 mb-1">
+                <span>التقدم</span>
+                <span>{Math.round((totalCompleted / totalLevels) * 100)}%</span>
+              </div>
+              <div className="h-2.5 bg-white/15 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${(totalCompleted / totalLevels) * 100}%` }}
-                  transition={{ duration: 0.8 }}
-                  className="h-full bg-white rounded-full"
+                  transition={{ duration: 0.8, type: "spring" }}
+                  className="h-full rounded-full bg-gradient-to-r from-yellow-300 to-amber-400"
                 />
               </div>
             </div>
@@ -348,27 +371,48 @@ function HomeView({
         </div>
       </motion.div>
 
-      {/* بطاقة التحدي اليومي */}
+      {/* بطاقة التحدي اليومي المحسّنة */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
+        className="card-pro"
       >
         <Card
-          className="p-4 sm:p-5 cursor-pointer hover:shadow-gold transition-all border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50"
+          className="p-4 sm:p-5 cursor-pointer hover:shadow-soft-lg transition-all border-purple-200 bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 overflow-hidden relative"
           onClick={onDailyChallenge}
         >
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-2xl shadow-md">
+          {/* أيقونة متحركة */}
+          <motion.div
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute top-3 left-3 text-3xl opacity-20"
+          >
+            🎯
+          </motion.div>
+          <div className="flex items-center gap-4 relative">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 via-pink-400 to-orange-400 flex items-center justify-center text-2xl shadow-soft">
               🎯
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-stone-800 mb-1">تحدّ اليوم</h3>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-lg font-bold text-stone-800">تحدّ اليوم</h3>
+                {dailyStreak > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-bold flex items-center gap-1">
+                    <span>🔥</span> {dailyStreak} يوم
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-stone-600">لغز جديد كل يوم مع مكافآت مضاعفة</p>
             </div>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-400">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
+            <motion.div
+              animate={{ x: [0, 5, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-400">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </motion.div>
           </div>
         </Card>
       </motion.div>

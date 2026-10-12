@@ -277,9 +277,9 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-800 via-teal-900 to-cyan-950 flex flex-col">
-      {/* شريط علوي */}
-      <header className="bg-teal-950/50 backdrop-blur-md border-b border-white/10">
+    <div className="min-h-screen bg-gradient-to-b from-teal-800 via-teal-900 to-cyan-950 flex flex-col pattern-pro">
+      {/* شريط علوي محسّن */}
+      <header className="bg-teal-950/60 backdrop-blur-xl border-b border-white/10 sticky top-0 z-30">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => { playSound("buttonClick"); if (onExit) onExit(); else router.push("/"); }}
@@ -565,26 +565,40 @@ function SuccessModal({ level, foundWords, bonusWords, timeSpent, hintsUsed, onC
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.5, y: 50 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.5, y: 50 }}
-        transition={{ type: "spring", stiffness: 200, damping: 20 }}
-        className="bg-gradient-to-br from-teal-800 to-cyan-900 rounded-3xl p-8 max-w-md w-full shadow-2xl border-2 border-teal-400/30 relative overflow-hidden"
+        initial={{ scale: 0.3, y: 80, rotateX: 45 }}
+        animate={{ scale: 1, y: 0, rotateX: 0 }}
+        exit={{ scale: 0.3, y: 80, rotateX: 45 }}
+        transition={{ type: "spring", stiffness: 200, damping: 18 }}
+        className="bg-gradient-to-br from-teal-700 via-cyan-800 to-teal-900 rounded-3xl p-8 max-w-md w-full shadow-2xl border-2 border-teal-300/30 relative overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {[...Array(10)].map((_, i) => (
+        {/* خلفية متوهجة */}
+        <motion.div
+          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity }}
+          className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-transparent to-purple-400/10"
+        />
+
+        {/* رموز متطايرة أكثر */}
+        {[...Array(15)].map((_, i) => (
           <motion.div
             key={i}
             initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
-            animate={{ scale: [0, 1, 0], x: (Math.random() - 0.5) * 400, y: (Math.random() - 0.5) * 400, opacity: [0, 1, 0] }}
-            transition={{ duration: 2, delay: i * 0.1, repeat: Infinity, repeatDelay: 1 }}
-            className="absolute top-1/2 left-1/2 text-3xl pointer-events-none"
+            animate={{
+              scale: [0, 1.2, 0],
+              x: (Math.random() - 0.5) * 500,
+              y: (Math.random() - 0.5) * 500,
+              opacity: [0, 1, 0],
+              rotate: Math.random() * 360,
+            }}
+            transition={{ duration: 2.5, delay: i * 0.08, repeat: Infinity, repeatDelay: 0.5 }}
+            className="absolute top-1/2 left-1/2 text-2xl pointer-events-none"
           >
-            {["⭐", "🎉", "✨", "💫", "🌟", "🎊"][i % 6]}
+            {["⭐", "🎉", "✨", "💫", "🌟", "🎊", "🏆", "💎"][i % 8]}
           </motion.div>
         ))}
 
