@@ -57,6 +57,7 @@ export async function PUT(
     const {
       title,
       difficulty,
+      gameMode,
       gridSizeRows,
       gridSizeCols,
       availableLetters,
@@ -69,8 +70,10 @@ export async function PUT(
       cells,
     } = body;
 
-    // فحص آلي للجودة إذا تم تحديث الكلمات أو الخلايا
-    if (words && cells) {
+    const mode = gameMode || "crossword";
+
+    // فحص آلي للجودة في وضع الشبكة فقط
+    if (mode === "crossword" && words && cells && cells.length > 0) {
       const validation = validateLevel(words, cells, availableLetters);
       if (!validation.valid) {
         return NextResponse.json(
@@ -88,6 +91,7 @@ export async function PUT(
         data: {
           title,
           difficulty,
+          gameMode: mode,
           gridSizeRows,
           gridSizeCols,
           availableLetters: Array.isArray(availableLetters)
@@ -104,11 +108,9 @@ export async function PUT(
         },
       });
 
-      if (words && cells) {
+      if (words) {
         // حذف الكلمات القديمة
         await tx.word.deleteMany({ where: { levelId } });
-        // حذف الخلايا القديمة
-        await tx.cell.deleteMany({ where: { levelId } });
 
         // إضافة الكلمات الجديدة
         await tx.word.createMany({
@@ -116,12 +118,18 @@ export async function PUT(
             levelId,
             text: w.text,
             clue: w.clue,
-            direction: w.direction,
-            startRow: w.startRow,
-            startCol: w.startCol,
+            category: w.category || "",
+            direction: w.direction || "across",
+            startRow: w.startRow || 0,
+            startCol: w.startCol || 0,
             number: w.number,
           })),
         });
+      }
+
+      if (mode === "crossword" && cells) {
+        // حذف الخلايا القديمة
+        await tx.cell.deleteMany({ where: { levelId } });
 
         // إضافة الخلايا الجديدة
         await tx.cell.createMany({

@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       number,
       title,
       difficulty,
+      gameMode,
       gridSizeRows,
       gridSizeCols,
       availableLetters,
@@ -53,20 +54,23 @@ export async function POST(request: NextRequest) {
       cells,
     } = body;
 
-    if (!chapterId || !title || !availableLetters || !words || !cells) {
+    if (!chapterId || !title || !availableLetters || !words) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // فحص آلي لجودة اللغز
-    const validation = validateLevel(words, cells, availableLetters);
-    if (!validation.valid) {
-      return NextResponse.json(
-        { error: "Validation failed", details: validation.errors },
-        { status: 400 }
-      );
+    // فحص آلي لجودة اللغز (فقط في وضع الشبكة)
+    const mode = gameMode || "crossword";
+    if (mode === "crossword" && cells && cells.length > 0) {
+      const validation = validateLevel(words, cells, availableLetters);
+      if (!validation.valid) {
+        return NextResponse.json(
+          { error: "Validation failed", details: validation.errors },
+          { status: 400 }
+        );
+      }
     }
 
     // الحصول على رقم المرحلة التالي إذا لم يُحدد
@@ -86,6 +90,7 @@ export async function POST(request: NextRequest) {
         number: levelNumber,
         title,
         difficulty: difficulty || "easy",
+        gameMode: mode,
         gridSizeRows: gridSizeRows || 5,
         gridSizeCols: gridSizeCols || 5,
         availableLetters: Array.isArray(availableLetters)
@@ -101,20 +106,21 @@ export async function POST(request: NextRequest) {
           create: words.map((w: any) => ({
             text: w.text,
             clue: w.clue,
-            direction: w.direction,
-            startRow: w.startRow,
-            startCol: w.startCol,
+            category: w.category || "",
+            direction: w.direction || "across",
+            startRow: w.startRow || 0,
+            startCol: w.startCol || 0,
             number: w.number,
           })),
         },
-        cells: {
+        cells: mode === "crossword" && cells ? {
           create: cells.map((c: any) => ({
             row: c.row,
             col: c.col,
             letter: c.letter,
             number: c.number || null,
           })),
-        },
+        } : undefined,
       },
       include: {
         words: true,

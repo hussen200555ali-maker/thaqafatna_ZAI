@@ -33,6 +33,7 @@ model Level {
   number        Int      @default(1)
   title         String
   difficulty    String   @default("easy") // easy | medium | hard
+  gameMode      String   @default("crossword") // crossword | quiz
   gridSizeRows  Int      @default(5)
   gridSizeCols  Int      @default(5)
   availableLetters String // حروف مفصولة بفواصل
@@ -55,15 +56,16 @@ model Level {
   @@index([status])
 }
 
-// ===== نموذج الكلمات =====
+// ===== نموذج الكلمات/الأسئلة =====
 model Word {
   id          Int      @id @default(autoincrement())
   levelId     Int
-  text        String
-  clue        String
-  direction   String // across | down
-  startRow    Int
-  startCol    Int
+  text        String   // الكلمة/الإجابة
+  clue        String   // التلميح/السؤال
+  category    String   @default("") // تصنيف السؤال: من، ماذا، أين، إلخ
+  direction   String   @default("across") // across | down
+  startRow    Int      @default(0)
+  startCol    Int      @default(0)
   number      Int
   createdAt   DateTime @default(now())
 

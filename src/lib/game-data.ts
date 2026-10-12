@@ -12,6 +12,7 @@ export interface Word {
   id: string;
   text: string;
   clue: string;
+  category?: string;
   direction: "across" | "down";
   startRow: number;
   startCol: number;
@@ -24,6 +25,7 @@ export interface Level {
   number: number;
   title: string;
   difficulty: "easy" | "medium" | "hard";
+  gameMode?: "crossword" | "quiz";
   gridSize: { rows: number; cols: number };
   cells: Cell[];
   words: Word[];

@@ -33,7 +33,8 @@ export async function POST(
       );
     }
 
-    if (level.cells.length === 0) {
+    // فحص الخلايا فقط في وضع الشبكة (crossword)
+    if (level.gameMode === "crossword" && level.cells.length === 0) {
       return NextResponse.json(
         { error: "Cannot publish: Level has no cells" },
         { status: 400 }

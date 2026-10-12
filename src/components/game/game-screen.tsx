@@ -389,9 +389,16 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
         >
           {/* عنوان السؤال */}
           <div className="bg-teal-600/50 px-6 py-3 flex items-center justify-between">
-            <span className="text-white font-bold text-lg">
-              {currentWord.direction === "across" ? "← أفقي" : "↓ عمودي"} · {currentWord.number}
-            </span>
+            <div className="flex items-center gap-2">
+              {currentWord.category && (
+                <span className="px-2 py-1 rounded-lg bg-white/20 text-white text-sm font-bold">
+                  {currentWord.category}
+                </span>
+              )}
+              <span className="text-white font-bold text-lg">
+                {level.gameMode === "quiz" ? `سؤال ${currentWord.number}` : `${currentWord.direction === "across" ? "← أفقي" : "↓ عمودي"} · ${currentWord.number}`}
+              </span>
+            </div>
             {/* زر المشاركة */}
             <button
               onClick={() => {

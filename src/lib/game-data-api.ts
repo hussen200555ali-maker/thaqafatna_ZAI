@@ -131,24 +131,26 @@ export async function fetchLevelById(id: number): Promise<Level | null> {
       number: level.number,
       title: level.title,
       difficulty: level.difficulty,
+      gameMode: level.gameMode || "crossword",
       gridSize: { rows: level.gridSizeRows, cols: level.gridSizeCols },
-      cells: level.cells.map((c: any) => ({
+      cells: (level.cells || []).map((c: any) => ({
         row: c.row,
         col: c.col,
         letter: c.letter,
         number: c.number,
       })),
-      words: level.words.map((w: any) => ({
+      words: (level.words || []).map((w: any) => ({
         id: `${w.number}-${w.direction}`,
         text: w.text,
         clue: w.clue,
+        category: w.category || "",
         direction: w.direction,
         startRow: w.startRow,
         startCol: w.startCol,
         number: w.number,
       })),
-      availableLetters: level.availableLetters || [],
-      bonusWords: level.bonusWords || [],
+      availableLetters: level.availableLetters ? level.availableLetters.split(",") : [],
+      bonusWords: level.bonusWords ? level.bonusWords.split(",").filter((w: string) => w) : [],
       reward: level.reward,
       hintCost: level.hintCost,
     };
