@@ -373,41 +373,55 @@ function HomeView({
         </Card>
       </motion.div>
 
-      {/* اختيار الفصل */}
+      {/* اختيار الفصل - شبكة بطاقات */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xl font-bold text-stone-800" style={{ fontFamily: "var(--font-tajawal)" }}>
-            الفصول
+            📚 الفصول الثقافية
           </h2>
           <span className="text-sm text-stone-500">{chapters.length} فصول</span>
         </div>
-        <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {chapters.map((chapter) => {
             const isLocked = totalCompleted < chapter.unlockAt;
             const isSelected = chapter.id === selectedChapter;
             return (
-              <button
+              <motion.button
                 key={chapter.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={!isLocked ? { scale: 1.03, y: -2 } : {}}
+                whileTap={!isLocked ? { scale: 0.97 } : {}}
                 onClick={() => !isLocked && onSelectChapter(chapter.id)}
                 disabled={isLocked}
                 className={cn(
-                  "flex-shrink-0 px-4 py-2 rounded-xl border-2 transition-all flex items-center gap-2",
+                  "relative overflow-hidden rounded-2xl p-4 border-2 transition-all text-right",
                   isSelected
-                    ? "bg-white shadow-md"
-                    : "bg-white/60 hover:bg-white",
-                  isLocked && "opacity-50 cursor-not-allowed"
+                    ? "bg-white shadow-lg"
+                    : isLocked
+                    ? "bg-stone-100 border-stone-200 opacity-60 cursor-not-allowed"
+                    : "bg-white/70 hover:bg-white border-transparent"
                 )}
                 style={{ borderColor: isSelected ? chapter.color : "transparent" }}
               >
-                <span className="text-lg">{chapter.icon}</span>
-                <span className="font-bold text-sm text-stone-700">{chapter.title}</span>
-                {isLocked && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-400">
-                    <rect x="3" y="11" width="18" height="11" rx="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                )}
-              </button>
+                {/* خلفية ملونة */}
+                <div
+                  className="absolute top-0 left-0 w-full h-1"
+                  style={{ backgroundColor: chapter.color }}
+                />
+                <div className="flex items-start gap-3">
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                    style={{ backgroundColor: chapter.color + "33" }}
+                  >
+                    {isLocked ? "🔒" : chapter.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-stone-800 text-sm truncate">{chapter.title}</h3>
+                    <p className="text-xs text-stone-500 line-clamp-1 mt-0.5">{chapter.description}</p>
+                  </div>
+                </div>
+              </motion.button>
             );
           })}
         </div>
