@@ -427,6 +427,12 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
               const existingCell = cell;
               const startOfWord = words.find((w) => w.startRow === rowIdx && w.startCol === colIdx);
               const wordColor = wordInfo ? getWordColor(wordInfo.wordIdx) : null;
+              // هل يوجد سحب نشط أو مسار معلّق؟
+              const hasDragActive = isDragging || pendingDrag !== null;
+              // إخفاء تلوين الكلمات الموجودة أثناء السحب لإظهار المسار الحالي فقط
+              const showWordColor = wordColor && !hasDragActive && !inDrag;
+              // إظهار التحديد الأزرق فقط عندما لا يكون هناك مسار معلّق
+              const showSelected = isSelected && !inDrag && !pendingDrag;
 
               return (
                 <motion.div
@@ -444,9 +450,9 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
                         : isEndDrag
                         ? "text-white shadow-lg"
                         : "text-stone-800"
-                      : isSelected
+                      : showSelected
                       ? "bg-blue-200 border-blue-400"
-                      : wordColor
+                      : showWordColor
                       ? "border-2"
                       : existingCell
                       ? "bg-white border-stone-300 text-stone-800"
@@ -458,7 +464,7 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
                           backgroundColor: isStartDrag || isEndDrag ? DRAG_COLOR.line : DRAG_COLOR.fill,
                           borderColor: DRAG_COLOR.border,
                         }
-                      : wordColor
+                      : showWordColor && wordColor
                       ? {
                           backgroundColor: wordColor.fill,
                           borderColor: wordColor.border,
@@ -508,7 +514,7 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
             height={svgHeight}
             style={{ top: 0, left: 0 }}
           >
-            {/* خطوط الكلمات المضافة */}
+            {/* خطوط الكلمات المضافة - تُخفت أثناء السحب أو عند وجود مسار معلّق */}
             {words.map((word, idx) => {
               const color = getWordColor(idx);
               const start = getCellCenter(word.startRow, word.startCol);
@@ -516,8 +522,13 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
               const endCol = word.direction === "across" ? word.startCol + word.text.length - 1 : word.startCol;
               const end = getCellCenter(endRow, endCol);
 
+              // تخفيت الخطوط الموجودة أثناء السحب النشط أو عند وجود مسار معلّق
+              const dimmed = isDragging || pendingDrag !== null;
+              const lineOpacity = dimmed ? 0.12 : 0.35;
+              const circleOpacity = dimmed ? 0.2 : 1;
+
               return (
-                <g key={`word-${idx}`}>
+                <g key={`word-${idx}`} style={{ transition: "opacity 0.2s" }}>
                   {/* الخط الرئيسي */}
                   <line
                     x1={start.x}
@@ -527,7 +538,7 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
                     stroke={color.line}
                     strokeWidth={Math.max(cellSize * 0.7, 24)}
                     strokeLinecap="round"
-                    opacity={0.35}
+                    opacity={lineOpacity}
                   />
                   {/* دائرة البداية */}
                   <circle
@@ -535,6 +546,7 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
                     cy={start.y}
                     r={cellSize * 0.18}
                     fill={color.line}
+                    opacity={circleOpacity}
                   />
                   {/* دائرة النهاية */}
                   <circle
@@ -544,6 +556,7 @@ export function GridEditor({ rows, cols, cells, words, onChange }: GridEditorPro
                     fill="none"
                     stroke={color.line}
                     strokeWidth={3}
+                    opacity={circleOpacity}
                   />
                 </g>
               );
