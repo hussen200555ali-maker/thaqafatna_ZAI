@@ -427,46 +427,48 @@ function HomeView({
             return (
               <motion.button
                 key={level.id}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: idx * 0.05 }}
-                whileHover={isUnlocked ? { scale: 1.05, y: -2 } : {}}
+                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: idx * 0.05, type: "spring", stiffness: 200 }}
+                whileHover={isUnlocked ? { scale: 1.05, y: -4 } : {}}
                 whileTap={isUnlocked ? { scale: 0.95 } : {}}
                 onClick={() => onLevelClick(level.id)}
                 disabled={!isUnlocked}
                 className={cn(
-                  "relative aspect-square rounded-2xl border-2 flex flex-col items-center justify-center transition-all",
-                  isCompleted
-                    ? "bg-gradient-to-br from-amber-300 to-amber-500 border-amber-500 text-white shadow-gold"
-                    : isUnlocked
-                    ? "bg-white border-amber-200 hover:border-amber-400 hover:bg-amber-50 text-stone-700 shadow-sm"
-                    : "bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed"
+                  "relative overflow-hidden rounded-2xl border-2 flex flex-col items-center justify-center transition-all shadow-md",
+                  isUnlocked
+                    ? "bg-gradient-to-b from-yellow-300 to-amber-400 border-amber-500 text-stone-800"
+                    : "bg-gradient-to-b from-stone-700 to-stone-800 border-stone-600 text-stone-400 cursor-not-allowed"
                 )}
-                style={isCompleted ? { backgroundColor: currentChapter.color } : {}}
               >
-                {isCompleted && (
-                  <div className="absolute top-1 right-1">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                      <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.4-4.9-2.6L7 17.1l.9-5.4-4-3.9 5.5-.8z" />
-                    </svg>
-                  </div>
-                )}
-                {!isUnlocked && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-400">
+                {/* الجزء العلوي - الرقم */}
+                <div className="flex-1 flex items-center justify-center pt-3 pb-1">
+                  {isUnlocked ? (
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-stone-800 flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">{level.number}</span>
+                    </div>
+                  ) : (
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-500">
                       <rect x="3" y="11" width="18" height="11" rx="2" />
                       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
-                  </div>
-                )}
-                {isUnlocked && (
-                  <>
-                    <span className="text-2xl font-bold mb-1">{level.number}</span>
-                    <span className="text-[10px] opacity-70">
-                      {level.difficulty === "easy" ? "سهل" : level.difficulty === "medium" ? "متوسط" : "صعب"}
-                    </span>
-                  </>
-                )}
+                  )}
+                </div>
+
+                {/* الجزء السفلي - النجوم */}
+                <div className="bg-stone-800 w-full py-1.5 flex items-center justify-center gap-0.5">
+                  {[1, 2, 3].map((star) => (
+                    <svg
+                      key={star}
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill={isCompleted ? "#FFD700" : "rgba(255,255,255,0.2)"}
+                    >
+                      <path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.4-4.9-2.6L7 17.1l.9-5.4-4-3.9 5.5-.8z" />
+                    </svg>
+                  ))}
+                </div>
               </motion.button>
             );
           })}
@@ -475,7 +477,7 @@ function HomeView({
           {Array.from({ length: Math.max(0, currentChapter.levelsCount - levels.length) }).map((_, idx) => (
             <div
               key={`locked-${idx}`}
-              className="aspect-square rounded-2xl border-2 border-dashed border-stone-200 flex items-center justify-center text-stone-300"
+              className="aspect-square rounded-2xl border-2 border-dashed border-stone-300 flex items-center justify-center text-stone-300 bg-stone-50"
             >
               <span className="text-2xl">🔒</span>
             </div>
