@@ -177,10 +177,18 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
       setAvailableLetters(lettersToSend);
     }
 
+    // تحديد نوع اللغز بناءً على الأسئلة
+    let detectedPuzzleType: "text" | "image" | "images4" = "text";
+    if (words.some((w) => w.image2Url)) {
+      detectedPuzzleType = "images4";
+    } else if (words.some((w) => w.imageUrl)) {
+      detectedPuzzleType = "image";
+    }
+
     const payload = {
       chapterId,
       gameMode,
-      puzzleType: gameMode === "quiz" ? "text" : "text",
+      puzzleType: gameMode === "quiz" ? detectedPuzzleType : "text",
       title,
       difficulty,
       gridSizeRows,
