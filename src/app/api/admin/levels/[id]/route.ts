@@ -92,6 +92,7 @@ export async function PUT(
           title,
           difficulty,
           gameMode: mode,
+          puzzleType: body.puzzleType || "text",
           gridSizeRows,
           gridSizeCols,
           availableLetters: Array.isArray(availableLetters)
@@ -119,6 +120,10 @@ export async function PUT(
             text: w.text,
             clue: w.clue,
             category: w.category || "",
+            imageUrl: w.imageUrl || "",
+            image2Url: w.image2Url || "",
+            image3Url: w.image3Url || "",
+            image4Url: w.image4Url || "",
             direction: w.direction || "across",
             startRow: w.startRow || 0,
             startCol: w.startCol || 0,

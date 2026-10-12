@@ -33,7 +33,8 @@ model Level {
   number        Int      @default(1)
   title         String
   difficulty    String   @default("easy") // easy | medium | hard
-  gameMode      String   @default("crossword") // crossword | quiz
+  gameMode      String   @default("quiz") // quiz | crossword
+  puzzleType    String   @default("text") // text | image | images4
   gridSizeRows  Int      @default(5)
   gridSizeCols  Int      @default(5)
   availableLetters String // حروف مفصولة بفواصل
@@ -63,6 +64,10 @@ model Word {
   text        String   // الكلمة/الإجابة
   clue        String   // التلميح/السؤال
   category    String   @default("") // تصنيف السؤال: من، ماذا، أين، إلخ
+  imageUrl    String   @default("") // رابط الصورة للغز
+  image2Url   String   @default("") // للغز 4 صور
+  image3Url   String   @default("") // للغز 4 صور
+  image4Url   String   @default("") // للغز 4 صور
   direction   String   @default("across") // across | down
   startRow    Int      @default(0)
   startCol    Int      @default(0)

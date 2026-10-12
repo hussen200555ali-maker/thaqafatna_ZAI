@@ -102,11 +102,16 @@ export async function POST(request: NextRequest) {
         reward: reward || 50,
         hintCost: hintCost || 10,
         status: "draft",
+        puzzleType: body.puzzleType || "text",
         words: {
           create: words.map((w: any) => ({
             text: w.text,
             clue: w.clue,
             category: w.category || "",
+            imageUrl: w.imageUrl || "",
+            image2Url: w.image2Url || "",
+            image3Url: w.image3Url || "",
+            image4Url: w.image4Url || "",
             direction: w.direction || "across",
             startRow: w.startRow || 0,
             startCol: w.startCol || 0,

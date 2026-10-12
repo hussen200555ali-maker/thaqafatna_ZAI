@@ -13,6 +13,10 @@ export interface Word {
   text: string;
   clue: string;
   category?: string;
+  imageUrl?: string;
+  image2Url?: string;
+  image3Url?: string;
+  image4Url?: string;
   direction: "across" | "down";
   startRow: number;
   startCol: number;
@@ -26,6 +30,7 @@ export interface Level {
   title: string;
   difficulty: "easy" | "medium" | "hard";
   gameMode?: "crossword" | "quiz";
+  puzzleType?: "text" | "image" | "images4";
   gridSize: { rows: number; cols: number };
   cells: Cell[];
   words: Word[];
