@@ -55,6 +55,12 @@ model Level {
   bonusWords    String   @default("") // كلمات إضافية مفصولة بفواصل
   reward        Int      @default(50)
   hintCost      Int      @default(10)
+  // ===== الأهداف التربوية (الميزة الاحترافية) =====
+  // JSON array of goals: ["معنى 5 أمثال شائعة", "أصل المثل وقصته"]
+  // تُعرض للاعب في شاشة قصيرة قبل بدء المرحلة
+  learningGoals String   @default("[]")
+  // وصف تربوي مختصر للمرحلة
+  educationalDescription String @default("")
   status        String   @default("draft") // draft | review | published | archived
   version       Int      @default(1)
   isPublished   Boolean  @default(false)

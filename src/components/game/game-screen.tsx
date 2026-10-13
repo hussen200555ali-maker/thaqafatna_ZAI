@@ -68,7 +68,7 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
 
     fetchLevelById(levelId).then((data) => {
       if (!cancelled) {
-        setLevel(data);
+        setLevel(data as any);
         setLoading(false);
         if (data) {
           setTimeout(() => playSound("levelStart"), 200);
@@ -615,6 +615,71 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
                   {currentWord.clue}
                 </p>
               )}
+            </div>
+          )}
+
+          {/* 8.5 عرض اللغز الصوتي (audio) */}
+          {puzzleType === "audio" && (
+            <div className="bg-gradient-to-br from-rose-600 to-pink-700 rounded-2xl px-6 py-6 shadow-xl max-w-md w-full">
+              <p className="text-white text-lg font-bold text-center mb-4" style={{ fontFamily: "var(--font-tajawal)" }}>
+                {currentWord.clue}
+              </p>
+              {/* مشغّل الصوت */}
+              <div className="flex flex-col items-center gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    // إذا يوجد audioUrl، نشغّله
+                    if (currentWord.audioUrl) {
+                      try {
+                        const audio = new Audio(currentWord.audioUrl);
+                        audio.play().catch(() => {
+                          toast({ title: "تعذّر تشغيل الصوت", variant: "destructive" });
+                        });
+                      } catch {
+                        toast({ title: "تعذّر تشغيل الصوت", variant: "destructive" });
+                      }
+                    } else {
+                      // حل بديل: Web Speech API (speechSynthesis)
+                      // ينطق الكلمة بصوت عربي مدمج في المتصفح
+                      try {
+                        if ("speechSynthesis" in window) {
+                          // إيقاف أي نطق سابق
+                          window.speechSynthesis.cancel();
+                          const utterance = new SpeechSynthesisUtterance(currentWord.text);
+                          utterance.lang = "ar-SA";
+                          utterance.rate = 0.7; // بطيء للتعلّم
+                          // محاولة إيجاد صوت عربي
+                          const voices = window.speechSynthesis.getVoices();
+                          const arabicVoice = voices.find((v) => v.lang.startsWith("ar"));
+                          if (arabicVoice) utterance.voice = arabicVoice;
+                          window.speechSynthesis.speak(utterance);
+                          playSound("buttonClick");
+                        } else {
+                          // المتصفح لا يدعم Web Speech API — نعرض الإجابة كتلميح
+                          toast({
+                            title: "🔊 متصفحك لا يدعم النطق التلقائي",
+                            description: `الإجابة: ${currentWord.text}`,
+                          });
+                        }
+                      } catch {
+                        toast({ title: "تعذّر تشغيل الصوت", variant: "destructive" });
+                      }
+                    }
+                  }}
+                  className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center text-3xl shadow-lg"
+                >
+                  🔊
+                </motion.button>
+                <p className="text-rose-100 text-xs">اضغط للاستماع</p>
+                {/* مؤشر النطق (بديل بصري لو ما في صوت) */}
+                {currentWord.text && (
+                  <div className="mt-2 px-3 py-1 rounded-lg bg-white/10 text-white/60 text-xs">
+                    💡 تلميح: الإجابة {currentWord.text.length} حروف
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

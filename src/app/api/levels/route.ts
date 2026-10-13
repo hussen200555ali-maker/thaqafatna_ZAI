@@ -58,6 +58,8 @@ export async function GET(request: NextRequest) {
         number: true,
         title: true,
         difficulty: true,
+        puzzleType: true,
+        gameMode: true,
         reward: true,
         hintCost: true,
         chapterId: true,

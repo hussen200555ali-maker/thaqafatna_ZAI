@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { Level, Word } from "@/lib/game-data";
+import { Level, Word } from "@/lib/game-data-api";
 import { motion, AnimatePresence } from "framer-motion";
 import { playSound } from "@/lib/sound-effects";
 
@@ -40,9 +40,9 @@ export function CrosswordGrid({ level, foundWords, onCellClick }: CrosswordGridP
         });
         row.push({
           letter,
-          number: cell?.number,
+          number: cell?.number ?? undefined,
           isBlocked,
-          wordIds: wordsThroughCell.map((w) => w.id),
+          wordIds: wordsThroughCell.map((w) => w.id ?? ""),
         });
       }
       grid.push(row);
@@ -121,7 +121,7 @@ export function CrosswordGrid({ level, foundWords, onCellClick }: CrosswordGridP
           row.map((cell, colIdx) => {
             const found = isCellFound(rowIdx, colIdx);
             const isPartOfSelected = selectedWord
-              ? cell.wordIds.includes(selectedWord.id)
+              ? cell.wordIds.includes(selectedWord.id ?? "")
               : false;
             const cellKey = `${rowIdx}-${colIdx}`;
             const isNewlyCompleted = completedCells.has(cellKey);

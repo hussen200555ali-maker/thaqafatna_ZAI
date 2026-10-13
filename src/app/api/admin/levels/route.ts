@@ -159,16 +159,16 @@ export async function POST(request: NextRequest) {
 }
 
 // ===== الفحص الآلي لجودة اللغز =====
-function validateLevel(words: any[], cells: any[], availableLetters: string[]): {
+function validateLevel(words: any[], cells: any[], availableLetters: string | string[]): {
   valid: boolean;
   errors: string[];
 } {
   const errors: string[] = [];
 
-  // 1. التحقق من توفر الحروف
-  const letterPool = Array.isArray(availableLetters)
+  // 1. التحقق من توفر الحروف (دعم string أو string[])
+  const letterPool: string[] = Array.isArray(availableLetters)
     ? [...availableLetters]
-    : availableLetters.split(",");
+    : String(availableLetters).split(",");
 
   for (const word of words) {
     const wordLetters = word.text.split("");

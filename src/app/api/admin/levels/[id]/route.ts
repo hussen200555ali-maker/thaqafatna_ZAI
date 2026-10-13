@@ -197,15 +197,15 @@ export async function DELETE(
   }
 }
 
-function validateLevel(words: any[], cells: any[], availableLetters: string[]): {
+function validateLevel(words: any[], cells: any[], availableLetters: string | string[]): {
   valid: boolean;
   errors: string[];
 } {
   const errors: string[] = [];
 
-  const letterPool = Array.isArray(availableLetters)
+  const letterPool: string[] = Array.isArray(availableLetters)
     ? [...availableLetters]
-    : availableLetters.split(",");
+    : String(availableLetters).split(",");
 
   for (const word of words) {
     const wordLetters = word.text.split("");

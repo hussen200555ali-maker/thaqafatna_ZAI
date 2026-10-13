@@ -12,6 +12,19 @@ export interface Word {
   id?: string;
   text: string;
   clue: string;
+  category?: string;
+  imageUrl?: string;
+  image2Url?: string;
+  image3Url?: string;
+  image4Url?: string;
+  emojis?: string;
+  options?: string[];
+  correctOption?: number;
+  matchPairs?: string[];
+  fillBlanks?: string;
+  audioUrl?: string;
+  logicData?: string;
+  sequence?: string;
   direction: "across" | "down";
   startRow: number;
   startCol: number;
@@ -24,6 +37,9 @@ export interface Level {
   number: number;
   title: string;
   difficulty: "easy" | "medium" | "hard";
+  gameMode?: "crossword" | "quiz";
+  puzzleType?: string;
+  timeLimit?: number;
   gridSize: { rows: number; cols: number };
   cells: Cell[];
   words: Word[];
@@ -31,6 +47,9 @@ export interface Level {
   bonusWords: string[];
   reward: number;
   hintCost: number;
+  // ===== الأهداف التربوية =====
+  learningGoals?: string[];
+  educationalDescription?: string;
 }
 
 export interface Chapter {
@@ -134,6 +153,16 @@ export async function fetchLevelById(id: number): Promise<Level | null> {
       gameMode: level.gameMode || "quiz",
       puzzleType: level.puzzleType || "text",
       gridSize: { rows: level.gridSizeRows, cols: level.gridSizeCols },
+      // ===== الأهداف التربوية =====
+      learningGoals: (() => {
+        try {
+          const goals = JSON.parse(level.learningGoals || "[]");
+          return Array.isArray(goals) ? goals : [];
+        } catch {
+          return [];
+        }
+      })(),
+      educationalDescription: level.educationalDescription || "",
       cells: (level.cells || []).map((c: any) => ({
         row: c.row,
         col: c.col,
