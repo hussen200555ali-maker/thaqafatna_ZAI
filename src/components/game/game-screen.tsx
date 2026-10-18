@@ -10,6 +10,7 @@ import { useGameStore } from "@/lib/game-store";
 import { Level, Word } from "@/lib/game-data";
 import { CrosswordGrid } from "./crossword-grid";
 import { StarReward, computeStars, type StarInfo } from "./star-reward";
+import { LearningGoalsScreen } from "./learning-goals-screen";
 import { fetchLevelById, saveProgress } from "@/lib/game-data-api";
 import { useToast } from "@/hooks/use-toast";
 import { playSound, getMuted, setMuted } from "@/lib/sound-effects";
