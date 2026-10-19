@@ -569,6 +569,37 @@ function HomeView({
         </motion.button>
       </div>
 
+      {/* ===== بطاقة المكتبة الجديدة ===== */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="card-pro"
+      >
+        <a href="/library" className="block">
+          <Card className="p-4 sm:p-5 cursor-pointer hover:shadow-soft-lg transition-all border-indigo-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 overflow-hidden relative">
+            <div className="flex items-center gap-4 relative">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-2xl shadow-soft flex-shrink-0">
+                📚
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-stone-800 mb-0.5" style={{ fontFamily: "var(--font-tajawal)" }}>
+                  مكتبة ثقافتنا
+                </h3>
+                <p className="text-stone-600 text-xs">
+                  اقرأ كتب التراث العربي — كل كتاب بألغازه وشهادته
+                </p>
+              </div>
+              <motion.div animate={{ x: [0, 5, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-stone-400">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </motion.div>
+            </div>
+          </Card>
+        </a>
+      </motion.div>
+
       {/* بطاقة التحدي اليومي المحسّنة */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
