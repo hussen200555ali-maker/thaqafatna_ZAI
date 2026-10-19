@@ -274,6 +274,32 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
       setRevealedLetters(newRevealed);
       playSound("hint");
       toast({ title: "💡 كشف حرف", description: `الحرف ${emptyIdx + 1}: ${currentWordText[emptyIdx]}` });
+
+      // ===== فحص تلقائي: هل اكتملت جميع الخانات بعد هذا التلميح؟ =====
+      const newFilledCount = newRevealed.size + answerOrder.length;
+      if (newFilledCount >= currentWordText.length) {
+        // بناء الكلمة يدوياً باستخدام الحروف المكشوفة الجديدة
+        const result: (string | null)[] = Array(currentWordText.length).fill(null);
+        newRevealed.forEach((idx) => {
+          if (idx < currentWordText.length) {
+            result[idx] = currentWordText[idx];
+          }
+        });
+        // ملء الحروف المختارة من المستخدم
+        let letterIdx = 0;
+        for (const selIdx of answerOrder) {
+          while (letterIdx < currentWordText.length && result[letterIdx] !== null) {
+            letterIdx++;
+          }
+          if (letterIdx < currentWordText.length && selectedLetters[selIdx]) {
+            result[letterIdx] = selectedLetters[selIdx].letter;
+            letterIdx++;
+          }
+        }
+        const word = result.join("");
+        // تأخير قصير ليتسنّى للواجهة عرض الحرف المكشوف
+        setTimeout(() => checkWord(word, selectedLetters, answerOrder), 500);
+      }
     }
   };
 

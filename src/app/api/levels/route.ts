@@ -32,10 +32,21 @@ export async function GET(request: NextRequest) {
       }
 
       // تحويل الحروف والكلمات الإضافية إلى مصفوفات + الحقول الجديدة
+      // دعم الفواصل العربية (،) والإنجليزية (,)
+      const splitLetters = (str: string): string[] => {
+        if (!str) return [];
+        // استبدال الفواصل العربية بالإنجليزية ثم التقسيم
+        return str.replace(/،/g, ",").split(",").map(s => s.trim()).filter(s => s);
+      };
+      const splitWords = (str: string): string[] => {
+        if (!str) return [];
+        return str.replace(/،/g, ",").split(",").map(s => s.trim()).filter(s => s);
+      };
+      
       const formattedLevel = {
         ...level,
-        availableLetters: level.availableLetters.split(","),
-        bonusWords: level.bonusWords ? level.bonusWords.split(",") : [],
+        availableLetters: splitLetters(level.availableLetters),
+        bonusWords: splitWords(level.bonusWords),
         words: level.words.map((w: any) => ({
           ...w,
           options: w.options ? w.options.split("|") : [],

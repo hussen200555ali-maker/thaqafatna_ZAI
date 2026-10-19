@@ -35,7 +35,7 @@ async function main() {
       puzzleType: "audio",
       gridSizeRows: 5,
       gridSizeCols: 5,
-      availableLetters: "م،ا،ء،س،ل،ك،ب،ت،ح،و،ر،ن،ي،ش",
+      availableLetters: "م,ا,ء,س,ل,ك,ب,ت,ح,و,ر,ن,ي,ش",
       bonusWords: "ماش,ماس",
       reward: 60,
       hintCost: 10,
