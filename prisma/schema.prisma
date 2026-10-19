@@ -142,6 +142,11 @@ model User {
   adaptiveState    AdaptiveState?
   learningEvents   LearningEvent[]
   questionTypeStats QuestionTypeStat[]
+  // ===== نظام المكتبة =====
+  bookBookmarks    UserBookmark[]
+  bookReviews      BookReview[]
+  readingProgress  UserReadingProgress[]
+  certificates     UserCertificate[]
 }
 
 // ===== نموذج تقدم اللاعب =====
@@ -349,5 +354,175 @@ model QuestionTypeStat {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, puzzleType])
+  @@index([userId])
+}
+
+// ====================================================================
+// ===== نظام المكتبة الذكية (Smart Library System) =====
+// ====================================================================
+// 7 نماذج جديدة لإدارة الكتب والفصول والقراءة والشهادات
+// ====================================================================
+
+// ===== 1. تصنيفات الكتب =====
+model BookCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
+  icon        String   @default("📚")
+  color       String   @default("#3b82f6")
+  description String   @default("")
+  order       Int      @default(0)
+  isPublished Boolean  @default(true)
+  books       Book[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished])
+}
+
+// ===== 2. الكتب =====
+model Book {
+  id              Int      @id @default(autoincrement())
+  categoryId      Int
+  title           String
+  author          String
+  description     String   @default("")
+  coverImage      String   @default("")
+
+  // نوع المحتوى: text | pdf | audio
+  contentType     String   @default("text")
+  pdfUrl          String   @default("")
+  audioUrl        String   @default("")
+
+  // خصائص
+  difficulty      String   @default("medium") // easy | medium | hard
+  readingTimeMin  Int      @default(15)
+  pages           Int      @default(0)
+  language        String   @default("ar")
+  isbn            String?  @unique
+
+  // الكلمات المفتاحية (JSON array)
+  keywords        String   @default("[]")
+
+  // الإحصائيات
+  views           Int      @default(0)
+  downloads       Int      @default(0)
+  ratingAvg       Float    @default(0)
+  ratingCount     Int      @default(0)
+
+  // الحالة
+  isPublished     Boolean  @default(false)
+  isFeatured      Boolean  @default(false)
+  isPremium       Boolean  @default(false)
+
+  // علاقات
+  category        BookCategory @relation(fields: [categoryId], references: [id])
+  chapters        BookChapter[]
+  bookmarks       UserBookmark[]
+  reviews         BookReview[]
+  readingProgress UserReadingProgress[]
+  certificates    UserCertificate[]
+
+  // ربط مع اللعبة: JSON array of level IDs
+  relatedLevels   String   @default("[]")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([isPublished])
+  @@index([isFeatured])
+}
+
+// ===== 3. فصول الكتاب =====
+model BookChapter {
+  id              Int      @id @default(autoincrement())
+  bookId          Int
+  number          Int      // رقم الفصل
+  title           String
+  content         String   @default("")  // محتوى HTML
+  readingTimeMin  Int      @default(5)
+
+  // حالة الفصل
+  isFree          Boolean  @default(true)
+  isPublished     Boolean  @default(true)
+
+  // الكلمات المفتاحية للفصل (JSON array)
+  keywords        String   @default("[]")
+
+  // ربط مع ألغاز اللعبة (ID المرحلة المرتبطة)
+  relatedLevelId  Int?
+
+  book            Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId])
+}
+
+// ===== 4. الإشارات المرجعية =====
+model UserBookmark {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  bookId      Int
+  chapterId   Int?     // إشارة لفصل محدد (null = لكتاب كامل)
+  note        String   @default("")  // ملاحظة المستخدم
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId, chapterId])
+  @@index([userId])
+}
+
+// ===== 5. التقييمات والمراجعات =====
+model BookReview {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  bookId      Int
+  rating      Int      // 1-5
+  review      String   @default("")
+  likes        Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([bookId])
+}
+
+// ===== 6. تتبّع تقدّم القراءة =====
+model UserReadingProgress {
+  id                Int      @id @default(autoincrement())
+  userId            String
+  bookId            Int
+  currentChapter    Int      @default(1)
+  currentScroll     Float    @default(0)  // النسبة المئوية 0-100
+  timeSpentSec      Int      @default(0)
+  completedChapters String   @default("[]")  // JSON array of chapter numbers
+  completedAt       DateTime?
+  lastReadAt        DateTime?
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book              Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([userId])
+}
+
+// ===== 7. شهادات الإتقان =====
+model UserCertificate {
+  id                Int      @id @default(autoincrement())
+  userId            String
+  bookId            Int
+  certificateNumber String   @unique  // THQ-2026-XXXXXX
+  score             Int      // 0-100
+  issuedAt          DateTime @default(now())
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book              Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
   @@index([userId])
 }
