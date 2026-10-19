@@ -122,3 +122,46 @@ Artifacts:
 - /home/z/my-project/prisma/schema.prisma (مُعدّل)
 - /home/z/my-project/src/app/page.tsx (مُعدّل)
 - /home/z/my-project/src/components/game/game-screen.tsx (مُعدّل)
+
+---
+Task ID: library-system-week1
+Agent: Main (Super Z)
+Task: الأسبوع 1 — البنية التحتية للمكتبة (نماذج DB + APIs + بيانات تجريبية)
+
+Work Log:
+- أضفت 7 نماذج Prisma جديدة للمكتبة:
+  * BookCategory, Book, BookChapter
+  * UserBookmark, BookReview, UserReadingProgress, UserCertificate
+- أضفت العلاقات المناسبة في User model
+- طبّقت الـ schema على قاعدة البيانات بنجاح
+- أنشأت 8 API endpoints للمكتبة:
+  * GET/POST /api/books (قائمة + إنشاء)
+  * GET/PUT/DELETE /api/books/[id] (تفاصيل + تعديل + حذف)
+  * GET/POST /api/books/[id]/chapters (فصول)
+  * POST /api/books/[id]/review (تقييمات)
+  * GET/POST /api/books/[id]/progress (تتبّع القراءة)
+  * GET /api/books/featured (كتب مميزة)
+  * GET /api/books/search (بحث نصي)
+  * GET/POST /api/book-categories (تصنيفات)
+- أصلحت مشكلة Next.js 16 params (Promise) في كل الـ dynamic routes
+- زرعت بيانات تجريبية: 8 تصنيفات + 5 كتب + 14 فصل
+- اختبرت كل الـ APIs: كلها 200 OK
+- صفر أخطاء TypeScript + بناء ناجح
+
+Stage Summary:
+- البنية التحتية للمكتبة مكتملة 100%
+- 7 نماذج DB جديدة + 8 APIs جديدة
+- بيانات تجريبية جاهزة (5 كتب عربية كاملة بمحتوى حقيقي)
+- جاهز للأسبوع 2: واجهة المكتبة الأمامية
+
+Artifacts:
+- prisma/schema.prisma (مُحدّث: +7 نماذج)
+- src/app/api/books/route.ts (جديد)
+- src/app/api/books/[id]/route.ts (جديد)
+- src/app/api/books/[id]/chapters/route.ts (جديد)
+- src/app/api/books/[id]/review/route.ts (جديد)
+- src/app/api/books/[id]/progress/route.ts (جديد)
+- src/app/api/books/featured/route.ts (جديد)
+- src/app/api/books/search/route.ts (جديد)
+- src/app/api/book-categories/route.ts (جديد)
+- scripts/seed-library.ts (جديد)
