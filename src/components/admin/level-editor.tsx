@@ -35,10 +35,20 @@ interface Word {
   image2Url?: string;
   image3Url?: string;
   image4Url?: string;
+  emojis?: string;
+  options?: string[];
+  correctOption?: number;
+  matchPairs?: string[];
+  fillBlanks?: string;
+  audioUrl?: string;
+  logicData?: string;
+  sequence?: string;
   direction: "across" | "down";
   startRow: number;
   startCol: number;
   number: number;
+  /** نوع اللغز الخاص بالسؤال (للأنواع المختلطة) */
+  puzzleType?: string;
 }
 
 const CATEGORIES = [
@@ -95,7 +105,15 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
           setReward(level.reward);
           setHintCost(level.hintCost);
           setCells(level.cells || []);
-          setWords(level.words || []);
+          // تحويل الحقول النصية إلى مصفوفات عند التحميل
+          const transformedWords: Word[] = (level.words || []).map((w: any) => ({
+            ...w,
+            options: Array.isArray(w.options) ? w.options
+              : (w.options ? String(w.options).split("|") : []),
+            matchPairs: Array.isArray(w.matchPairs) ? w.matchPairs
+              : (w.matchPairs ? String(w.matchPairs).split("|") : []),
+          }));
+          setWords(transformedWords);
         }
       })
       .catch((err) => {
@@ -191,10 +209,19 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
         image2Url: w.image2Url || "",
         image3Url: w.image3Url || "",
         image4Url: w.image4Url || "",
+        emojis: w.emojis || "",
+        options: Array.isArray(w.options) ? w.options : (w.options ? String(w.options).split("|") : []),
+        correctOption: w.correctOption || 0,
+        matchPairs: Array.isArray(w.matchPairs) ? w.matchPairs : (w.matchPairs ? String(w.matchPairs).split("|") : []),
+        fillBlanks: w.fillBlanks || "",
+        audioUrl: w.audioUrl || "",
+        logicData: w.logicData || "",
+        sequence: w.sequence || "",
         direction: w.direction,
         startRow: w.startRow,
         startCol: w.startCol,
         number: w.number,
+        puzzleType: w.puzzleType || puzzleType,
       })),
       cells: gameMode === "crossword" ? cells : [],
     };
@@ -429,6 +456,7 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
                 words={words}
                 onChange={handleWordsChange}
                 categories={CATEGORIES}
+                levelPuzzleType={puzzleType}
               />
             ) : (
               <Card className="p-4">

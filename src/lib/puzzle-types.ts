@@ -68,7 +68,7 @@ export const PUZZLE_TYPES: PuzzleTypeDef[] = [
   {
     type: "crossword",
     label: "شبكة متقاطعة",
-    icon: " grids",
+    icon: "🧩",
     description: "شبكة مربعات مع أسئلة أفقية ورأسية",
     color: "oklch(0.55 0.20 350)",
     difficulty: "صعب",
