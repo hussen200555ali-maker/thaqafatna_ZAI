@@ -600,6 +600,34 @@ function HomeView({
         </a>
       </motion.div>
 
+      {/* ===== بطاقة المتصدّرين ===== */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+      >
+        <a href="/leaderboard" className="block">
+          <Card className="p-4 sm:p-5 cursor-pointer hover:shadow-soft-lg transition-all border-amber-200 bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 overflow-hidden relative">
+            <div className="flex items-center gap-4 relative">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-500 flex items-center justify-center text-2xl shadow-soft flex-shrink-0">
+                🏆
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-stone-800 mb-0.5" style={{ fontFamily: "var(--font-tajawal)" }}>
+                  المتصدّرون
+                </h3>
+                <p className="text-stone-600 text-xs">
+                  نافس لاعبين آخرين واصعد للقمة
+                </p>
+              </div>
+              <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                <span className="text-2xl">🥇</span>
+              </motion.div>
+            </div>
+          </Card>
+        </a>
+      </motion.div>
+
       {/* بطاقة التحدي اليومي المحسّنة */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
