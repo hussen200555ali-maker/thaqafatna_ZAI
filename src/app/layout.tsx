@@ -18,16 +18,18 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: "ثقافتنا | لعبة كلمات متقاطعة عربية",
-  description: "تطبيق ثقافتنا: لعبة كلمات متقاطعة عربية ممتعة وتثقيفية لجميع الفئات العمرية. اكتشف الكلمات، حل الألغاز، وتحدَّ يومياً!",
-  keywords: ["ثقافتنا", "كلمات متقاطعة", "ألغاز عربية", "ألعاب كلمات", "وصلة", "فزرة", "ألغاز", "كلمات"],
+  title: "ثقافتنا | لعبة كلمات ومكتبة عربية",
+  description: "منصة تعليمية ترفيهية: العب الألغاز، اقرأ الكتب، وطوّر مهاراتك العربية. 13 نوع لغز + مكتبة كتب ذكية + خريطة معرفة تكيّفية.",
+  keywords: ["ثقافتنا", "كلمات متقاطعة", "ألغاز عربية", "مكتبة عربية", "كتب", "تعليم", "ألعاب كلمات"],
   authors: [{ name: "ثقافتنا" }],
+  manifest: "/manifest.json",
   icons: {
     icon: "/favicon.svg",
+    apple: "/icon-192.png",
   },
   openGraph: {
-    title: "ثقافتنا | لعبة كلمات متقاطعة عربية",
-    description: "تطبيق ثقافتنا: لعبة كلمات متقاطعة عربية ممتعة وتثقيفية لجميع الفئات العمرية.",
+    title: "ثقافتنا | لعبة كلمات ومكتبة عربية",
+    description: "منصة تعليمية ترفيهية: العب الألغاز، اقرأ الكتب، وطوّر مهاراتك العربية.",
     siteName: "ثقافتنا",
     type: "website",
     locale: "ar_SA",
@@ -35,7 +37,16 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "ثقافتنا",
-    description: "لعبة كلمات متقاطعة عربية ممتعة وتثقيفية",
+    description: "لعبة كلمات ومكتبة عربية — تعلّم بمرح",
+  },
+  applicationName: "ثقافتنا",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "ثقافتنا",
+  },
+  formatDetection: {
+    telephone: false,
   },
 };
 

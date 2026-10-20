@@ -1,9 +1,0 @@
-<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
-<rect width="400" height="400" fill="#F5F5DC"/>
-<g transform="rotate(45 200 200)">
-<rect x="180" y="80" width="40" height="180" fill="#8B4513" rx="5"/>
-<rect x="180" y="80" width="40" height="40" fill="#FFD700"/>
-<polygon points="180,260 220,260 200,320" fill="#333"/>
-<polygon points="185,85 215,85 200,60" fill="#555"/>
-</g>
-</svg>
