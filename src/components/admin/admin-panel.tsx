@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LevelEditor } from "./level-editor";
 import { LibraryAdminView } from "@/components/library/library-admin";
+import { PdfImportTool } from "@/components/library/pdf-import-tool";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -34,16 +35,27 @@ interface AdminChapter {
   _count: { levels: number };
 }
 
-type View = "list" | "editor" | "quality-check" | "difficulty-balance" | "library";
+type View = "list" | "editor" | "quality-check" | "difficulty-balance" | "library" | "pdf-import";
 
 export function AdminPanel() {
   const [view, setView] = useState<View>("list");
   const [levels, setLevels] = useState<AdminLevel[]>([]);
   const [chapters, setChapters] = useState<AdminChapter[]>([]);
+  const [bookCategories, setBookCategories] = useState<any[]>([]);
   const [selectedChapterId, setSelectedChapterId] = useState<number | null>(null);
   const [editingLevelId, setEditingLevelId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  // جلب تصنيفات الكتب عند الحاجة
+  useEffect(() => {
+    if (view === "pdf-import" && bookCategories.length === 0) {
+      fetch("/api/book-categories")
+        .then((r) => r.json())
+        .then((data) => setBookCategories(data.categories || []))
+        .catch(() => {});
+    }
+  }, [view, bookCategories.length]);
 
   const fetchChapters = useCallback(async () => {
     try {
@@ -209,6 +221,30 @@ export function AdminPanel() {
     return <LibraryAdminView onBack={() => setView("list")} />;
   }
 
+  if (view === "pdf-import") {
+    return (
+      <div className="min-h-screen bg-stone-50">
+        <header className="bg-white border-b border-stone-200 sticky top-0 z-20">
+          <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+            <button onClick={() => setView("list")} className="flex items-center gap-2 text-stone-600 hover:text-stone-900">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+              رجوع
+            </button>
+            <h1 className="text-2xl font-bold text-stone-800" style={{ fontFamily: "var(--font-tajawal)" }}>
+              📤 استيراد PDF
+            </h1>
+            <div className="w-20" />
+          </div>
+        </header>
+        <div className="max-w-3xl mx-auto px-4 py-6">
+          <PdfImportTool categories={bookCategories.length > 0 ? bookCategories : []} />
+        </div>
+      </div>
+    );
+  }
+
   const statusConfig: Record<string, { label: string; color: string }> = {
     draft: { label: "مسودة", color: "bg-stone-100 text-stone-600" },
     review: { label: "مراجعة", color: "bg-blue-100 text-blue-700" },
@@ -271,6 +307,13 @@ export function AdminPanel() {
               className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
             >
               📚 المكتبة
+            </Button>
+            <Button
+              onClick={() => setView("pdf-import")}
+              variant="outline"
+              className="border-green-300 text-green-700 hover:bg-green-50"
+            >
+              📤 استيراد PDF
             </Button>
             <Button onClick={handleCreateChapter} variant="outline">
               + فصل جديد
