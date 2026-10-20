@@ -11,6 +11,7 @@ import { OnboardingScreen } from "@/components/home/onboarding";
 import { AdminPanel } from "@/components/admin/admin-panel";
 import { ProfileView } from "@/components/home/profile";
 import { useGameStore } from "@/lib/game-store";
+import { useNotifications } from "@/hooks/use-notifications";
 import { fetchChapters, fetchLevels, Chapter as ApiChapter, Level as ApiLevel } from "@/lib/game-data-api";
 import { cn } from "@/lib/utils";
 import { KnowledgeMap } from "@/components/game/knowledge-map";
@@ -45,6 +46,7 @@ export default function HomePage() {
   const [dataLoaded, setDataLoaded] = useState(false);
 
   const { completedLevels, unlockedLevels, coins, dailyStreak, initCloudSync, getLevelStars, totalStars, userId } = useGameStore();
+  const { permission, enabled, reminder, requestPermission } = useNotifications(userId);
 
   // تحميل البيانات من API عند التركيب
   useEffect(() => {
@@ -210,6 +212,9 @@ export default function HomePage() {
             todayDate={todayDate}
             onDailyChallenge={() => setView("daily")}
             onNavigate={(v) => setView(v)}
+            notificationReminder={reminder}
+            notificationEnabled={enabled}
+            onRequestNotifications={requestPermission}
           />
         )}
 
@@ -372,6 +377,9 @@ interface HomeViewProps {
   todayDate: string;
   onDailyChallenge: () => void;
   onNavigate: (view: "knowledge-map" | "analytics") => void;
+  notificationReminder?: string | null;
+  notificationEnabled?: boolean;
+  onRequestNotifications?: () => void;
 }
 
 function HomeView({
@@ -390,6 +398,9 @@ function HomeView({
   todayDate,
   onDailyChallenge,
   onNavigate,
+  notificationReminder,
+  notificationEnabled,
+  onRequestNotifications,
 }: HomeViewProps) {
   const currentChapter = chapters.find((c) => c.id === selectedChapter) || chapters[0];
   const totalCompleted = completedLevels.length;
@@ -428,6 +439,26 @@ function HomeView({
           style={{ background: "radial-gradient(circle, white 0%, transparent 70%)" }}
         />
         <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-amber-400/5" />
+
+        {/* شريط التذكير اليومي */}
+        {notificationReminder && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-3 p-2.5 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center gap-2"
+          >
+            <span className="text-lg">🔔</span>
+            <p className="text-white text-xs flex-1">{notificationReminder}</p>
+            {!notificationEnabled && onRequestNotifications && (
+              <button
+                onClick={onRequestNotifications}
+                className="px-2 py-0.5 rounded-lg bg-amber-400 text-stone-900 text-[10px] font-bold"
+              >
+                تفعيل
+              </button>
+            )}
+          </motion.div>
+        )}
 
         <div className="relative">
           <div className="flex items-center justify-between mb-3">

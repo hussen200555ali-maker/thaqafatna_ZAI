@@ -913,6 +913,36 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
             <span className="text-yellow-400">{level.hintCost}🪙</span>
           </button>
           <button
+            onClick={async () => {
+              if (!currentWord) return;
+              try {
+                const res = await fetch("/api/ai-tutor", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    question: currentWord.clue,
+                    answer: currentWord.text,
+                    difficulty: level.difficulty,
+                    hintsUsed: levelHintsUsed,
+                  }),
+                });
+                const data = await res.json();
+                if (data.hint) {
+                  toast({ title: "🤖 تلميح ذكي", description: data.hint });
+                  if (data.encouragement) {
+                    setTimeout(() => toast({ title: data.encouragement }), 1000);
+                  }
+                }
+              } catch {
+                toast({ title: "تعذّر الحصول على تلميح", variant: "destructive" });
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/30 to-pink-500/30 hover:from-purple-500/40 hover:to-pink-500/40 text-white text-xs font-medium transition-colors border border-purple-400/30"
+          >
+            🤖 تلميح ذكي
+            <span className="text-purple-300">مجاني</span>
+          </button>
+          <button
             onClick={handleRemoveLast}
             disabled={answerOrder.length === 0}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors disabled:opacity-30"
