@@ -43,9 +43,18 @@ export async function POST(request: NextRequest) {
     let pdfInfo: any = {};
 
     try {
-      // استخدم pdf-parse ديناميكياً (لتجنّب مشاكل SSR)
-      const pdfParseModule: any = await import("pdf-parse");
-      const pdfParse = pdfParseModule.default || pdfParseModule;
+      // pdf-parse@1.1.1 يعمل بشكل أفضل عند تحميله عبر require مباشر
+      // مع تجنّب ملف test الذي يحاول قراءة PDF تجريبي
+      let pdfParse: any;
+      try {
+        // محاولة 1: تحميل عادي
+        pdfParse = eval('require')('pdf-parse');
+      } catch {
+        // محاولة 2: مسار نسبي
+        const { createRequire } = await import("module");
+        const require2 = createRequire(import.meta.url);
+        pdfParse = require2('pdf-parse');
+      }
       const pdfData = await pdfParse(buffer);
       pdfText = pdfData.text;
       pdfInfo = {
@@ -180,13 +189,13 @@ function splitIntoChapters(text: string): { title: string; content: string }[] {
   // محاولة 1: البحث عن عناوين فصول واضحة
   // أنماط: "الفصل الأول", "الباب الأول", "باب", "فصل", "مقدمة", "خاتمة"
   const chapterPatterns = [
-    /^(الفصل\s+(?:الأول|الثاني|الثالث|الرابع|الخامس|السادس|السابع|الثامن|التاسع|العاشر|[١-٩]+|[0-9]+))/m,
-    /^(الباب\s+(?:الأول|الثاني|الثالث|الرابع|الخامس|[١-٩]+|[0-9]+))/m,
-    /^(باب\s+\d+)/m,
-    /^(فصل\s+\d+)/m,
-    /^(مقدمة)/m,
-    /^(خاتمة)/m,
-    /^(تمهيد)/m,
+    /^(الفصل\s+(?:الأول|الثاني|الثالث|الرابع|الخامس|السادس|السابع|الثامن|التاسع|العاشر|[١-٩]+|[0-9]+))/gm,
+    /^(الباب\s+(?:الأول|الثاني|الثالث|الرابع|الخامس|[١-٩]+|[0-9]+))/gm,
+    /^(باب\s+\d+)/gm,
+    /^(فصل\s+\d+)/gm,
+    /^(مقدمة)/gm,
+    /^(خاتمة)/gm,
+    /^(تمهيد)/gm,
   ];
 
   // محاولة إيجاد نقاط التقسيم
