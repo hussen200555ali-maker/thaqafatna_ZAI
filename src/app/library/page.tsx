@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useGameStore } from "@/lib/game-store";
 
 /**
  * صفحة المكتبة الرئيسية
@@ -41,6 +42,7 @@ interface Category {
 
 export default function LibraryPage() {
   const router = useRouter();
+  const { userId } = useGameStore();
   const [loading, setLoading] = useState(true);
   const [featuredBooks, setFeaturedBooks] = useState<Book[]>([]);
   const [allBooks, setAllBooks] = useState<Book[]>([]);
@@ -49,21 +51,35 @@ export default function LibraryPage() {
   const [searchResults, setSearchResults] = useState<Book[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
+  const [recommendedBooks, setRecommendedBooks] = useState<Book[]>([]);
+  const [continueReading, setContinueReading] = useState<any[]>([]);
 
   useEffect(() => {
-    Promise.all([
+    const promises = [
       fetch("/api/books/featured").then((r) => r.json()),
       fetch("/api/books?limit=50").then((r) => r.json()),
       fetch("/api/book-categories").then((r) => r.json()),
-    ])
-      .then(([featuredData, booksData, catsData]) => {
-        setFeaturedBooks(featuredData.books || []);
-        setAllBooks(booksData.books || []);
-        setCategories(catsData.categories || []);
+    ];
+
+    // إضافة طلب التوصيات إن وُجد userId
+    if (userId) {
+      promises.push(
+        fetch(`/api/books/recommend?userId=${userId}&limit=6`).then((r) => r.json())
+      );
+    }
+
+    Promise.all(promises)
+      .then((results) => {
+        setFeaturedBooks(results[0].books || []);
+        setAllBooks(results[1].books || []);
+        setCategories(results[2].categories || []);
+        if (results[3]) {
+          setRecommendedBooks(results[3].books || []);
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [userId]);
 
   // البحث
   useEffect(() => {
@@ -199,6 +215,21 @@ export default function LibraryPage() {
                 ))}
               </div>
             </section>
+
+            {/* ===== توصيات لك ===== */}
+            {recommendedBooks.length > 0 && (
+              <section>
+                <h2 className="text-lg font-bold text-stone-700 mb-3 flex items-center gap-2">
+                  🎯 توصيات لك
+                  <span className="text-xs text-stone-400">بناءً على قراءاتك</span>
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {recommendedBooks.slice(0, 6).map((book, idx) => (
+                    <BookCard key={book.id} book={book} index={idx} />
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* ===== كل الكتب ===== */}
             <section>
