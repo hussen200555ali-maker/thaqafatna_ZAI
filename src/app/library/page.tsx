@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { BookCover } from "@/components/library/book-cover";
 import { useGameStore } from "@/lib/game-store";
 
 /**
@@ -266,10 +267,14 @@ function FeaturedBookCard({ book, index }: { book: Book; index: number }) {
       <Link href={`/library/${book.id}`}>
         <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-all border-2 border-indigo-200 hover:border-indigo-400 group">
           <div className="flex gap-4 p-4">
-            {/* الغلاف */}
-            <div className="w-20 h-28 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-4xl flex-shrink-0 shadow-md">
-              📕
-            </div>
+            {/* الغلاف الاحترافي */}
+            <BookCover
+              title={book.title}
+              author={book.author}
+              categoryName={book.category.name}
+              difficulty={book.difficulty}
+              size="sm"
+            />
             {/* المعلومات */}
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-stone-800 truncate group-hover:text-indigo-600 transition-colors">
@@ -330,24 +335,24 @@ function BookCard({ book, index }: { book: Book; index: number }) {
       transition={{ delay: index * 0.05 }}
     >
       <Link href={`/library/${book.id}`}>
-        <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-all group h-full">
-          {/* الغلاف */}
-          <div className="aspect-[3/4] bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-5xl relative">
-            📕
+        <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-all group h-full p-3">
+          {/* الغلاف الاحترافي */}
+          <div className="relative mb-3 flex justify-center">
+            <BookCover
+              title={book.title}
+              author={book.author}
+              categoryName={book.category.name}
+              difficulty={book.difficulty}
+              size="sm"
+            />
             {book.isFeatured && (
-              <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-400 text-white text-[10px] font-bold">
+              <span className="absolute top-1 right-1 px-2 py-0.5 rounded-full bg-amber-400 text-white text-[10px] font-bold z-10">
                 ⭐ مميز
               </span>
             )}
-            <span className={cn(
-              "absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold",
-              difficultyColors[book.difficulty]
-            )}>
-              {difficultyLabels[book.difficulty]}
-            </span>
           </div>
           {/* المعلومات */}
-          <div className="p-3">
+          <div>
             <h3 className="font-bold text-sm text-stone-800 truncate group-hover:text-indigo-600 transition-colors">
               {book.title}
             </h3>

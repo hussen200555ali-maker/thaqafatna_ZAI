@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/game-store";
 import { CertificateDisplay } from "@/components/library/certificate-display";
+import { BookCover } from "@/components/library/book-cover";
 
 /**
  * صفحة الكتاب التفصيلية
@@ -194,9 +195,15 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
           animate={{ opacity: 1, y: 0 }}
           className="flex gap-4 sm:gap-6"
         >
-          {/* الغلاف */}
-          <div className="w-28 h-40 sm:w-36 sm:h-52 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-6xl flex-shrink-0 shadow-lg">
-            📕
+          {/* الغلاف الاحترافي */}
+          <div className="flex-shrink-0">
+            <BookCover
+              title={book.title}
+              author={book.author}
+              categoryName={book.category.name}
+              difficulty={book.difficulty}
+              size="md"
+            />
           </div>
           {/* المعلومات */}
           <div className="flex-1 min-w-0">

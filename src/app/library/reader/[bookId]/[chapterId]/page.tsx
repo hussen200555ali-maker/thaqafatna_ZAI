@@ -48,7 +48,7 @@ export default function BookReaderPage({
     });
   }, [params]);
 
-  // تحميل الكتاب + الفصول
+  // تحميل الكتاب + قائمة الفصول (بدون محتوى)
   useEffect(() => {
     if (!bookId) return;
     Promise.all([
@@ -62,27 +62,23 @@ export default function BookReaderPage({
       .catch(console.error);
   }, [bookId]);
 
-  // تحميل الفصل الحالي
+  // تحميل محتوى الفصل الحالي (من API منفصل لجلب المحتوى الكامل)
   useEffect(() => {
-    if (!bookId || !chapterNumber || allChapters.length === 0) return;
-    const found = allChapters.find((c) => c.number === chapterNumber);
-    if (found) {
-      // جلب محتوى الفصل الكامل
-      fetch(`/api/books/${bookId}/chapters`)
-        .then((r) => r.json())
-        .then(() => {
-          // الفصل موجود في قائمة الفصول لكن بدون content
-          // نحتاج جلب المحتوى الكامل من API منفصل
-          // مؤقتاً نستخدم found مباشرة
-          setChapter({ ...found, content: found.content || "" });
-          setLoading(false);
-          startTimeRef.current = Date.now();
-          window.scrollTo(0, 0);
-        });
-    } else {
-      setLoading(false);
-    }
-  }, [bookId, chapterNumber, allChapters]);
+    if (!bookId || !chapterNumber) return;
+    setLoading(true);
+    fetch(`/api/books/${bookId}/chapters/${chapterNumber}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setChapter(data.chapter);
+        setLoading(false);
+        startTimeRef.current = Date.now();
+        window.scrollTo(0, 0);
+      })
+      .catch((e) => {
+        console.error("Error loading chapter:", e);
+        setLoading(false);
+      });
+  }, [bookId, chapterNumber]);
 
   // تتبّع القراءة (update progress periodically)
   useEffect(() => {
