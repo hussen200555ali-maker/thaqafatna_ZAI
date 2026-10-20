@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LevelEditor } from "./level-editor";
+import { LibraryAdminView } from "@/components/library/library-admin";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +34,7 @@ interface AdminChapter {
   _count: { levels: number };
 }
 
-type View = "list" | "editor" | "quality-check" | "difficulty-balance";
+type View = "list" | "editor" | "quality-check" | "difficulty-balance" | "library";
 
 export function AdminPanel() {
   const [view, setView] = useState<View>("list");
@@ -204,6 +205,10 @@ export function AdminPanel() {
     return <DifficultyBalanceView onBack={() => setView("list")} />;
   }
 
+  if (view === "library") {
+    return <LibraryAdminView onBack={() => setView("list")} />;
+  }
+
   const statusConfig: Record<string, { label: string; color: string }> = {
     draft: { label: "مسودة", color: "bg-stone-100 text-stone-600" },
     review: { label: "مراجعة", color: "bg-blue-100 text-blue-700" },
@@ -259,6 +264,13 @@ export function AdminPanel() {
               className="border-purple-300 text-purple-700 hover:bg-purple-50"
             >
               ⚖️ موازنة الصعوبة
+            </Button>
+            <Button
+              onClick={() => setView("library")}
+              variant="outline"
+              className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+            >
+              📚 المكتبة
             </Button>
             <Button onClick={handleCreateChapter} variant="outline">
               + فصل جديد

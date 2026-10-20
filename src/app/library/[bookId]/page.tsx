@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/game-store";
+import { CertificateDisplay } from "@/components/library/certificate-display";
 
 /**
  * صفحة الكتاب التفصيلية
@@ -324,6 +325,18 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
             })}
           </div>
         </div>
+
+        {/* ===== شهادة الإتقان ===== */}
+        {readingProgress?.completedAt && (
+          <div>
+            <CertificateDisplay
+              bookId={book.id}
+              userId={userId}
+              bookTitle={book.title}
+              bookAuthor={book.author}
+            />
+          </div>
+        )}
 
         {/* ===== التقييم ===== */}
         <Card className="p-5">
