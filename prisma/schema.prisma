@@ -147,6 +147,8 @@ model User {
   bookReviews      BookReview[]
   readingProgress  UserReadingProgress[]
   certificates     UserCertificate[]
+  // ===== نظام التكرار المتباعد =====
+  wordMastery      UserWordMastery[]
 }
 
 // ===== نموذج تقدم اللاعب =====
@@ -525,4 +527,64 @@ model UserCertificate {
 
   @@unique([userId, bookId])
   @@index([userId])
+}
+
+// ====================================================================
+// ===== نظام التكرار المتباعد (Spaced Repetition System) =====
+// ====================================================================
+// يتبع كل كلمة تعلّمها اللاعب ويحدد متى يجب مراجعتها
+// قبل أن ينساها — مستوحى من خوارزمية SM-2 (SuperMemo)
+// ====================================================================
+
+// ===== 8. إتقان الكلمات (Word Mastery) =====
+// لكل مستخدم + كلمة: متى مراجعتها التالية، كم مرة ذكرها، إلخ
+model UserWordMastery {
+  id              Int      @id @default(autoincrement())
+  userId          String
+  word            String   // الكلمة نفسها (مثلاً: "كتاب")
+  wordText        String   // الإجابة الصحيحة (نفس word غالباً)
+  clue            String   @default("") // تلميح/سؤال الكلمة
+  
+  // خوارزمية SM-2
+  easeFactor      Float    @default(2.5)  // معامل السهولة (يبدأ 2.5، يقلّ مع الأخطاء)
+  interval        Int      @default(1)    // الفاصل الزمني بالأيام
+  repetitions      Int      @default(0)    // عدد المراجعات الناجحة المتتالية
+  
+  // الحالة
+  nextReviewAt    DateTime @default(now()) // متى يجب مراجعتها
+  lastReviewedAt  DateTime?
+  
+  // مصدر الكلمة
+  sourceType      String   @default("level") // level | book
+  sourceId        Int?     // ID المرحلة أو الكتاب
+  
+  // إحصائيات
+  correctCount    Int      @default(0)
+  wrongCount      Int      @default(0)
+  
+  // تصنيف التقدير
+  // again (0) — خاطئة تماماً، أعد المراجعة فوراً
+  // hard (1) — صعبة، قلّل الفاصل
+  // good (2) — جيدة، استمر بالفاصل الحالي
+  // easy (3) — سهلة، زيّد الفاصل
+  lastQuality     Int?     // 0-3
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, word])
+  @@index([userId, nextReviewAt])
+  @@index([userId])
+}
+
+// ===== 9. سجل المراجعات (Review Log) =====
+// يسجّل كل مراجعة كلمة لتتبّع التقدّم
+model ReviewLog {
+  id              Int      @id @default(autoincrement())
+  userId          String
+  word            String
+  quality         Int      // 0-3 (again/hard/good/easy)
+  reviewedAt      DateTime @default(now())
+  
+  @@index([userId, reviewedAt])
+  @@index([word])
 }

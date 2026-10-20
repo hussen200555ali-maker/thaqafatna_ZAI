@@ -218,6 +218,24 @@ export function GameScreen({ levelId, onExit }: GameScreenProps) {
                 puzzleType: level.puzzleType || "text",
               }),
             }).catch((e) => console.error("Analytics sync error:", e));
+
+            // ===== نظام التكرار المتباعد: تسجيل كل كلمة صحيحة =====
+            for (const foundWord of foundWords) {
+              const wordObj = level.words.find((w: any) => w.text === foundWord);
+              fetch("/api/review", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  userId,
+                  word: foundWord,
+                  wordText: foundWord,
+                  clue: wordObj?.clue || "",
+                  quality: levelHintsUsed > 0 ? 1 : 2,
+                  sourceType: "level",
+                  sourceId: level.id,
+                }),
+              }).catch((e) => console.error("Review sync error:", e));
+            }
           }
         }
       }, 800);
