@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useGameStore } from "@/lib/game-store";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { playSound } from "@/lib/sound-effects";
 
 interface ProfileViewProps {
@@ -22,6 +22,45 @@ export function ProfileView({ onBack }: ProfileViewProps) {
     userId,
     resetProgress,
   } = useGameStore();
+
+  // ===== إحصائيات المكتبة =====
+  const [libraryStats, setLibraryStats] = useState({
+    booksRead: 0,
+    certificates: 0,
+    readingMinutes: 0,
+    wordsReviewed: 0,
+    wordsDue: 0,
+  });
+
+  useEffect(() => {
+    if (!userId) return;
+    // جلب إحصائيات القراءة
+    fetch(`/api/analytics?userId=${userId}`)
+      .then(r => r.json())
+      .then(data => {
+        const a = data.analytics;
+        if (a) {
+          setLibraryStats(prev => ({
+            ...prev,
+            readingMinutes: Math.round((a.xp || 0) / 10),
+          }));
+        }
+      })
+      .catch(() => {});
+    // جلب كلمات المراجعة
+    fetch(`/api/review?userId=${userId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.stats) {
+          setLibraryStats(prev => ({
+            ...prev,
+            wordsReviewed: data.stats.masteredCount || 0,
+            wordsDue: data.stats.dueCount || 0,
+          }));
+        }
+      })
+      .catch(() => {});
+  }, [userId]);
 
   // إحصائيات تفصيلية للنجوم
   const starStats = useMemo(() => {
@@ -96,6 +135,30 @@ export function ProfileView({ onBack }: ProfileViewProps) {
       bgColor: "bg-blue-50",
       borderColor: "border-blue-100",
     },
+    {
+      icon: "📖",
+      label: "دقائق قراءة",
+      value: libraryStats.readingMinutes,
+      color: "from-indigo-400 to-purple-600",
+      bgColor: "bg-indigo-50",
+      borderColor: "border-indigo-100",
+    },
+    {
+      icon: "🔄",
+      label: "كلمات متقنة",
+      value: libraryStats.wordsReviewed,
+      color: "from-teal-400 to-cyan-600",
+      bgColor: "bg-teal-50",
+      borderColor: "border-teal-100",
+    },
+    {
+      icon: "📝",
+      label: "كلمات للمراجعة",
+      value: libraryStats.wordsDue,
+      color: "from-rose-400 to-pink-600",
+      bgColor: "bg-rose-50",
+      borderColor: "border-rose-100",
+    },
   ];
 
   const achievements = [
@@ -146,6 +209,18 @@ export function ProfileView({ onBack }: ProfileViewProps) {
       title: "أسطورة",
       description: "اجمع 50 نجمة",
       unlocked: totalStars >= 50,
+    },
+    {
+      icon: "📖",
+      title: "قارئ مثابر",
+      description: "اقرأ 100 دقيقة",
+      unlocked: libraryStats.readingMinutes >= 100,
+    },
+    {
+      icon: "🎓",
+      title: "مثقف",
+      description: "أتقن 50 كلمة",
+      unlocked: libraryStats.wordsReviewed >= 50,
     },
   ];
 

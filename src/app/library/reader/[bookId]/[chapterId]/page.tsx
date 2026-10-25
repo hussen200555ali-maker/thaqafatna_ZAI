@@ -244,6 +244,9 @@ export default function BookReaderPage({
 
       {/* ===== المحتوى ===== */}
       <main ref={contentRef} className="max-w-2xl mx-auto px-4 py-8">
+        {/* تلميح قراءة (يظهر مرة واحدة) */}
+        <ReadingHint isDarkMode={isDarkMode} />
+
         {/* عنوان الفصل */}
         <div className="text-center mb-8">
           <p className={cn(
@@ -352,5 +355,54 @@ export default function BookReaderPage({
         )}
       </main>
     </div>
+  );
+}
+
+// ============================================================
+// تلميح قراءة (يظهر مرة واحدة ثم يُخفى)
+// ============================================================
+function ReadingHint({ isDarkMode }: { isDarkMode: boolean }) {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const seen = localStorage.getItem("thaqafatna-reading-hint-seen");
+    if (!seen) {
+      setShow(true);
+      const timer = setTimeout(() => {
+        setShow(false);
+        localStorage.setItem("thaqafatna-reading-hint-seen", "true");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  if (!show) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      className={cn(
+        "mb-6 p-3 rounded-xl border text-sm flex items-center gap-3",
+        isDarkMode
+          ? "bg-indigo-900/30 border-indigo-700 text-indigo-200"
+          : "bg-indigo-50 border-indigo-200 text-indigo-700"
+      )}
+    >
+      <span className="text-xl">💡</span>
+      <div className="flex-1">
+        <p className="text-xs font-bold mb-0.5">تلميحات القراءة</p>
+        <p className="text-[11px] opacity-80">
+          • استخدم A− / A+ لتكبير الخط · 🌙 للوضع الليلي · 🔖 للإشارات المرجعية
+        </p>
+      </div>
+      <button
+        onClick={() => { setShow(false); localStorage.setItem("thaqafatna-reading-hint-seen", "true"); }}
+        className="text-xs opacity-60 hover:opacity-100"
+      >
+        ✕
+      </button>
+    </motion.div>
   );
 }

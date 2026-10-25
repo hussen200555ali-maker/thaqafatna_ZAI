@@ -383,7 +383,70 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
             </div>
           )}
         </Card>
+
+        {/* ===== كتب ذات صلة ===== */}
+        <RelatedBooks bookId={book.id} categoryId={book.category.id} />
+
       </main>
+    </div>
+  );
+}
+
+// ============================================================
+// كتب ذات صلة (من نفس التصنيف)
+// ============================================================
+function RelatedBooks({ bookId, categoryId }: { bookId: number; categoryId: number }) {
+  const [related, setRelated] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/books?categoryId=${categoryId}&limit=6`)
+      .then(r => r.json())
+      .then(data => {
+        // استبعاد الكتاب الحالي
+        setRelated((data.books || []).filter((b: any) => b.id !== bookId).slice(0, 4));
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [bookId, categoryId]);
+
+  if (loading || related.length === 0) return null;
+
+  return (
+    <div>
+      <h2 className="text-lg font-bold text-stone-700 mb-3 flex items-center gap-2">
+        📚 كتب ذات صلة
+      </h2>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {related.map((book, idx) => (
+          <motion.div
+            key={book.id}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: idx * 0.05 }}
+          >
+            <Link href={`/library/${book.id}`}>
+              <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-all group p-3 border-stone-200 hover:border-indigo-300 h-full">
+                <div className="flex justify-center mb-2">
+                  <BookCover
+                    title={book.title}
+                    author={book.author}
+                    categoryName={book.category?.name}
+                    difficulty={book.difficulty}
+                    size="sm"
+                  />
+                </div>
+                <h3 className="font-bold text-xs text-stone-800 truncate group-hover:text-indigo-600 transition-colors">{book.title}</h3>
+                <p className="text-[10px] text-stone-500 truncate">{book.author}</p>
+                <div className="flex items-center justify-between text-[9px] text-stone-400 mt-1 border-t border-stone-100 pt-1">
+                  <span>⭐ {book.ratingAvg || "—"}</span>
+                  <span>⏱️ {book.readingTimeMin}د</span>
+                </div>
+              </Card>
+            </Link>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
