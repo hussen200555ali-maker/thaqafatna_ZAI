@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
-import { Cairo, Tajawal } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
-const cairo = Cairo({
+const cairo = localFont({
+  src: "../../fonts/Cairo-Regular.ttf",
   variable: "--font-cairo",
-  subsets: ["arabic", "latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
-const tajawal = Tajawal({
+const tajawal = localFont({
+  src: "../../fonts/Cairo-Regular.ttf",
   variable: "--font-tajawal",
-  subsets: ["arabic", "latin"],
-  weight: ["400", "500", "700", "800", "900"],
   display: "swap",
 });
 
