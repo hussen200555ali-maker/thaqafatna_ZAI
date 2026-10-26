@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BookCover } from "@/components/library/book-cover";
 import { useGameStore } from "@/lib/game-store";
+import { LibraryHomeDark } from "@/components/library/library-home-dark";
 
 /**
  * صفحة المكتبة الرئيسية — تصميم احترافي عالمي
@@ -118,16 +119,16 @@ export default function LibraryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-stone-50">
+      <div className="min-h-screen bg-gradient-to-br from-stone-950 via-stone-900 to-stone-950">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-12 bg-stone-200 rounded-xl w-full max-w-md" />
+            <div className="h-12 bg-stone-800 rounded-xl w-full max-w-md" />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="space-y-2">
-                  <div className="aspect-[3/4] bg-stone-200 rounded-lg" />
-                  <div className="h-4 bg-stone-200 rounded w-3/4" />
-                  <div className="h-3 bg-stone-200 rounded w-1/2" />
+                  <div className="aspect-[3/4] bg-stone-800 rounded-lg" />
+                  <div className="h-4 bg-stone-800 rounded w-3/4" />
+                  <div className="h-3 bg-stone-800 rounded w-1/2" />
                 </div>
               ))}
             </div>
@@ -137,162 +138,170 @@ export default function LibraryPage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-stone-50">
-      {/* ===== Header ===== */}
-      <header className="bg-white border-b border-stone-200 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <button onClick={() => router.push("/")} className="flex items-center gap-2 text-stone-600 hover:text-stone-900">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
-            </button>
-            <h1 className="text-2xl font-bold text-stone-900" style={{ fontFamily: "var(--font-tajawal)" }}>📚 مكتبة ثقافتنا</h1>
-            <div className="flex items-center gap-2">
-              <button onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")} className="p-2 rounded-lg hover:bg-stone-100 text-stone-600" title="تبديل العرض">
-                {viewMode === "grid" ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
-                )}
-              </button>
-            </div>
-          </div>
+  // 🎨 التصميم الجديد Dark Elegant
+  // إذا لم تكن هناك فلاتر نشطة، اعرض الصفحة الرئيسية الاحترافية الجديدة
+  const hasActiveFilter = isSearching || (activeCategory ?? 0) !== 0 || difficultyFilter !== "";
+  if (!hasActiveFilter) {
+    return <LibraryHomeDark books={allBooks} categories={categories} />;
+  }
 
-          {/* شريط البحث */}
-          <div className="relative">
+  // صفحة نتائج البحث/الفلترة - تصميم Dark أيضاً
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-stone-950 via-stone-900 to-stone-950 text-stone-100">
+      {/* خلفية متوهّجة */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px]" />
+      </div>
+
+      {/* Header */}
+      <header className="relative z-10 bg-stone-950/50 backdrop-blur-xl border-b border-stone-800/50 sticky top-0">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+          <button
+            onClick={() => router.push("/library")}
+            className="flex items-center gap-2 text-stone-300 hover:text-white"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            <span className="text-sm">الرئيسية</span>
+          </button>
+
+          <div className="flex-1 max-w-2xl">
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="🔍 ابحث عن كتاب، مؤلف، أو موضوع..."
-              className="w-full h-12 text-base pr-4 pl-12 rounded-xl border-2 border-stone-200 focus:border-indigo-400 bg-stone-50"
+              placeholder="🔍 ابحث عن كتاب أو مؤلف..."
+              className="bg-stone-900/80 border-stone-700 text-white placeholder-stone-500 focus:border-purple-500"
             />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-stone-200 hover:bg-stone-300 flex items-center justify-center text-stone-600 text-sm">✕</button>
-            )}
           </div>
 
-          {/* شريط التصنيفات */}
-          <div className="flex items-center gap-2 mt-4 overflow-x-auto pb-2 scrollbar-hide">
-            <button
-              onClick={() => { setActiveCategory(null); setDifficultyFilter(null); }}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all",
-                !activeCategory && !difficultyFilter ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-              )}
-            >
-              الكل ({allBooks.length})
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
-                className={cn(
-                  "px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5",
-                  activeCategory === cat.id ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                )}
-              >
-                <span>{cat.icon}</span>
-                <span>{cat.name}</span>
-                <span className="text-xs opacity-60">({cat.booksCount})</span>
-              </button>
-            ))}
-          </div>
+          <Link
+            href="/admin/library"
+            className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white text-sm font-medium shadow-lg"
+          >
+            📚 إدارة
+          </Link>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-8">
-        {isSearching ? (
-          /* ===== نتائج البحث ===== */
-          <section>
-            <h2 className="text-lg font-bold text-stone-800 mb-4">
-              نتائج البحث عن "{searchQuery}" — {searchResults.length} كتاب
-            </h2>
-            {searchResults.length > 0 ? (
-              <BookGrid books={searchResults} viewMode={viewMode} />
+      {/* المحتوى */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-6">
+        {/* شريط الفلاتر */}
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
+          <select
+            value={activeCategory ?? 0}
+            onChange={(e) => setActiveCategory(Number(e.target.value))}
+            className="px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-stone-200 text-sm"
+          >
+            <option value={0}>📂 كل التصنيفات ({allBooks.length})</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.icon} {c.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-stone-200 text-sm"
+          >
+            <option value="recent">🆕 الأحدث</option>
+            <option value="popular">🔥 الأشهر</option>
+            <option value="rating">⭐ الأعلى تقييماً</option>
+            <option value="title">📚 أبجدياً</option>
+            <option value="time">⏱️ الأقصر</option>
+          </select>
+
+          {(isSearching || activeCategory !== 0 || difficultyFilter !== "") && (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setActiveCategory(0);
+                setDifficultyFilter("");
+                setIsSearching(false);
+              }}
+              className="px-3 py-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 text-sm transition-colors"
+            >
+              ✕ مسح الفلاتر
+            </button>
+          )}
+        </div>
+
+        {/* عدد النتائج */}
+        <div className="mb-4">
+          <p className="text-sm text-stone-400">
+            {isSearching && searchQuery ? (
+              <>نتائج البحث عن "<span className="text-purple-300">{searchQuery}</span>"</>
             ) : (
-              <EmptyState icon="🔍" title="لا توجد نتائج" message="جرّب كلمات بحث مختلفة" />
-            )}
-          </section>
-        ) : (
-          <>
-            {/* ===== كتب مميزة (Carousel-like) ===== */}
-            {featuredBooks.length > 0 && !activeCategory && (
-              <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-stone-900 flex items-center gap-2">
-                    ⭐ كتب مميزة
-                  </h2>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {featuredBooks.map((book, idx) => (
-                    <FeaturedCard key={book.id} book={book} index={idx} />
-                  ))}
-                </div>
-              </section>
-            )}
+              <>عرض كل الكتب</>
+            )}{" "}
+            ({displayedBooks.length} كتاب)
+          </p>
+        </div>
 
-            {/* ===== توصيات شخصية ===== */}
-            {recommendedBooks.length > 0 && !activeCategory && (
-              <section>
-                <h2 className="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
-                  🎯 توصيات لك
-                  <span className="text-xs font-normal text-stone-400">بناءً على قراءاتك</span>
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {recommendedBooks.map((book, idx) => (
-                    <BookCard key={book.id} book={book} index={idx} viewMode="grid" />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* ===== شريط الفلترة + الترتيب ===== */}
-            <section>
-              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                <h2 className="text-xl font-bold text-stone-900">
-                  {activeCategory ? `${categories.find(c => c.id === activeCategory)?.icon} ${categories.find(c => c.id === activeCategory)?.name}` : "📚 كل الكتب"}
-                  <span className="text-sm font-normal text-stone-400 mr-2">({displayedBooks.length})</span>
-                </h2>
-                <div className="flex items-center gap-2">
-                  {/* فلترة بالصعوبة */}
-                  <div className="flex items-center gap-1 bg-stone-100 rounded-lg p-1">
-                    {["easy", "medium", "hard"].map((d) => (
-                      <button
-                        key={d}
-                        onClick={() => setDifficultyFilter(difficultyFilter === d ? null : d)}
-                        className={cn(
-                          "px-3 py-1 rounded-md text-xs font-medium transition-all",
-                          difficultyFilter === d ? "bg-white shadow-sm text-stone-900" : "text-stone-500 hover:text-stone-700"
-                        )}
-                      >
-                        {d === "easy" ? "🟢 سهل" : d === "medium" ? "🟡 متوسط" : "🔴 صعب"}
-                      </button>
-                    ))}
+        {/* شبكة الكتب */}
+        {displayedBooks.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {displayedBooks.map((book, idx) => (
+              <motion.div
+                key={book.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: Math.min(idx * 0.03, 0.5) }}
+              >
+                <Link href={`/library/${book.id}`} className="block group">
+                  <BookCover
+                    title={book.title}
+                    author={book.author}
+                    categoryName={book.category.name}
+                    difficulty={book.difficulty}
+                    size="md"
+                    coverImageUrl={book.coverImage}
+                    showPdfBadge={!!book.pdfUrl}
+                    className="group-hover:scale-105 transition-transform"
+                  />
+                  <div className="mt-2 px-1">
+                    <h3 className="text-sm font-bold text-stone-200 truncate group-hover:text-purple-300 transition-colors">
+                      {book.title}
+                    </h3>
+                    <p className="text-xs text-stone-500 truncate">{book.author}</p>
+                    <div className="flex items-center gap-2 mt-1 text-xs">
+                      <span className="text-amber-400">⭐ {book.ratingAvg || "—"}</span>
+                      <span className="text-stone-600">·</span>
+                      <span className="text-stone-500">👁️ {book.views}</span>
+                      {book.pdfUrl && (
+                        <>
+                          <span className="text-stone-600">·</span>
+                          <span className="text-blue-400">📄</span>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  {/* ترتيب */}
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-sm text-stone-700 cursor-pointer hover:border-stone-300"
-                  >
-                    <option value="newest">📅 الأحدث</option>
-                    <option value="popular">🔥 الأكثر قراءة</option>
-                    <option value="rating">⭐ الأعلى تقييماً</option>
-                    <option value="title">🔤 أبجدياً</option>
-                    <option value="time">⏱️ الأقصر وقتاً</option>
-                  </select>
-                </div>
-              </div>
-
-              {displayedBooks.length > 0 ? (
-                <BookGrid books={displayedBooks} viewMode={viewMode} />
-              ) : (
-                <EmptyState icon="📚" title="لا توجد كتب" message="لا توجد كتب مطابقة للفلاتر المختارة" />
-              )}
-            </section>
-          </>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <div className="text-6xl mb-4">📚</div>
+            <h3 className="text-xl font-bold text-stone-300 mb-2">لا توجد كتب مطابقة</h3>
+            <p className="text-stone-500 mb-6">جرّب كلمات بحث أو فلاتر مختلفة</p>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setActiveCategory(0);
+                setDifficultyFilter("");
+                setIsSearching(false);
+              }}
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium"
+            >
+              عرض كل الكتب
+            </button>
+          </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
