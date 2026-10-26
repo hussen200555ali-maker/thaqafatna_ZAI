@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/game-store";
+import { PDFViewer } from "@/components/library/pdf-viewer";
 
 /**
  * قارئ الكتب الذكي
@@ -282,21 +283,17 @@ export default function BookReaderPage({
             animate={{ opacity: 1, y: 0 }}
             className="w-full"
           >
-            {/* عرض PDF داخل iframe */}
-            <div className={cn(
-              "rounded-2xl overflow-hidden shadow-xl border-2",
-              isDarkMode ? "border-stone-700 bg-stone-900" : "border-stone-200 bg-white"
-            )}>
-              <iframe
-                src={`${book.pdfUrl}#view=FitH&toolbar=1`}
-                title={`${book.title} - PDF Viewer`}
-                className="w-full"
-                style={{ height: '85vh', minHeight: '600px' }}
-                allow="fullscreen"
-              />
-            </div>
+            {/* عارض PDF احترافي بشريط أدوات */}
+            <PDFViewer
+              pdfUrl={book.pdfUrl}
+              pdfFileName={book.pdfFileName || 'كتاب PDF'}
+              pdfSize={book.pdfSize || 0}
+              pageCount={book.pdfPageCount || 0}
+              title={book.title}
+              isDarkMode={isDarkMode}
+            />
 
-            {/* شريط معلومات */}
+            {/* شريط معلومات سفلي */}
             <div className={cn(
               "mt-4 p-4 rounded-xl flex items-center justify-between gap-3 flex-wrap",
               isDarkMode ? "bg-stone-800 text-stone-300" : "bg-blue-50 text-blue-800"
@@ -305,6 +302,7 @@ export default function BookReaderPage({
                 <span className="font-medium">📄 {book.pdfFileName || 'ملف PDF'}</span>
                 {book.pdfSize > 0 && <span className="text-xs opacity-75">· {formatBytes(book.pdfSize)}</span>}
                 {book.pdfPageCount > 0 && <span className="text-xs opacity-75">· {book.pdfPageCount} صفحة</span>}
+                {book.downloads > 0 && <span className="text-xs opacity-75">· 📥 {book.downloads} تنزيل</span>}
               </div>
               <a
                 href={book.pdfUrl}
@@ -320,6 +318,30 @@ export default function BookReaderPage({
                 🔗 فتح في نافذة جديدة
               </a>
             </div>
+          </motion.div>
+        ) : book?.pdfUrl ? (
+          // الكتاب له PDF لكن contentType ليس "pdf" - اعرض PDF بأي حال
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full"
+          >
+            <div className={cn(
+              "mb-4 p-3 rounded-xl border-2 border-dashed text-center",
+              isDarkMode ? "border-amber-600 bg-amber-950/30 text-amber-300" : "border-amber-300 bg-amber-50 text-amber-800"
+            )}>
+              <div className="text-sm">
+                📄 هذا الكتاب يحتوي على ملف PDF حقيقي. <a href="#" onClick={(e) => { e.preventDefault(); window.open(book.pdfUrl, '_blank'); }} className="font-bold underline">اضغط هنا لعرضه</a>
+              </div>
+            </div>
+            <PDFViewer
+              pdfUrl={book.pdfUrl}
+              pdfFileName={book.pdfFileName || 'كتاب PDF'}
+              pdfSize={book.pdfSize || 0}
+              pageCount={book.pdfPageCount || 0}
+              title={book.title}
+              isDarkMode={isDarkMode}
+            />
           </motion.div>
         ) : (
           <motion.div
