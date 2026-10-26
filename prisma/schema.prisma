@@ -162,6 +162,8 @@ model User {
   userRoles        UserRole[]
   auditLogs        AuditLog[]
   uploadedVersions BookVersion[]
+  // ===== Sprint 0: رسائل التواصل (الأدمن الذي يرد) =====
+  contactMessages  ContactMessage[]
 }
 
 // ===== نموذج تقدم اللاعب =====
@@ -633,6 +635,27 @@ model ReviewLog {
 // ██████ نماذج Sprint 0: الأمان + الإدارة + الإصدارات ██████
 // ════════════════════════════════════════════════════════════════
 
+// ===== Enums (تمنع القيم الشاذة) =====
+enum AuditSeverity {
+  info      // عمليات عادية
+  warning   // تغييرات أدوار، رفع ملفات
+  critical  // محاولات دخول فاشلة، حذف، تغييرات أمنية
+}
+
+enum BookStatus {
+  draft       // مسودة
+  published   // منشور
+  archived    // مؤرشف
+}
+
+enum ContactStatus {
+  new        // جديد
+  read       // مقروء
+  replied    // تم الرد
+  converted  // تم تحويله إلى كتاب
+  rejected   // مرفوض
+}
+
 // ===== 10. الوسوم (Tags) — مفقود =====
 // يدعم نظام وسوم مرن للكتب (مختلف عن keywords الموجودة)
 model Tag {
@@ -647,6 +670,7 @@ model Tag {
 }
 
 // ===== 11. ربط الكتب بالوسوم (BookTag) — مفقود =====
+// مفتاح مركّب @@id لمنع التكرار
 model BookTag {
   bookId    Int
   tagId     Int
@@ -662,16 +686,16 @@ model BookTag {
 // ===== 12. سجل التدقيق (AuditLog) — Sprint 1 =====
 // ضروري لأن المكتبة مفتوحة هدف للاعتداء
 model AuditLog {
-  id          Int      @id @default(autoincrement())
-  userId      String?  // null = عملية من النظام
-  action      String   // CREATE | UPDATE | DELETE | LOGIN | LOGOUT | DOWNLOAD | ROLE_CHANGE | PUBLISH | UNPUBLISH
-  entityType  String   // Book | User | Category | Chapter | Role | Review | Tag
-  entityId    String?  // معرّف الكيان المتأثر
-  changes     Json?    // { before: {}, after: {} } — لـ UPDATE
+  id          Int          @id @default(autoincrement())
+  userId      String?      // null = عملية من النظام
+  action      String       // CREATE | UPDATE | DELETE | LOGIN | LOGOUT | DOWNLOAD | ROLE_CHANGE | PUBLISH | UNPUBLISH
+  entityType  String       // Book | User | Category | Chapter | Role | Review | Tag | ContactMessage
+  entityId    String?      // معرّف الكيان المتأثر
+  changes     Json?        // { before: {}, after: {} } — لـ UPDATE
   ipAddress   String?
   userAgent   String?
-  severity    String   @default("info") // info | warning | critical
-  createdAt   DateTime @default(now())
+  severity    AuditSeverity @default(info) // enum يمنع القيم الشاذة
+  createdAt   DateTime     @default(now())
 
   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
@@ -712,6 +736,7 @@ model UserRole {
 
 // ===== 15. إصدارات الكتب (BookVersion) — Sprint 3 =====
 // يحتفظ بكل إصدارات PDF لكل كتاب
+// قيد فريد جزئي: إصدار نشط واحد فقط لكل كتاب
 model BookVersion {
   id           Int      @id @default(autoincrement())
   bookId       Int
@@ -732,17 +757,29 @@ model BookVersion {
   @@unique([bookId, version])
 }
 
-// ===== 16. جهات الاتصال (AuthorContact) — بديل CTA "ارفع كتابك" =====
-// نموذج اتصال للمؤلفين بدلاً من رفع مباشر
-model AuthorContact {
-  id         Int      @id @default(autoincrement())
-  name       String   // اسم المؤلف
-  email      String   // بريد التواصل
-  bookTitle  String   // عنوان الكتاب المقترح
-  message    String   // وصف الكتاب
-  fileUrl    String?  // رابط للملف (Google Drive, إلخ) — لا رفع مباشر
-  status     String   @default("new") // new | contacted | accepted | rejected
-  createdAt  DateTime @default(now())
+// ===== 16. رسائل التواصل (ContactMessage) — بديل CTA "ارفع كتابك" =====
+// نموذج اتصال للمؤلفين/المستخدمين بدلاً من رفع مباشر
+model ContactMessage {
+  id           Int           @id @default(autoincrement())
+  name         String        // اسم المرسل
+  email        String        // بريد التواصل
+  bookTitle    String?       // عنوان الكتاب المقترح (إن كان مؤلفًا)
+  message      String        // نص الرسالة
+  fileUrl      String?       // رابط للملف (Google Drive, إلخ) — لا رفع مباشر
+  status       ContactStatus @default(new) // new | read | replied | converted | rejected
+  // إدارة الرد
+  reply        String?       // رد الإدارة على الرسالة
+  repliedBy    String?       // userId للأدمن الذي ردّ
+  repliedAt    DateTime?
+  // التحويل إلى كتاب
+  convertedBookId Int?       // معرّف الكتاب إن تم التحويل
+  convertedAt  DateTime?
+  // التتبّع
+  ipAddress    String?
+  createdAt    DateTime      @default(now())
+
+  admin        User?          @relation(fields: [repliedBy], references: [id], onDelete: SetNull)
 
   @@index([status, createdAt])
+  @@index([email])
 }

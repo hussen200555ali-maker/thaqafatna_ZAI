@@ -365,6 +365,121 @@
     .activity-text strong { font-weight: 700; }
     .activity-time { font-size: 11px; color: var(--text-light); }
 
+    /* ===== Confirmation Modal ===== */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 200;
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+      backdrop-filter: blur(4px);
+    }
+    .modal {
+      background: white; border-radius: 12px; padding: 24px; max-width: 420px;
+      width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal-icon {
+      width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center; font-size: 28px;
+    }
+    .modal-icon.danger { background: var(--danger-light); color: var(--danger); }
+    .modal-icon.warning { background: var(--warning-light); color: var(--warning); }
+    .modal-icon.success { background: var(--success-light); color: var(--success); }
+    .modal-title { text-align: center; font-size: 17px; font-weight: 700; margin-bottom: 8px; font-family: 'Cairo', sans-serif; }
+    .modal-text { text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+    .modal-actions { display: flex; gap: 8px; }
+    .modal-actions .btn { flex: 1; justify-content: center; padding: 10px; }
+
+    /* ===== Empty State ===== */
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: var(--text-light);
+    }
+    .empty-state-icon {
+      font-size: 56px; margin-bottom: 16px; opacity: 0.4;
+    }
+    .empty-state-title {
+      font-size: 16px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;
+      font-family: 'Cairo', sans-serif;
+    }
+    .empty-state-text {
+      font-size: 13px; color: var(--text-light); margin-bottom: 20px; max-width: 320px;
+      margin-left: auto; margin-right: auto; line-height: 1.6;
+    }
+    .empty-state .btn { display: inline-flex; }
+
+    /* ===== Loading State ===== */
+    .loading-state {
+      padding: 40px 20px; text-align: center;
+    }
+    .loading-spinner {
+      width: 40px; height: 40px; border: 3px solid var(--border);
+      border-top-color: var(--primary); border-radius: 50%;
+      margin: 0 auto 12px; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: var(--text-light); }
+    .skeleton-row {
+      height: 50px; background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%; animation: shimmer 1.5s infinite;
+      border-radius: 8px; margin-bottom: 8px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ===== Error State ===== */
+    .error-state {
+      padding: 40px 20px; text-align: center;
+    }
+    .error-icon {
+      font-size: 48px; margin-bottom: 12px; color: var(--danger);
+    }
+    .error-title {
+      font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px;
+      font-family: 'Cairo', sans-serif;
+    }
+    .error-text {
+      font-size: 13px; color: var(--text-light); margin-bottom: 16px;
+    }
+
+    /* ===== Toast Notification ===== */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--text); color: white; padding: 12px 20px; border-radius: 8px;
+      font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 300;
+      display: flex; align-items: center; gap: 8px; animation: toastIn 0.3s ease-out;
+    }
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--danger); }
+    .toast.warning { background: var(--warning); }
+    @keyframes toastIn {
+      from { transform: translate(-50%, 100%); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+
+    /* ===== Tab Content Section (Book Form Tabs 2-5) ===== */
+    .dc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .dc-full { grid-column: span 2; }
+    .chapter-row {
+      display: grid; grid-template-columns: 32px 1fr 80px 80px 32px; gap: 8px;
+      align-items: center; padding: 8px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px;
+    }
+    .chapter-input { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-family: inherit; }
+    .chapter-drag { cursor: move; color: var(--text-light); }
+    .chapter-remove { color: var(--danger); cursor: pointer; }
+    .file-info-card {
+      display: flex; align-items: center; gap: 12px; padding: 12px;
+      background: var(--success-light); border: 1px solid #a7f3d0; border-radius: 8px; margin-top: 12px;
+    }
+    .file-icon { width: 40px; height: 48px; border-radius: 4px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white; display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+    }
+
+    /* ===== Contact Form (public) ===== */
+    .contact-form-card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 32px; max-width: 560px; margin: 0 auto; }
+    .contact-info-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .contact-info-row:last-child { border-bottom: none; }
+
     /* ===== Responsive ===== */
     @media (max-width: 1024px) {
       .index-nav { display: none; }
@@ -386,7 +501,11 @@
     <li class="index-item active" data-screen="1"><span class="index-item-num">1</span>دخول الأدمن + 2FA</li>
     <li class="index-item" data-screen="2"><span class="index-item-num">2</span>لوحة التحكم</li>
     <li class="index-item" data-screen="3"><span class="index-item-num">3</span>إدارة الكتب</li>
-    <li class="index-item" data-screen="4"><span class="index-item-num">4</span>إضافة/تعديل كتاب</li>
+    <li class="index-item" data-screen="4"><span class="index-item-num">4</span>إضافة/تعديل كتاب (تبويب 1)</li>
+    <li class="index-item" data-screen="14"><span class="index-item-num">14</span>نموذج كتاب (تبويب 2: الغلاف)</li>
+    <li class="index-item" data-screen="15"><span class="index-item-num">15</span>نموذج كتاب (تبويب 3: الملف)</li>
+    <li class="index-item" data-screen="16"><span class="index-item-num">16</span>نموذج كتاب (تبويب 4: Dublin Core)</li>
+    <li class="index-item" data-screen="17"><span class="index-item-num">17</span>نموذج كتاب (تبويب 5: النشر)</li>
     <li class="index-item" data-screen="5"><span class="index-item-num">5</span>سجل الإصدارات</li>
     <li class="index-item" data-screen="6"><span class="index-item-num">6</span>التصنيفات</li>
     <li class="index-item" data-screen="7"><span class="index-item-num">7</span>المؤلفون</li>
@@ -396,6 +515,9 @@
     <li class="index-item" data-screen="11"><span class="index-item-num">11</span>سجل التدقيق</li>
     <li class="index-item" data-screen="12"><span class="index-item-num">12</span>التقارير</li>
     <li class="index-item" data-screen="13"><span class="index-item-num">13</span>الإعدادات</li>
+    <li class="index-item" data-screen="18"><span class="index-item-num">18</span>صندوق الرسائل (/admin/messages)</li>
+    <li class="index-item" data-screen="19"><span class="index-item-num">19</span>نموذج "تواصل معنا" (عام)</li>
+    <li class="index-item" data-screen="20"><span class="index-item-num">20</span>Empty + Loading + Error + Confirmation + Toast
   </ul>
 </nav>
 
@@ -411,7 +533,7 @@
 
       <div class="login-warning">
         <span>⚠️</span>
-        <span>3 محاولات خاطئة فقط، ثم يُقفل الحساب 15 دقيقة</span>
+        <span>سيُقفل الحساب مؤقتًا بعد عدة محاولات فاشلة</span>
       </div>
 
       <div class="form-group">
@@ -1127,7 +1249,7 @@
               <td><div style="display: flex; align-items: center; gap: 8px;"><div class="admin-avatar">ف</div><strong>فاطمة الزهراء</strong></div></td>
               <td>fatima@example.com</td>
               <td><span class="badge badge-neutral">قارئ</span></td>
-              <td><span class="badge badge-neutral">معطّل</span></td>
+              <td><span style="color: var(--text-light); font-size: 11px;">— غير مطلوب</span></td>
               <td><span class="badge badge-warning">موقوف</span></td>
               <td>قبل 3 أيام</td>
               <td>2026-10-18</td>
@@ -1138,7 +1260,7 @@
               <td><div style="display: flex; align-items: center; gap: 8px;"><div class="admin-avatar" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">أ</div><strong>أحمد المصري</strong></div></td>
               <td>ahmed@example.com</td>
               <td><span class="badge badge-neutral">قارئ</span></td>
-              <td><span class="badge badge-neutral">معطّل</span></td>
+              <td><span style="color: var(--text-light); font-size: 11px;">— غير مطلوب</span></td>
               <td><span class="badge badge-success">نشط</span></td>
               <td>اليوم 09:15</td>
               <td>2026-10-20</td>
@@ -1735,6 +1857,796 @@
 </section>
 
 </div>
+
+<!-- ════════════════ SCREEN 14: Book Form Tab 2 — Cover ════════════════ -->
+<section class="screen" id="screen-14">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">📚</span>الكتب</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">➕ إضافة كتاب جديد — الغلاف</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">الخطوة 2 من 5 · صورة الغلاف</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">→ السابق</button>
+          <button class="btn btn-primary btn-sm">التالي ←</button>
+        </div>
+      </div>
+
+      <div class="tabs-wrapper">
+        <div class="tabs-header">
+          <div class="tab" style="color: var(--success);">✓ <span class="tab-num" style="background: var(--success);">1</span>البيانات</div>
+          <div class="tab active"><span class="tab-num">2</span>الغلاف</div>
+          <div class="tab"><span class="tab-num">3</span>الملف (PDF)</div>
+          <div class="tab"><span class="tab-num">4</span>Dublin Core</div>
+          <div class="tab"><span class="tab-num">5</span>إعدادات النشر</div>
+        </div>
+
+        <div class="tab-content">
+          <div style="display: grid; grid-template-columns: 200px 1fr; gap: 24px;">
+            <!-- معاينة الغلاف -->
+            <div>
+              <label class="form-label">المعاينة</label>
+              <div style="width: 180px; height: 260px; border: 2px dashed var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #f8fafc;">
+                <div style="text-align: center; color: var(--text-light);">
+                  <div style="font-size: 32px; margin-bottom: 8px;">🖼️</div>
+                  <div style="font-size: 11px;">لا توجد صورة</div>
+                </div>
+              </div>
+              <p style="font-size: 10px; color: var(--text-light); margin-top: 8px; text-align: center;">
+                الحجم الأمثل: 300×400 بكسل
+              </p>
+            </div>
+
+            <!-- منطقة الرفع -->
+            <div>
+              <div class="dropzone" style="padding: 30px;">
+                <div class="dropzone-icon">📤</div>
+                <div class="dropzone-text">اسحب صورة الغلاف هنا</div>
+                <div class="dropzone-hint">JPG, PNG, WebP · حد أقصى 5 MB</div>
+              </div>
+
+              <div class="form-group" style="margin-top: 20px;">
+                <label class="form-label">أو الصق رابط صورة خارجي</label>
+                <input type="url" class="form-input" placeholder="https://example.com/cover.jpg" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">حالة الغلاف</label>
+                <div style="display: flex; gap: 12px; font-size: 13px;">
+                  <label style="display: flex; align-items: center; gap: 6px;">
+                    <input type="radio" name="cover" checked /> غلاف مرفوع
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 6px;">
+                    <input type="radio" name="cover" /> توليد آلي (SVG)
+                  </label>
+                </div>
+              </div>
+
+              <div class="card" style="background: var(--info-light); border-color: #bae6fd; padding: 12px;">
+                <div style="font-size: 12px; color: #075985; display: flex; align-items: center; gap: 8px;">
+                  <span>💡</span>
+                  <span>إن لم ترفع غلافًا، سيُولّد النظام غلاف SVG تلقائيًا من عنوان الكتاب وتصنيفه.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 15: Book Form Tab 3 — PDF File ════════════════ -->
+<section class="screen" id="screen-15">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">📚</span>الكتب</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">➕ إضافة كتاب جديد — ملف PDF</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">الخطوة 3 من 5 · الملف الرئيسي</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">→ السابق</button>
+          <button class="btn btn-primary btn-sm">التالي ←</button>
+        </div>
+      </div>
+
+      <div class="tabs-wrapper">
+        <div class="tabs-header">
+          <div class="tab" style="color: var(--success);">✓ <span class="tab-num" style="background: var(--success);">1</span>البيانات</div>
+          <div class="tab" style="color: var(--success);">✓ <span class="tab-num" style="background: var(--success);">2</span>الغلاف</div>
+          <div class="tab active"><span class="tab-num">3</span>الملف (PDF)</div>
+          <div class="tab"><span class="tab-num">4</span>Dublin Core</div>
+          <div class="tab"><span class="tab-num">5</span>إعدادات النشر</div>
+        </div>
+
+        <div class="tab-content">
+          <!-- نوع العملية -->
+          <div class="form-group">
+            <label class="form-label">نوع العملية</label>
+            <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+              <label style="display: flex; align-items: center; gap: 6px; padding: 12px; border: 2px solid var(--primary); border-radius: 8px; background: var(--primary-light); cursor: pointer; flex: 1;">
+                <input type="radio" name="opType" checked />
+                <div>
+                  <div style="font-weight: 700; font-size: 13px;">📄 رفع ملف PDF جديد</div>
+                  <div style="font-size: 11px; color: var(--text-light);">يُنشئ إصدارًا جديدًا (v2, v3, ...)</div>
+                </div>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; padding: 12px; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; flex: 1;">
+                <input type="radio" name="opType" />
+                <div>
+                  <div style="font-weight: 700; font-size: 13px;">🔗 رابط خارجي</div>
+                  <div style="font-size: 11px; color: var(--text-light);">استخدم PDF موجود على Vercel Blob</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- منطقة الرفع -->
+          <div class="dropzone">
+            <div class="dropzone-icon">📄</div>
+            <div class="dropzone-text">اسحب ملف PDF هنا</div>
+            <div class="dropzone-hint">حد أقصى 50 MB · صيغة PDF فقط</div>
+          </div>
+
+          <!-- بعد رفع الملف -->
+          <div class="file-info-card">
+            <div class="file-icon">PDF</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; font-size: 13px;">مقدمة-ابن-خلدون.pdf</div>
+              <div style="font-size: 11px; color: var(--text-light);">
+                💾 2.4 MB · 📑 412 صفحة · ✅ الرفع اكتمل
+              </div>
+            </div>
+            <button class="icon-action danger" title="حذف">🗑️</button>
+          </div>
+
+          <!-- ملاحظات الإصدار -->
+          <div class="form-group" style="margin-top: 20px;">
+            <label class="form-label">📝 ملاحظات الإصدار (إلزامي للإصدارات الجديدة)</label>
+            <input type="text" class="form-input" placeholder="مثلاً: إصلاح صفحة 45 بعد اكتشاف تداخل في النص" />
+            <p style="font-size: 11px; color: var(--text-light); margin-top: 4px;">
+              هذه الملاحظة تظهر في سجل الإصدارات وتُسجّل في AuditLog
+            </p>
+          </div>
+
+          <!-- خيارات متقدمة -->
+          <div class="card" style="margin-top: 20px;">
+            <div class="card-title">⚙️ خيارات متقدمة</div>
+            <div class="settings-row">
+              <div>
+                <div style="font-weight: 600; font-size: 13px;">استخراج عدد الصفحات تلقائيًا</div>
+                <div style="font-size: 11px; color: var(--text-light);">يقرأ الـ PDF ويستخرج العدد الدقيق</div>
+              </div>
+              <div class="toggle on"></div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div style="font-weight: 600; font-size: 13px;">استخراج الفهرس (تجريبي)</div>
+                <div style="font-size: 11px; color: var(--text-light);">محاولة استخراج الفصول من جدول المحتويات</div>
+              </div>
+              <div class="toggle"></div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div style="font-weight: 600; font-size: 13px;">جعل هذا الإصدار نشطًا</div>
+                <div style="font-size: 11px; color: var(--text-light);">سيُعرض للقرّاء بدلاً من الإصدار السابق</div>
+              </div>
+              <div class="toggle on"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 16: Book Form Tab 4 — Dublin Core ════════════════ -->
+<section class="screen" id="screen-16">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">📚</span>الكتب</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">➕ إضافة كتاب جديد — Dublin Core</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">الخطوة 4 من 5 · البيانات الوصفية المعيارية</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">📥 استيراد DC XML</button>
+          <button class="btn btn-secondary btn-sm">→ السابق</button>
+          <button class="btn btn-primary btn-sm">التالي ←</button>
+        </div>
+      </div>
+
+      <div class="tabs-wrapper">
+        <div class="tabs-header">
+          <div class="tab" style="color: var(--success);">✓ <span class="tab-num" style="background: var(--success);">1</span>البيانات</div>
+          <div class="tab" style="color: var(--success);">✓ <span class="tab-num" style="background: var(--success);">2</span>الغلاف</div>
+          <div class="tab" style="color: var(--success);">✓ <span class="tab-num" style="background: var(--success);">3</span>الملف</div>
+          <div class="tab active"><span class="tab-num">4</span>Dublin Core</div>
+          <div class="tab"><span class="tab-num">5</span>إعدادات النشر</div>
+        </div>
+
+        <div class="tab-content">
+          <div class="card" style="background: var(--info-light); border-color: #bae6fd; padding: 12px; margin-bottom: 16px;">
+            <div style="font-size: 12px; color: #075985; display: flex; align-items: center; gap: 8px;">
+              <span>ℹ️</span>
+              <span><strong>Hybrid Dublin Core:</strong> 7 حقول منفصلة (للبحث السريع) + JSONB للحقول المتقدمة (للمرونة).</span>
+            </div>
+          </div>
+
+          <div class="card-title" style="margin-bottom: 12px;">📋 الحقول المنفصلة (مفهرسة للبحث)</div>
+
+          <div class="dc-grid">
+            <div class="form-group">
+              <label class="form-label">dc:Title <span style="color: var(--success); font-size: 10px;">✓ مملوء من التبويب 1</span></label>
+              <input type="text" class="form-input" value="مقدمة ابن خلدون" readonly style="background: #f8fafc;" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">dc:Creator <span style="color: var(--success); font-size: 10px;">✓ مملوء من التبويب 1</span></label>
+              <input type="text" class="form-input" value="عبد الرحمن بن خلدون" readonly style="background: #f8fafc;" />
+            </div>
+            <div class="form-group dc-full">
+              <label class="form-label">dc:Subject <span style="color: var(--text-light); font-size: 10px;">(موضوعات مفصولة بـ;)</span></label>
+              <input type="text" class="form-input" value="التاريخ; علم الاجتماع; الفلسفة; العمران البشري" />
+            </div>
+            <div class="form-group dc-full">
+              <label class="form-label">dc:Description <span style="color: var(--success); font-size: 10px;">✓ مملوء من التبويب 1</span></label>
+              <textarea class="form-textarea" readonly style="background: #f8fafc;">يُعدّ كتاب "المقدمة" من أعظم الكتب التي وُضعت في علم العمران البشري...</textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">dc:Publisher</label>
+              <input type="text" class="form-input" placeholder="دار النشر" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">dc:Date <span style="color: var(--text-light); font-size: 10px;">(تاريخ النشر الأصلي)</span></label>
+              <input type="text" class="form-input" placeholder="القرن 14 ميلادي" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">dc:Type</label>
+              <select class="form-input"><option>Text</option><option>Image</option><option>Sound</option><option>Dataset</option></select>
+            </div>
+          </div>
+
+          <div class="card-title" style="margin: 24px 0 12px;">⚙️ الحقول المتقدمة (JSONB)</div>
+
+          <div class="dc-grid">
+            <div class="form-group">
+              <label class="form-label">dc:Identifier <span style="color: var(--text-light); font-size: 10px;">(ISBN, DOI)</span></label>
+              <input type="text" class="form-input" placeholder="978-9953-..." />
+            </div>
+            <div class="form-group">
+              <label class="form-label">dc:Format</label>
+              <input type="text" class="form-input" value="application/pdf" readonly style="background: #f8fafc;" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">dc:Source</label>
+              <input type="text" class="form-input" placeholder="المصدر الأصلي" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">dc:Relation</label>
+              <input type="text" class="form-input" placeholder="علاقة بموارد أخرى" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">dc:Coverage <span style="color: var(--text-light); font-size: 10px;">(جغرافي/زمني)</span></label>
+              <input type="text" class="form-input" placeholder="شمال أفريقيا، القرن 14" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">dc:Rights</label>
+              <input type="text" class="form-input" value="Open Access" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">dc:Language</label>
+              <select class="form-input"><option>ar</option><option>en</option><option>fr</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">dc:Contributor</label>
+              <input type="text" class="form-input" placeholder="المساهمون" />
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 20px; background: #f8fafc;">
+            <div class="card-title">📤 تصدير / استيراد</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-sm">📥 تصدير DC XML</button>
+              <button class="btn btn-secondary btn-sm">📄 تصدير DC JSON</button>
+              <button class="btn btn-secondary btn-sm">📤 استيراد من ملف</button>
+              <button class="btn btn-secondary btn-sm">🔍 معاينة XML</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 17: Book Form Tab 5 — Publishing Settings ════════════════ -->
+<section class="screen" id="screen-17">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">📚</span>الكتب</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">➕ إضافة كتاب جديد — إعدادات النشر</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">الخطوة 5 من 5 · الفصول + الوسوم + النشر</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">→ السابق</button>
+          <button class="btn btn-secondary btn-sm">💾 حفظ كمسودة</button>
+          <button class="btn btn-primary btn-sm">✅ نشر الكتاب</button>
+        </div>
+      </div>
+
+      <div class="tabs-wrapper">
+        <div class="tabs-header">
+          <div class="tab" style="color: var(--success);">✓ <span class="tab-num" style="background: var(--success);">1</span>البيانات</div>
+          <div class="tab" style="color: var(--success);">✓ <span class="tab-num" style="background: var(--success);">2</span>الغلاف</div>
+          <div class="tab" style="color: var(--success);">✓ <span class="tab-num" style="background: var(--success);">3</span>الملف</div>
+          <div class="tab" style="color: var(--success);">✓ <span class="tab-num" style="background: var(--success);">4</span>DC</div>
+          <div class="tab active"><span class="tab-num">5</span>إعدادات النشر</div>
+        </div>
+
+        <div class="tab-content">
+          <!-- حالة النشر -->
+          <div class="card" style="margin-bottom: 16px;">
+            <div class="card-title">📢 حالة النشر</div>
+            <div style="display: flex; gap: 12px;">
+              <label style="display: flex; align-items: center; gap: 6px; padding: 12px; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; flex: 1;">
+                <input type="radio" name="status" checked />
+                <div>
+                  <div style="font-weight: 700; font-size: 13px;">📝 مسودة</div>
+                  <div style="font-size: 11px; color: var(--text-light);">لن يظهر للجمهور</div>
+                </div>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; padding: 12px; border: 2px solid var(--success); border-radius: 8px; background: var(--success-light); cursor: pointer; flex: 1;">
+                <input type="radio" name="status" />
+                <div>
+                  <div style="font-weight: 700; font-size: 13px;">✅ منشور</div>
+                  <div style="font-size: 11px; color: var(--text-light);">يظهر في المكتبة العامة</div>
+                </div>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; padding: 12px; border: 2px solid var(--warning); border-radius: 8px; cursor: pointer; flex: 1;">
+                <input type="radio" name="status" />
+                <div>
+                  <div style="font-weight: 700; font-size: 13px;">⭐ مميز</div>
+                  <div style="font-size: 11px; color: var(--text-light);">منشور + في الواجهة الرئيسية</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- الفصول (إدخال يدوي) -->
+          <div class="card" style="margin-bottom: 16px;">
+            <div class="card-title">📑 الفصول <span style="font-size: 11px; color: var(--text-light); font-weight: 400;">(إدخال يدوي في MVP)</span></div>
+            <p style="font-size: 12px; color: var(--text-light); margin-bottom: 12px;">
+              💡 يمكن إضافة الفصول لاحقًا من صفحة الكتاب. الإدخال هنا اختياري.
+            </p>
+
+            <div class="chapter-row">
+              <div class="chapter-drag">⋮⋮</div>
+              <input type="text" class="chapter-input" placeholder="عنوان الفصل" value="المقدمة وخلفية المؤلف" />
+              <input type="number" class="chapter-input" placeholder="صفحة بداية" value="1" />
+              <input type="number" class="chapter-input" placeholder="صفحة نهاية" value="32" />
+              <span class="chapter-remove">🗑️</span>
+            </div>
+            <div class="chapter-row">
+              <div class="chapter-drag">⋮⋮</div>
+              <input type="text" class="chapter-input" placeholder="عنوان الفصل" value="في طبائع العمران" />
+              <input type="number" class="chapter-input" placeholder="صفحة بداية" value="33" />
+              <input type="number" class="chapter-input" placeholder="صفحة نهاية" value="68" />
+              <span class="chapter-remove">🗑️</span>
+            </div>
+
+            <button class="btn btn-secondary btn-sm" style="margin-top: 8px;">➕ إضافة فصل</button>
+          </div>
+
+          <!-- الوسوم (Tags) -->
+          <div class="card" style="margin-bottom: 16px;">
+            <div class="card-title">🏷️ الوسوم (Tags)</div>
+            <input type="text" class="form-input" placeholder="اكتب وسماً واضغط Enter..." style="margin-bottom: 8px;" />
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <span class="keyword" style="background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                التاريخ <span style="cursor: pointer;">×</span>
+              </span>
+              <span class="keyword" style="background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                الفلسفة <span style="cursor: pointer;">×</span>
+              </span>
+              <span class="keyword" style="background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                العمران <span style="cursor: pointer;">×</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- الإعدادات المتقدمة -->
+          <div class="card">
+            <div class="card-title">⚙️ إعدادات متقدمة</div>
+            <div class="settings-row">
+              <div>
+                <div style="font-weight: 600; font-size: 13px;">السماح بالتنزيل</div>
+                <div style="font-size: 11px; color: var(--text-light);">يمكن للقرّاء تنزيل PDF</div>
+              </div>
+              <div class="toggle on"></div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div style="font-weight: 600; font-size: 13px;">السماح بالمراجعات</div>
+                <div style="font-size: 11px; color: var(--text-light);">يمكن للقرّاء تقييم الكتاب</div>
+              </div>
+              <div class="toggle on"></div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div style="font-weight: 600; font-size: 13px;">محتوى مدفوع (Premium)</div>
+                <div style="font-size: 11px; color: var(--text-light);">يتطلب اشتراك للتنزيل</div>
+              </div>
+              <div class="toggle"></div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div style="font-weight: 600; font-size: 13px;">تاريخ النشر المجدول</div>
+                <div style="font-size: 11px; color: var(--text-light);">انشر في تاريخ مستقبلي</div>
+              </div>
+              <input type="datetime-local" class="form-input" style="width: 200px;" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 18: Admin Messages Inbox (/admin/messages) ════════════════ -->
+<section class="screen" id="screen-18">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📊</span>لوحة التحكم</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📚</span>الكتب</div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">📧</span>الرسائل <span class="badge badge-warning" style="margin-right: auto;">5</span></div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">💬</span>المراجعات</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">📧 صندوق الرسائل</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">5 رسائل جديدة · 12 رسائل محوّلة إلى كتب</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">📥 تصدير CSV</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button class="btn btn-primary btn-sm">جديدة (5)</button>
+        <button class="btn btn-secondary btn-sm">مقروءة (8)</button>
+        <button class="btn btn-secondary btn-sm">تم الرد (12)</button>
+        <button class="btn btn-secondary btn-sm">محوّلة إلى كتاب (3)</button>
+        <button class="btn btn-secondary btn-sm">مرفوضة (2)</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>المرسل</th>
+              <th>البريد</th>
+              <th>عنوان الكتاب المقترح</th>
+              <th>الحالة</th>
+              <th>التاريخ</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background: var(--warning-light);">
+              <td><strong>د. خالد عبدالله</strong></td>
+              <td>khalid@example.com</td>
+              <td>«المدخل إلى علم الكلام»</td>
+              <td><span class="badge badge-warning">جديد</span></td>
+              <td>قبل 5 دقائق</td>
+              <td><div class="row-actions">
+                <button class="icon-action" title="قراءة">👁️</button>
+                <button class="icon-action" title="تحويل إلى كتاب" style="color: var(--success); border-color: var(--success);">📚</button>
+                <button class="icon-action" title="رد">↩️</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td><strong>فاطمة الزهراء</strong></td>
+              <td>fatima@example.com</td>
+              <td>«مجموعة قصص للأطفال»</td>
+              <td><span class="badge badge-warning">جديد</span></td>
+              <td>قبل ساعة</td>
+              <td><div class="row-actions">
+                <button class="icon-action">👁️</button>
+                <button class="icon-action" style="color: var(--success); border-color: var(--success);">📚</button>
+                <button class="icon-action">↩️</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td><strong>محمد الإبراهيم</strong></td>
+              <td>mohammed@example.com</td>
+              <td>«ديوان شعر معاصر»</td>
+              <td><span class="badge badge-info">مقروءة</span></td>
+              <td>قبل 3 ساعات</td>
+              <td><div class="row-actions">
+                <button class="icon-action">👁️</button>
+                <button class="icon-action" style="color: var(--success); border-color: var(--success);">📚</button>
+                <button class="icon-action">↩️</button>
+              </div></td>
+            </tr>
+            <tr style="background: var(--success-light);">
+              <td><strong>أحمد المصري</strong></td>
+              <td>ahmed@example.com</td>
+              <td>«المدخل إلى الليبرالية الكلاسيكية»</td>
+              <td><span class="badge badge-success">✓ محوّلة إلى كتاب #35</span></td>
+              <td>أمس</td>
+              <td><div class="row-actions">
+                <button class="icon-action" title="عرض الكتاب">👁️</button>
+              </div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- تفاصيل رسالة محددة -->
+      <div class="card" style="margin-top: 16px; border-right: 4px solid var(--warning);">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <div>
+            <h3 style="font-size: 16px; margin-bottom: 4px;">📚 «المدخل إلى علم الكلام»</h3>
+            <div style="font-size: 12px; color: var(--text-light);">
+              من <strong>د. خالد عبدالله</strong> · khalid@example.com · قبل 5 دقائق · IP: 188.45.x.x
+            </div>
+          </div>
+          <span class="badge badge-warning">جديد</span>
+        </div>
+
+        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; font-size: 13px; line-height: 1.7; margin-bottom: 16px;">
+          السلام عليكم،<br/><br/>
+          أودّ نشر كتابي «المدخل إلى علم الكلام» في مكتبتكم. الكتاب يتناول موضوعات علم الكلام بطريقة مبسّطة تناسب الطلاب والمبتدئين. يحتوي على 250 صفحة.<br/><br/>
+          الملف متاح على Google Drive: <a href="#" style="color: var(--primary);">drive.google.com/...</a><br/><br/>
+          شكرًا لكم على هذه المبادرة الرائعة.<br/><br/>
+          د. خالد عبدالله
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn-success btn-sm">📚 تحويل إلى كتاب</button>
+          <button class="btn btn-primary btn-sm">↩️ رد على المرسل</button>
+          <button class="btn btn-secondary btn-sm">📋 نسخ البريد</button>
+          <button class="btn btn-danger btn-sm">🗑️ حذف الرسالة</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 19: Public Contact Form ════════════════ -->
+<section class="screen" id="screen-19">
+  <div style="min-height: 100vh; background: linear-gradient(135deg, #0c0a09 0%, #1c1917 50%, #0c0a09 100%); padding: 40px 20px; color: #f5f5f4;">
+    <div style="max-width: 600px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 32px;">
+        <button style="background: none; border: none; color: #a8a29e; cursor: pointer; font-size: 13px; margin-bottom: 16px;">← العودة للمكتبة</button>
+        <div style="font-size: 48px; margin-bottom: 12px;">📧</div>
+        <h1 style="font-size: 32px; font-weight: 800; color: white; margin-bottom: 8px; font-family: 'Cairo', sans-serif;">
+          تواصل معنا لنشر كتابك
+        </h1>
+        <p style="font-size: 14px; color: #a8a29e; max-width: 480px; margin: 0 auto;">
+          هل أنت مؤلف وتريد نشر كتابك في مكتبتنا؟ املأ النموذج وسيتواصل معك فريقنا خلال 48 ساعة.
+        </p>
+      </div>
+
+      <div style="background: white; border-radius: 16px; padding: 32px; color: #0f172a;">
+        <div class="form-group">
+          <label class="form-label">الاسم *</label>
+          <input type="text" class="form-input" placeholder="اسمك الكامل" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">البريد الإلكتروني *</label>
+          <input type="email" class="form-input" placeholder="your@email.com" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">عنوان الكتاب المقترح</label>
+          <input type="text" class="form-input" placeholder="عنوان الكتاب" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">رسالتك *</label>
+          <textarea class="form-textarea" placeholder="اكتب وصفًا مختصرًا للكتاب: موضوعه، عدد الصفحات، الجمهور المستهدف..." style="min-height: 140px;"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">رابط الملف (اختياري)</label>
+          <input type="url" class="form-input" placeholder="https://drive.google.com/..." />
+          <p style="font-size: 11px; color: var(--text-light); margin-top: 4px;">
+            💡 ارفع ملفك على Google Drive أو Dropbox وضع الرابط هنا. لا تقم برفع الملف مباشرة.
+          </p>
+        </div>
+
+        <div style="background: var(--info-light); padding: 12px; border-radius: 8px; font-size: 12px; color: #075985; margin-bottom: 16px;">
+          🔒 <strong>ملاحظة:</strong> نحن لا نرفع الملفات مباشرة من هذا النموذج. فريقنا سيراجع طلبك ويتواصل معك لإكمال عملية النشر بأمان.
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-size: 14px;">
+          📨 إرسال الطلب
+        </button>
+
+        <p style="font-size: 11px; color: var(--text-light); text-align: center; margin-top: 16px;">
+          بالضغط على "إرسال الطلب" فإنك توافق على <a href="#" style="color: var(--primary);">سياسة النشر</a> الخاصة بنا.
+        </p>
+      </div>
+
+      <!-- معلومات إضافية -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 32px; text-align: center;">
+        <div style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px;">
+          <div style="font-size: 24px; margin-bottom: 8px;">⏱️</div>
+          <div style="font-size: 11px; color: #a8a29e;">مدة المراجعة</div>
+          <div style="font-size: 14px; font-weight: 700; color: white;">48 ساعة</div>
+        </div>
+        <div style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px;">
+          <div style="font-size: 24px; margin-bottom: 8px;">📚</div>
+          <div style="font-size: 11px; color: #a8a29e;">كتب منشورة</div>
+          <div style="font-size: 14px; font-weight: 700; color: white;">34 كتاب</div>
+        </div>
+        <div style="padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px;">
+          <div style="font-size: 24px; margin-bottom: 8px;">🆓</div>
+          <div style="font-size: 11px; color: #a8a29e;">النشر مجاني</div>
+          <div style="font-size: 14px; font-weight: 700; color: white;">100%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 20: Empty + Loading + Error + Confirmation + Toast ════════════════ -->
+<section class="screen" id="screen-20">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">🎨</span>States Library</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">🎨 مكتبة الحالات (States)</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">Empty · Loading · Error · Confirmation · Toast</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+
+        <!-- Empty State -->
+        <div class="card">
+          <div class="card-title">📋 Empty State</div>
+          <p style="font-size: 12px; color: var(--text-light); margin-bottom: 16px;">
+            يظهر عندما لا توجد بيانات (لا كتب، لا مراجعات، لا مستخدمين)
+          </p>
+          <div class="empty-state" style="border: 1px solid var(--border); border-radius: 8px;">
+            <div class="empty-state-icon">📚</div>
+            <div class="empty-state-title">لا توجد كتب بعد</div>
+            <div class="empty-state-text">
+              ابدأ بإضافة أول كتاب إلى مكتبتك. ستظهر كل الكتب هنا بعد إضافتها.
+            </div>
+            <button class="btn btn-primary btn-sm">➕ إضافة كتاب جديد</button>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="card">
+          <div class="card-title">⏳ Loading State</div>
+          <p style="font-size: 12px; color: var(--text-light); margin-bottom: 16px;">
+            يظهر أثناء تحميل البيانات من الخادم
+          </p>
+          <div class="loading-state" style="border: 1px solid var(--border); border-radius: 8px;">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">جاري تحميل الكتب...</div>
+          </div>
+          <div style="margin-top: 16px;">
+            <div style="font-size: 11px; color: var(--text-light); margin-bottom: 8px;">Skeleton Loading:</div>
+            <div class="skeleton-row"></div>
+            <div class="skeleton-row"></div>
+            <div class="skeleton-row"></div>
+          </div>
+        </div>
+
+        <!-- Error State -->
+        <div class="card">
+          <div class="card-title">❌ Error State</div>
+          <p style="font-size: 12px; color: var(--text-light); margin-bottom: 16px;">
+            يظهر عند فشل تحميل البيانات
+          </p>
+          <div class="error-state" style="border: 1px solid var(--border); border-radius: 8px;">
+            <div class="error-icon">⚠️</div>
+            <div class="error-title">تعذّر تحميل الكتب</div>
+            <div class="error-text">تحقّق من اتصالك بالإنترنت وحاول مرة أخرى</div>
+            <button class="btn btn-primary btn-sm">🔄 إعادة المحاولة</button>
+          </div>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div class="card">
+          <div class="card-title">⚠️ Confirmation Modal</div>
+          <p style="font-size: 12px; color: var(--text-light); margin-bottom: 16px;">
+            يظهر عند الحذف، الاستعادة، أو تغيير الحالة
+          </p>
+          <div style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: #f8fafc;">
+            <div style="background: white; border-radius: 12px; padding: 24px; max-width: 100%; box-shadow: 0 8px 24px rgba(0,0,0,0.1);">
+              <div class="modal-icon danger" style="margin: 0 auto 16px;">🗑️</div>
+              <div class="modal-title">حذف الكتاب نهائيًا؟</div>
+              <div class="modal-text">
+                سيتم حذف "مقدمة ابن خلدون" وكل فصوله ومراجعاته وإصداراته. لا يمكن التراجع عن هذا الإجراء.
+              </div>
+              <div class="modal-actions">
+                <button class="btn btn-secondary">إلغاء</button>
+                <button class="btn btn-danger">نعم، احذف</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Examples -->
+      <div class="card" style="margin-top: 16px;">
+        <div class="card-title">🔔 Toast Notifications</div>
+        <p style="font-size: 12px; color: var(--text-light); margin-bottom: 16px;">
+          إشعارات سريعة تظهر بعد إجراء (حفظ، حذف، خطأ)
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="toast success" style="position: static; transform: none; animation: none;">
+            ✅ تم حفظ الكتاب بنجاح
+          </div>
+          <div class="toast error" style="position: static; transform: none; animation: none;">
+            ❌ فشل رفع الملف. حجم الملف يتجاوز 50 MB
+          </div>
+          <div class="toast warning" style="position: static; transform: none; animation: none;">
+            ⚠️ لديك 8 مراجعات بانتظار الاعتدال
+          </div>
+          <div class="toast" style="position: static; transform: none; animation: none;">
+            ℹ️ تم تحديث دور المستخدم إلى "أمين مكتبة"
+          </div>
+        </div>
+      </div>
+
+      <!-- Restore Confirmation -->
+      <div class="card" style="margin-top: 16px;">
+        <div class="card-title">↩️ Restore Confirmation (مثال آخر)</div>
+        <div style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: #f8fafc;">
+          <div style="background: white; border-radius: 12px; padding: 24px;">
+            <div class="modal-icon warning" style="margin: 0 auto 16px;">↩️</div>
+            <div class="modal-title">استعادة الإصدار 2؟</div>
+            <div class="modal-text">
+              سيصبح الإصدار 2 هو النشط، وسيُؤرشف الإصدار 3 الحالي. يمكن التراجع لاحقًا.
+            </div>
+            <div class="modal-actions">
+              <button class="btn btn-secondary">إلغاء</button>
+              <button class="btn btn-warning">استعادة الإصدار 2</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
 
 <script>
   const items = document.querySelectorAll('.index-item');

@@ -1,10 +1,10 @@
 /**
- * Sprint 0 — ترحيل البيانات الموجودة إلى الـ schema الجديد
+ * Sprint 0 — ترحيل البيانات الموجودة إلى الـ schema الجديد (REVISED)
  *
  * المهام:
  * 1. تعبئة BookChapter.order من BookChapter.number
- * 2. اعتبار كل BookReview الموجود حاليًا "approved" (لأنها كانت تُعرض مباشرة)
- * 3. إنشاء إصدار 1 (BookVersion) لكل كتاب له pdfUrl
+ * 2. المراجعات القديمة تبقى 'pending' (لا موافقة تلقائية) — يراجعها الأدمن يدويًا
+ * 3. إنشاء إصدار 1 (BookVersion) لكل كتاب له pdfUrl (مع التأكد أن واحد فقط نشط)
  * 4. إضافة دور "reader" لكل مستخدم ليس له دور
  * 5. إنشاء tags من keywords الموجودة في الكتب
  *
@@ -12,6 +12,10 @@
  *   npx tsx scripts/migrate-sprint0-data.ts
  *
  * آمن: يمكن تشغيله عدة مرات (idempotent)
+ *
+ * REVISION NOTE (after senior review):
+ *   - Reviews stay as 'pending' (not auto-approved)
+ *   - Admin will be alerted to moderate them in /admin/reviews
  */
 
 import { PrismaClient } from '@prisma/client'
@@ -36,15 +40,17 @@ async function main() {
   }
   console.log(`   ✓ تم تحديث ${chaptersWithoutOrder.length} فصل\n`)
 
-  // ===== 2. اعتبار كل المراجعات الموجودة "approved" =====
-  console.log('💬 2. تحديث حالة المراجعات الموجودة إلى "approved"...')
-  const pendingReviews = await prisma.bookReview.updateMany({
-    where: { status: 'pending' as any }, // قبل الترحيل، قد لا يكون الحقل موجودًا
-    data: { status: 'approved' },
+  // ===== 2. المراجعات القديمة تبقى 'pending' (لا موافقة تلقائية) =====
+  // SECURITY FIX: المراجعات القديمة لم تُراجع، فلا توافق عليها تلقائيًا.
+  // سيقوم الأدمن بمراجعتها يدويًا في /admin/reviews
+  console.log('💬 2. المراجعات القديمة تبقى pending (بانتظار اعتدال الأدمن)...')
+  const pendingReviewsCount = await prisma.bookReview.count({
+    where: { status: 'pending' as any },
   })
-  console.log(`   ✓ تم تحديث ${pendingReviews.count} مراجعة إلى "approved"\n`)
+  console.log(`   ✓ ${pendingReviewsCount} مراجعة بانتظار الاعتدال في /admin/reviews`)
+  console.log(`   ✓ سيُرسل تنبيه للأدمن بمراجعتها يدويًا\n`)
 
-  // ===== 3. إنشاء إصدار 1 لكل كتاب له PDF =====
+  // ===== 3. إنشاء إصدار 1 لكل كتاب له PDF (مع ضمان نشاط واحد فقط) =====
   console.log('📦 3. إنشاء إصدار 1 (BookVersion) لكل كتاب له PDF...')
   const booksWithPdf = await prisma.book.findMany({
     where: { pdfUrl: { not: '' } },
@@ -68,6 +74,11 @@ async function main() {
 
     if (existingVersion) continue
 
+    // التحقق إن كان لديه إصدار نشط بالفعل (لمنع التضارب)
+    const activeVersion = await prisma.bookVersion.findFirst({
+      where: { bookId: book.id, isActive: true },
+    })
+
     // إنشاء إصدار 1
     await prisma.bookVersion.create({
       data: {
@@ -78,7 +89,7 @@ async function main() {
         pdfSize: book.pdfSize || 0,
         pdfPageCount: book.pdfPageCount || 0,
         uploadedBy: 'system-migration', // معرّف وهمي للنظام
-        isActive: true,
+        isActive: !activeVersion, // نشط فقط إن لم يكن هناك إصدار نشط
         notes: 'الإصدار الأولي — تم استيراده من النسخة السابقة',
       },
     })
@@ -164,7 +175,7 @@ async function main() {
   }
   console.log(`   ✓ تم إنشاء ${tagsCreated} tag جديد و ${bookTagsCreated} ربط كتاب-tag\n`)
 
-  // ===== 6. تسجيل العملية في AuditLog =====
+  // ===== 6. تسجيل العملية في AuditLog (severity: info) =====
   console.log('📝 6. تسجيل عملية الترحيل في AuditLog...')
   await prisma.auditLog.create({
     data: {
@@ -174,7 +185,7 @@ async function main() {
       entityId: 'sprint0-data-migration',
       changes: {
         chaptersUpdated: chaptersWithoutOrder.length,
-        reviewsApproved: pendingReviews.count,
+        pendingReviews: pendingReviewsCount,
         versionsCreated,
         tagsCreated,
         bookTagsCreated,
@@ -184,11 +195,18 @@ async function main() {
   })
   console.log('   ✓ تم تسجيل العملية في AuditLog\n')
 
+  // ===== 7. تنبيه الأدمن بمراجعة المراجعات المعلّقة =====
+  if (pendingReviewsCount > 0) {
+    console.log('⚠️  7. تنبيه: يوجد مراجعات قديمة تحتاج اعتدالًا يدويًا!')
+    console.log(`   📋 ${pendingReviewsCount} مراجعة في /admin/reviews`)
+    console.log('   💡 الأدمن يجب أن يراجعها قبل أن تصبح ظاهرة للجمهور\n')
+  }
+
   console.log('═══════════════════════════════════════════')
   console.log('🎉 اكتمل ترحيل بيانات Sprint 0 بنجاح!')
   console.log('═══════════════════════════════════════════')
   console.log(`📋 فصول محدثة:       ${chaptersWithoutOrder.length}`)
-  console.log(`💬 مراجعات موافق عليها: ${pendingReviews.count}`)
+  console.log(`💬 مراجعات معلّقة:    ${pendingReviewsCount} (تحتاج اعتدالًا يدويًا)`)
   console.log(`📦 إصدارات منشأة:    ${versionsCreated}`)
   console.log(`🏷️  tags منشأة:      ${tagsCreated}`)
   console.log(`🔗 روابط كتب-tags:   ${bookTagsCreated}`)
@@ -203,3 +221,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect()
   })
+
