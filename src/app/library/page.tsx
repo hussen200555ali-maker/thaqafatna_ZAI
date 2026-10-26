@@ -21,6 +21,8 @@ interface Book {
   author: string;
   description: string;
   coverImage: string;
+  pdfUrl?: string;
+  contentType?: string;
   difficulty: string;
   readingTimeMin: number;
   pages: number;
@@ -320,7 +322,7 @@ function BookCard({ book, index, viewMode }: { book: Book; index: number; viewMo
       <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: Math.min(index * 0.03, 0.5) }}>
         <Link href={`/library/${book.id}`}>
           <Card className="flex gap-4 p-3 hover:shadow-lg transition-all cursor-pointer group border-stone-200 hover:border-indigo-300">
-            <BookCover title={book.title} author={book.author} categoryName={book.category.name} difficulty={book.difficulty} size="sm" />
+            <BookCover title={book.title} author={book.author} categoryName={book.category.name} difficulty={book.difficulty} size="sm" coverImageUrl={book.coverImage} showPdfBadge={!!book.pdfUrl} />
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-stone-900 truncate group-hover:text-indigo-600 transition-colors">{book.title}</h3>
               <p className="text-sm text-stone-500 mb-2">{book.author}</p>
@@ -344,7 +346,7 @@ function BookCard({ book, index, viewMode }: { book: Book; index: number; viewMo
         <Card className="overflow-hidden cursor-pointer hover:shadow-xl transition-all group h-full p-3 border-stone-200 hover:border-indigo-300">
           <div className="relative mb-3 flex justify-center">
             <div className="transition-transform group-hover:scale-105 group-hover:-rotate-1">
-              <BookCover title={book.title} author={book.author} categoryName={book.category.name} difficulty={book.difficulty} size="sm" />
+              <BookCover title={book.title} author={book.author} categoryName={book.category.name} difficulty={book.difficulty} size="sm" coverImageUrl={book.coverImage} showPdfBadge={!!book.pdfUrl} />
             </div>
             {book.isFeatured && (
               <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center text-xs shadow-md z-10">⭐</span>
@@ -384,7 +386,7 @@ function FeaturedCard({ book, index }: { book: Book; index: number }) {
         <Card className="overflow-hidden cursor-pointer hover:shadow-2xl transition-all group h-full border-2 border-amber-200 hover:border-amber-400 bg-gradient-to-b from-amber-50/50 to-white">
           <div className="relative p-4 flex justify-center bg-gradient-to-b from-amber-50 to-transparent">
             <div className="transition-transform group-hover:scale-110 group-hover:-rotate-2">
-              <BookCover title={book.title} author={book.author} categoryName={book.category.name} difficulty={book.difficulty} size="md" />
+              <BookCover title={book.title} author={book.author} categoryName={book.category.name} difficulty={book.difficulty} size="md" coverImageUrl={book.coverImage} showPdfBadge={!!book.pdfUrl} />
             </div>
             <span className="absolute top-2 right-2 px-2 py-1 rounded-full bg-amber-400 text-white text-[10px] font-bold shadow-md">⭐ مميز</span>
           </div>

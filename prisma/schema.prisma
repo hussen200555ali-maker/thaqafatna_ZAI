@@ -396,6 +396,14 @@ model Book {
   pdfUrl          String   @default("")
   audioUrl        String   @default("")
 
+  // ميتاداتا الملفات المرفوعة (Vercel Blob)
+  pdfFileName     String   @default("")  // الاسم الأصلي للملف
+  pdfSize         Int      @default(0)   // الحجم بالبايت
+  pdfPageCount    Int      @default(0)   // عدد الصفحات
+  coverImageFileName String @default("") // الاسم الأصلي لصورة الغلاف
+  coverImageSize  Int      @default(0)   // حجم صورة الغلاف بالبايت
+  uploadedAt      DateTime?               // تاريخ آخر رفع
+
   // خصائص
   difficulty      String   @default("medium") // easy | medium | hard
   readingTimeMin  Int      @default(15)
@@ -414,7 +422,7 @@ model Book {
 
   // الحالة
   isPublished     Boolean  @default(false)
-  isFeatured      Boolean  @default(false)
+  isFeatured       Boolean  @default(false)
   isPremium       Boolean  @default(false)
 
   // علاقات

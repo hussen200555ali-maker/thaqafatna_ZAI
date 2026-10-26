@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { PdfImportTool } from "./pdf-import-tool";
+import { BookUploadModal } from "./book-upload-modal";
 
 /**
  * لوحة إدارة المكتبة الموحدة
@@ -37,6 +38,16 @@ interface Book {
   ratingAvg: number;
   ratingCount: number;
   createdAt: string;
+  // حقول الملفات المرفوعة
+  coverImage: string;
+  pdfUrl: string;
+  pdfFileName: string;
+  pdfSize: number;
+  pdfPageCount: number;
+  coverImageFileName: string;
+  coverImageSize: number;
+  contentType: string;
+  uploadedAt: string | null;
   category: { id: number; name: string; icon: string; color: string };
   _count: { chapters: number; reviews: number };
 }
@@ -129,6 +140,7 @@ function BooksTab() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [uploadBook, setUploadBook] = useState<Book | null>(null);
   const { toast } = useToast();
 
   const fetchBooks = useCallback(async () => {
@@ -201,12 +213,23 @@ function BooksTab() {
         <div className="space-y-2">
           {filtered.map((book) => (
             <Card key={book.id} className={cn("p-3 flex items-center gap-3 border-2", book.isPublished ? "border-green-200" : "border-stone-200")}>
-              <div className="text-2xl">📕</div>
+              {/* الغلاف */}
+              <div className="w-12 h-16 flex-shrink-0 rounded overflow-hidden shadow-sm">
+                {book.coverImage && book.coverImage.startsWith('http') ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={book.coverImage} alt={book.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-2xl">
+                    📕
+                  </div>
+                )}
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-bold text-sm text-stone-800 truncate">{book.title}</h3>
                   {book.isPublished ? <Badge className="bg-green-100 text-green-700 text-[9px] border-0">منشور</Badge> : <Badge className="bg-stone-100 text-stone-500 text-[9px] border-0">مسودة</Badge>}
                   {book.isFeatured && <Badge className="bg-amber-100 text-amber-700 text-[9px] border-0">⭐ مميز</Badge>}
+                  {book.pdfUrl && <Badge className="bg-blue-100 text-blue-700 text-[9px] border-0">📄 PDF</Badge>}
                   {book.isPremium && <Badge className="bg-purple-100 text-purple-700 text-[9px] border-0">PRO</Badge>}
                 </div>
                 <p className="text-xs text-stone-500">{book.author} · {book.category.icon} {book.category.name}</p>
@@ -214,9 +237,13 @@ function BooksTab() {
                   <span>📑 {book._count.chapters} فصول</span>
                   <span>👁️ {book.views}</span>
                   <span>⭐ {book.ratingAvg || "—"}</span>
+                  {book.downloads > 0 && <span>📥 {book.downloads}</span>}
                 </div>
               </div>
               <div className="flex gap-1 flex-shrink-0">
+                <button onClick={() => setUploadBook(book)} className="px-2 h-7 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 text-xs font-medium" title="رفع PDF و الغلاف">
+                  📤 رفع
+                </button>
                 <button onClick={() => handleToggleFeatured(book)} className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors", book.isFeatured ? "bg-amber-100 text-amber-600" : "bg-stone-100 text-stone-400 hover:bg-stone-200")} title="تمييز">⭐</button>
                 <button onClick={() => handleTogglePublish(book.id, book.isPublished)} className={cn("px-2 h-7 rounded-lg text-xs font-medium transition-colors", book.isPublished ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700")} title="نشر/إخفاء">{book.isPublished ? "إخفاء" : "نشر"}</button>
                 <button onClick={() => handleDelete(book.id)} className="w-7 h-7 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center text-xs" title="حذف">🗑️</button>
@@ -226,6 +253,22 @@ function BooksTab() {
           {filtered.length === 0 && <p className="text-center text-stone-400 py-8">لا توجد كتب مطابقة</p>}
         </div>
       )}
+
+      {/* مودال رفع الملفات */}
+      <AnimatePresence>
+        {uploadBook && (
+          <BookUploadModal
+            book={uploadBook}
+            onClose={() => setUploadBook(null)}
+            onUpdated={() => {
+              fetchBooks();
+              // تحديث بيانات الكتاب في المودال أيضاً
+              const updated = books.find(b => b.id === uploadBook.id);
+              if (updated) setUploadBook(updated);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -14,6 +14,8 @@ interface BookCoverProps {
   difficulty?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
+  coverImageUrl?: string; // رابط صورة الغلاف الحقيقية (Vercel Blob)
+  showPdfBadge?: boolean; // إظهار شارة PDF
 }
 
 const categoryColors: Record<string, { from: string; to: string; icon: string }> = {
@@ -34,10 +36,41 @@ const sizeMap = {
   lg: { width: 160, height: 224, titleSize: 16, authorSize: 11 },
 };
 
-export function BookCover({ title, author, categoryName, difficulty, size = "md", className }: BookCoverProps) {
+export function BookCover({ title, author, categoryName, difficulty, size = "md", className, coverImageUrl, showPdfBadge }: BookCoverProps) {
   const colors = (categoryName && categoryColors[categoryName]) || categoryColors.default;
   const dims = sizeMap[size];
-  
+
+  // إذا وُجدت صورة غلاف حقيقية، اعرضها بدلاً من الـ SVG
+  if (coverImageUrl && coverImageUrl.startsWith('http')) {
+    return (
+      <div
+        className={cn("relative rounded-lg overflow-hidden shadow-lg flex-shrink-0 bg-stone-100", className)}
+        style={{ width: dims.width, height: dims.height }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={coverImageUrl}
+          alt={`غلاف ${title}`}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+        {/* شارة PDF */}
+        {showPdfBadge && (
+          <div className="absolute top-1 right-1 bg-blue-500/90 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-md">
+            📄 PDF
+          </div>
+        )}
+        {/* تأثير لمعان خفيف */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%)",
+          }}
+        />
+      </div>
+    );
+  }
+
   // تقصير العنوان إن كان طويلاً
   const displayTitle = title.length > 30 ? title.substring(0, 28) + "..." : title;
   const displayAuthor = author.length > 20 ? author.substring(0, 18) + "..." : author;

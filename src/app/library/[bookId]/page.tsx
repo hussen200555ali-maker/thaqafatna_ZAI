@@ -34,6 +34,12 @@ interface BookDetail {
   coverImage: string;
   contentType: string;
   pdfUrl: string;
+  pdfFileName: string;
+  pdfSize: number;
+  pdfPageCount: number;
+  coverImageFileName: string;
+  coverImageSize: number;
+  uploadedAt: string | null;
   difficulty: string;
   readingTimeMin: number;
   pages: number;
@@ -50,6 +56,14 @@ interface BookDetail {
   chapters: Chapter[];
   reviews: any[];
   _count: { reviews: number; bookmarks: number };
+}
+
+function formatBytes(bytes: number): string {
+  if (!bytes || bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
 }
 
 export default function BookDetailPage({ params }: { params: Promise<{ bookId: string }> }) {
@@ -277,13 +291,34 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
             </Button>
           </Link>
           {book.pdfUrl && (
-            <a href={book.pdfUrl} download className="flex-1">
-              <Button variant="outline" className="w-full border-indigo-300 text-indigo-700 hover:bg-indigo-50 py-3 rounded-xl">
-                ⬇️ تنزيل PDF
-              </Button>
-            </a>
+            <Button
+              variant="outline"
+              className="flex-1 border-indigo-300 text-indigo-700 hover:bg-indigo-50 py-3 rounded-xl"
+              onClick={async () => {
+                if (!userId) {
+                  alert('⚠️ يجب تسجيل الدخول لتنزيل الكتاب\n\nسجّل دخولك من الصفحة الرئيسية للحصول على معرّف مستخدم.');
+                  return;
+                }
+                // إعادة توجيه لـ API التنزيل (يزيد العداد ثم يوجّه للرابط)
+                window.location.href = `/api/books/${book.id}/download?userId=${encodeURIComponent(userId)}`;
+              }}
+            >
+              ⬇️ تنزيل PDF
+            </Button>
           )}
         </div>
+
+        {/* ===== معلومات الملف المرفوع ===== */}
+        {book.pdfUrl && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-medium">📄 ملف PDF متاح للتنزيل</span>
+              {book.pdfSize > 0 && <span>· 💾 {formatBytes(book.pdfSize)}</span>}
+              {book.pdfPageCount > 0 && <span>· 📑 {book.pdfPageCount} صفحة</span>}
+              {book.downloads > 0 && <span>· 📥 {book.downloads} تنزيل</span>}
+            </div>
+          </div>
+        )}
 
         {/* ===== الفصول ===== */}
         <div>

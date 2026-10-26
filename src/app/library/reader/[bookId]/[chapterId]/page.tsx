@@ -18,6 +18,14 @@ import { useGameStore } from "@/lib/game-store";
  * - تنقّل بين الفصول
  */
 
+function formatBytes(bytes: number): string {
+  if (!bytes || bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+}
+
 export default function BookReaderPage({
   params,
 }: {
@@ -267,20 +275,68 @@ export default function BookReaderPage({
         </div>
 
         {/* محتوى الفصل */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={cn(
-            "prose prose-lg max-w-none leading-loose",
-            isDarkMode ? "prose-invert" : ""
-          )}
-          style={{
-            fontSize: `${fontSize}px`,
-            lineHeight: 1.9,
-            fontFamily: "var(--font-tajawal), serif",
-          }}
-          dangerouslySetInnerHTML={{ __html: chapter.content || "<p>لا يوجد محتوى لهذا الفصل.</p>" }}
-        />
+        {/* ===== محتوى الفصل أو PDF ===== */}
+        {book?.pdfUrl && book.contentType === 'pdf' ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full"
+          >
+            {/* عرض PDF داخل iframe */}
+            <div className={cn(
+              "rounded-2xl overflow-hidden shadow-xl border-2",
+              isDarkMode ? "border-stone-700 bg-stone-900" : "border-stone-200 bg-white"
+            )}>
+              <iframe
+                src={`${book.pdfUrl}#view=FitH&toolbar=1`}
+                title={`${book.title} - PDF Viewer`}
+                className="w-full"
+                style={{ height: '85vh', minHeight: '600px' }}
+                allow="fullscreen"
+              />
+            </div>
+
+            {/* شريط معلومات */}
+            <div className={cn(
+              "mt-4 p-4 rounded-xl flex items-center justify-between gap-3 flex-wrap",
+              isDarkMode ? "bg-stone-800 text-stone-300" : "bg-blue-50 text-blue-800"
+            )}>
+              <div className="text-sm flex items-center gap-3 flex-wrap">
+                <span className="font-medium">📄 {book.pdfFileName || 'ملف PDF'}</span>
+                {book.pdfSize > 0 && <span className="text-xs opacity-75">· {formatBytes(book.pdfSize)}</span>}
+                {book.pdfPageCount > 0 && <span className="text-xs opacity-75">· {book.pdfPageCount} صفحة</span>}
+              </div>
+              <a
+                href={book.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                  isDarkMode
+                    ? "bg-stone-700 hover:bg-stone-600 text-white"
+                    : "bg-white hover:bg-blue-100 text-blue-700 border border-blue-300"
+                )}
+              >
+                🔗 فتح في نافذة جديدة
+              </a>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={cn(
+              "prose prose-lg max-w-none leading-loose",
+              isDarkMode ? "prose-invert" : ""
+            )}
+            style={{
+              fontSize: `${fontSize}px`,
+              lineHeight: 1.9,
+              fontFamily: "var(--font-tajawal), serif",
+            }}
+            dangerouslySetInnerHTML={{ __html: chapter.content || "<p>لا يوجد محتوى لهذا الفصل.</p>" }}
+          />
+        )}
 
         {/* ===== أزرار التنقّل ===== */}
         <div className="flex items-center justify-between mt-12 pt-6 border-t border-stone-200">
