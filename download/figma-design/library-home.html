@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ثقافتنا — Figma Mockup | المكتبة الرئيسية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Tajawal', 'Cairo', sans-serif;
+      background: linear-gradient(135deg, #0c0a09 0%, #1c1917 50%, #0c0a09 100%);
+      color: #f5f5f4;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Background Orbs */
+    .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.2; }
+    .orb-1 { top: -10%; right: -10%; width: 480px; height: 480px; background: #9333ea; }
+    .orb-2 { top: 40%; left: -10%; width: 480px; height: 480px; background: #2563eb; }
+    .orb-3 { bottom: -10%; right: 30%; width: 380px; height: 380px; background: #059669; opacity: 0.1; }
+
+    /* Header */
+    .header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(12, 10, 9, 0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(41, 37, 36, 0.6);
+    }
+    .header-inner {
+      max-width: 1400px; margin: 0 auto; padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 12px; cursor: pointer;
+    }
+    .logo-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, #9333ea, #2563eb);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 24px -8px rgba(147, 51, 234, 0.5);
+      transition: transform 0.3s;
+    }
+    .logo:hover .logo-icon { transform: scale(1.05); }
+    .logo-text { display: flex; flex-direction: column; }
+    .logo-title {
+      font-size: 18px; font-weight: 800;
+      background: linear-gradient(135deg, #c084fc, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .logo-subtitle { font-size: 10px; color: #78716c; margin-top: -2px; }
+
+    .nav { display: flex; align-items: center; gap: 4px; }
+    .nav-item {
+      padding: 8px 16px; border-radius: 10px;
+      color: #d6d3d1; font-size: 14px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-item:hover, .nav-item.active {
+      background: rgba(68, 64, 60, 0.5); color: #fff;
+    }
+
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: rgba(41, 37, 36, 0.5); border: 1px solid rgba(68, 64, 60, 0.4);
+      display: flex; align-items: center; justify-content: center;
+      color: #a8a29e; cursor: pointer; transition: all 0.2s;
+    }
+    .icon-btn:hover { background: rgba(68, 64, 60, 0.6); color: #fff; }
+    .user-avatar {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: linear-gradient(135deg, #9333ea, #2563eb);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 700; cursor: pointer;
+    }
+
+    /* Main */
+    .main {
+      position: relative; z-index: 1;
+      max-width: 1400px; margin: 0 auto; padding: 40px 24px 80px;
+    }
+
+    /* Hero Section */
+    .hero { text-align: center; margin-bottom: 64px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border-radius: 100px;
+      background: rgba(147, 51, 234, 0.1);
+      border: 1px solid rgba(147, 51, 234, 0.3);
+      color: #c084fc; font-size: 12px; font-weight: 500;
+      margin-bottom: 24px;
+    }
+    .hero-badge .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #c084fc; animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .hero-title {
+      font-family: 'Cairo', sans-serif;
+      font-size: 56px; font-weight: 800; line-height: 1.1;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    .hero-title .gradient {
+      background: linear-gradient(135deg, #c084fc, #ec4899, #fbbf24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-subtitle {
+      font-size: 18px; color: #a8a29e;
+      max-width: 640px; margin: 0 auto 40px;
+      line-height: 1.6;
+    }
+
+    /* Search Bar */
+    .search-container {
+      max-width: 720px; margin: 0 auto 16px;
+      position: relative;
+    }
+    .search-glow {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(147, 51, 234, 0.3), rgba(37, 99, 235, 0.3));
+      border-radius: 16px; filter: blur(20px); opacity: 0.5;
+    }
+    .search-bar {
+      position: relative;
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px;
+      background: rgba(28, 25, 23, 0.8);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(68, 64, 60, 0.6);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.4);
+    }
+    .search-icon {
+      padding: 0 16px 0 8px; color: #78716c;
+    }
+    .search-input {
+      flex: 1; background: transparent; border: none; outline: none;
+      color: white; font-size: 16px; font-family: inherit;
+      padding: 12px 0;
+    }
+    .search-input::placeholder { color: #57534e; transition: opacity 0.3s; }
+    .search-btn {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #9333ea, #2563eb);
+      color: white; font-weight: 600; font-size: 14px;
+      border: none; border-radius: 12px; cursor: pointer;
+      box-shadow: 0 8px 16px -4px rgba(147, 51, 234, 0.4);
+      transition: all 0.2s; font-family: inherit;
+    }
+    .search-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 20px -4px rgba(147, 51, 234, 0.6);
+    }
+
+    /* Quick Suggestions */
+    .suggestions {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; flex-wrap: wrap; margin-top: 16px;
+    }
+    .suggestion-label { font-size: 12px; color: #78716c; }
+    .suggestion-chip {
+      padding: 6px 14px; border-radius: 100px;
+      background: rgba(41, 37, 36, 0.5);
+      color: #d6d3d1; font-size: 12px; cursor: pointer;
+      transition: all 0.2s; border: 1px solid transparent;
+    }
+    .suggestion-chip:hover {
+      background: rgba(68, 64, 60, 0.5);
+      border-color: rgba(147, 51, 234, 0.3);
+      color: #c084fc;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 16px; margin: 64px 0;
+    }
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .stat-card {
+      position: relative; padding: 24px;
+      background: rgba(28, 25, 23, 0.5);
+      border: 1px solid rgba(41, 37, 36, 0.6);
+      border-radius: 18px; overflow: hidden;
+      transition: all 0.3s;
+    }
+    .stat-card:hover { border-color: rgba(68, 64, 60, 0.8); transform: translateY(-2px); }
+    .stat-glow {
+      position: absolute; top: -16px; right: -16px;
+      width: 64px; height: 64px; border-radius: 50%;
+      filter: blur(32px); opacity: 0.2;
+    }
+    .stat-icon { font-size: 24px; margin-bottom: 8px; }
+    .stat-value {
+      font-size: 32px; font-weight: 800; color: white;
+      font-family: 'Cairo', sans-serif;
+    }
+    .stat-label { font-size: 12px; color: #a8a29e; margin-top: 4px; }
+
+    /* Section */
+    .section { margin-bottom: 64px; }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-family: 'Cairo', sans-serif;
+      font-size: 28px; font-weight: 700;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-subtitle { font-size: 14px; color: #78716c; margin-top: 4px; }
+    .section-link {
+      font-size: 14px; color: #c084fc; cursor: pointer;
+      transition: color 0.2s;
+    }
+    .section-link:hover { color: #d8b4fe; }
+
+    /* Books Grid */
+    .books-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+    }
+    .book-card {
+      cursor: pointer; transition: transform 0.3s;
+    }
+    .book-card:hover { transform: translateY(-4px); }
+    .book-cover-wrapper {
+      position: relative; aspect-ratio: 2/3;
+      border-radius: 8px; overflow: hidden;
+      box-shadow: 0 8px 24px -8px rgba(0,0,0,0.5);
+      margin-bottom: 12px;
+    }
+    .book-cover-wrapper::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .book-card:hover .book-cover-wrapper::after { opacity: 1; }
+    .book-cover-wrapper img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .book-badge-pdf {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(239, 68, 68, 0.9);
+      color: white; font-size: 10px; font-weight: 700;
+      padding: 3px 8px; border-radius: 4px;
+      backdrop-filter: blur(4px);
+    }
+    .book-title {
+      font-size: 14px; font-weight: 700; color: #e7e5e4;
+      margin-bottom: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .book-author {
+      font-size: 12px; color: #78716c;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .book-meta {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 6px; font-size: 11px;
+    }
+    .book-rating { color: #fbbf24; }
+    .book-views { color: #78716c; }
+
+    /* Categories Grid */
+    .categories-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .category-card {
+      position: relative; padding: 24px;
+      border-radius: 16px; overflow: hidden;
+      cursor: pointer; transition: all 0.3s;
+      color: white; min-height: 120px;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .category-card:hover { transform: translateY(-2px) scale(1.02); }
+    .category-card::before {
+      content: attr(data-icon);
+      position: absolute; top: -20px; left: -20px;
+      font-size: 100px; opacity: 0.15;
+      transition: all 0.3s;
+    }
+    .category-card:hover::before { opacity: 0.25; transform: scale(1.1); }
+    .category-icon { font-size: 32px; margin-bottom: 12px; position: relative; }
+    .category-name { font-size: 16px; font-weight: 700; position: relative; margin-bottom: 4px; }
+    .category-count { font-size: 11px; opacity: 0.8; position: relative; }
+
+    /* Most Downloaded */
+    .ranking-list { display: flex; flex-direction: column; gap: 8px; }
+    .ranking-item {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px; border-radius: 14px;
+      background: rgba(28, 25, 23, 0.5);
+      border: 1px solid rgba(41, 37, 36, 0.6);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .ranking-item:hover {
+      border-color: rgba(147, 51, 234, 0.3);
+      background: rgba(28, 25, 23, 0.7);
+    }
+    .ranking-num {
+      font-size: 28px; font-weight: 800;
+      color: #44403c; width: 40px; text-align: center;
+      font-family: 'Cairo', sans-serif;
+    }
+    .ranking-cover {
+      width: 50px; height: 70px; border-radius: 4px;
+      overflow: hidden; flex-shrink: 0;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .ranking-cover img { width: 100%; height: 100%; object-fit: cover; }
+    .ranking-info { flex: 1; min-width: 0; }
+    .ranking-title {
+      font-size: 14px; font-weight: 700; color: #e7e5e4;
+      margin-bottom: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ranking-author { font-size: 12px; color: #78716c; margin-bottom: 8px; }
+    .ranking-stats { display: flex; gap: 12px; font-size: 11px; }
+    .ranking-downloads { color: #34d399; font-weight: 600; }
+    .ranking-rating { color: #fbbf24; }
+
+    /* CTA Section */
+    .cta-section {
+      position: relative; padding: 48px;
+      background: linear-gradient(135deg, rgba(147, 51, 234, 0.15), rgba(37, 99, 235, 0.15));
+      border: 1px solid rgba(147, 51, 234, 0.3);
+      border-radius: 24px; overflow: hidden;
+      text-align: center;
+    }
+    .cta-section::before {
+      content: ''; position: absolute; top: -100px; right: -100px;
+      width: 256px; height: 256px; border-radius: 50%;
+      background: rgba(147, 51, 234, 0.3); filter: blur(80px);
+    }
+    .cta-section::after {
+      content: ''; position: absolute; bottom: -100px; left: -100px;
+      width: 256px; height: 256px; border-radius: 50%;
+      background: rgba(37, 99, 235, 0.3); filter: blur(80px);
+    }
+    .cta-content { position: relative; z-index: 1; }
+    .cta-icon { font-size: 64px; margin-bottom: 16px; }
+    .cta-title {
+      font-family: 'Cairo', sans-serif;
+      font-size: 32px; font-weight: 800; margin-bottom: 12px;
+    }
+    .cta-text {
+      font-size: 16px; color: #d6d3d1;
+      max-width: 480px; margin: 0 auto 24px;
+      line-height: 1.7;
+    }
+    .cta-buttons { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .cta-btn-primary {
+      padding: 14px 28px;
+      background: white; color: #0c0a09;
+      font-weight: 700; font-size: 14px;
+      border: none; border-radius: 12px; cursor: pointer;
+      font-family: inherit; transition: all 0.2s;
+    }
+    .cta-btn-primary:hover { background: #f5f5f4; transform: translateY(-2px); }
+    .cta-btn-secondary {
+      padding: 14px 28px;
+      background: rgba(41, 37, 36, 0.5); color: white;
+      border: 1px solid rgba(68, 64, 60, 0.5);
+      font-weight: 600; font-size: 14px;
+      border-radius: 12px; cursor: pointer;
+      font-family: inherit; transition: all 0.2s;
+    }
+    .cta-btn-secondary:hover { background: rgba(68, 64, 60, 0.5); }
+
+    /* Footer */
+    .footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid rgba(41, 37, 36, 0.6);
+      padding: 48px 24px 32px;
+      background: rgba(12, 10, 9, 0.5);
+      backdrop-filter: blur(20px);
+    }
+    .footer-inner {
+      max-width: 1400px; margin: 0 auto;
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px;
+    }
+    @media (max-width: 768px) {
+      .footer-inner { grid-template-columns: 1fr 1fr; }
+    }
+    .footer-brand { grid-column: span 1; }
+    .footer-logo {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+    }
+    .footer-text {
+      font-size: 12px; color: #78716c; line-height: 1.7;
+    }
+    .footer-title {
+      font-size: 13px; font-weight: 700; color: #d6d3d1;
+      margin-bottom: 12px;
+    }
+    .footer-link {
+      display: block; font-size: 13px; color: #78716c;
+      padding: 4px 0; cursor: pointer; transition: color 0.2s;
+    }
+    .footer-link:hover { color: #c084fc; }
+    .footer-social { display: flex; gap: 8px; margin-top: 12px; }
+    .social-btn {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: rgba(41, 37, 36, 0.5);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .social-btn:hover { background: rgba(68, 64, 60, 0.5); }
+    .footer-bottom {
+      max-width: 1400px; margin: 32px auto 0;
+      padding-top: 24px;
+      border-top: 1px solid rgba(41, 37, 36, 0.6);
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 11px; color: #57534e;
+    }
+
+    /* Annotation */
+    .annotation {
+      position: fixed; top: 80px; left: 24px; z-index: 100;
+      padding: 14px 18px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px dashed rgba(245, 158, 11, 0.4);
+      border-radius: 12px;
+      font-size: 11px; color: #fbbf24;
+      max-width: 240px; line-height: 1.6;
+      backdrop-filter: blur(20px);
+    }
+    @media (max-width: 1024px) { .annotation { display: none; } }
+    .annotation strong { color: #f59e0b; }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .section { animation: fadeInUp 0.6s ease-out backwards; }
+    .section:nth-child(2) { animation-delay: 0.1s; }
+    .section:nth-child(3) { animation-delay: 0.2s; }
+    .section:nth-child(4) { animation-delay: 0.3s; }
+    .section:nth-child(5) { animation-delay: 0.4s; }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Annotation -->
+  <div class="annotation">
+    <strong>🎨 Figma Mockup:</strong><br/>
+    هذه الصفحة الرئيسية بتصميم Noor Editorial Dark. انقر على أي عنصر للتفاعل. للمعاينة الكاملة، جرّب تصغير النافذة لرؤية التصميم المتجاوب.
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">📚</div>
+        <div class="logo-text">
+          <div class="logo-title">ثقافتنا</div>
+          <div class="logo-subtitle">المكتبة الذكية</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-item active">الرئيسية</div>
+        <div class="nav-item">التصنيفات</div>
+        <div class="nav-item">المؤلفون</div>
+        <div class="nav-item">⭐ مكتبتي</div>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-btn" title="بحث">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <button class="icon-btn" title="إشعارات">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <div class="user-avatar">ح</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        <span>مكتبة عربية ذكية · 34 كتاب</span>
+      </div>
+      <h1 class="hero-title">
+        اكتشف عالم
+        <br/>
+        <span class="gradient">الكتب العربية</span>
+      </h1>
+      <p class="hero-subtitle">
+        آلاف الكتب العربية في مختلف التصنيفات · اقرأ وحمّل مجاناً · مدعوم بالذكاء الاصطناعي
+      </p>
+
+      <div class="search-container">
+        <div class="search-glow"></div>
+        <div class="search-bar">
+          <div class="search-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <input type="text" class="search-input" placeholder="ابحث عن كتاب... أو مؤلف... أو موضوع..." />
+          <button class="search-btn">بحث</button>
+        </div>
+      </div>
+
+      <div class="suggestions">
+        <span class="suggestion-label">جرّب:</span>
+        <span class="suggestion-chip">الليبرالية</span>
+        <span class="suggestion-chip">ابن خلدون</span>
+        <span class="suggestion-chip">التراث</span>
+        <span class="suggestion-chip">تطوير الذات</span>
+        <span class="suggestion-chip">الفلسفة</span>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-glow" style="background: #9333ea;"></div>
+          <div class="stat-icon">📚</div>
+          <div class="stat-value">٣٤</div>
+          <div class="stat-label">كتاب عربي</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-glow" style="background: #2563eb;"></div>
+          <div class="stat-icon">📂</div>
+          <div class="stat-value">٨</div>
+          <div class="stat-label">تصنيف</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-glow" style="background: #059669;"></div>
+          <div class="stat-icon">✍️</div>
+          <div class="stat-value">٢٤</div>
+          <div class="stat-label">مؤلف</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-glow" style="background: #f59e0b;"></div>
+          <div class="stat-icon">📥</div>
+          <div class="stat-value">١٢٤٧</div>
+          <div class="stat-label">تنزيل</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Books -->
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">
+            <span>⭐</span>
+            <span>الكتب المميزة</span>
+          </h2>
+          <p class="section-subtitle">مختارات فريق التحرير</p>
+        </div>
+        <div class="section-link">عرض الكل ←</div>
+      </div>
+
+      <div class="books-grid">
+        <div class="book-card">
+          <div class="book-cover-wrapper">
+            <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=450&fit=crop" alt="" />
+            <div class="book-badge-pdf">PDF</div>
+          </div>
+          <div class="book-title">مقدمة ابن خلدون</div>
+          <div class="book-author">عبد الرحمن بن خلدون</div>
+          <div class="book-meta">
+            <span class="book-rating">⭐ 4.2</span>
+            <span class="book-views">· 👁️ 12.4K</span>
+          </div>
+        </div>
+        <div class="book-card">
+          <div class="book-cover-wrapper">
+            <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=450&fit=crop" alt="" />
+            <div class="book-badge-pdf">PDF</div>
+          </div>
+          <div class="book-title">البلاء والتبين</div>
+          <div class="book-author">الجاحظ</div>
+          <div class="book-meta">
+            <span class="book-rating">⭐ 4.5</span>
+            <span class="book-views">· 👁️ 8.7K</span>
+          </div>
+        </div>
+        <div class="book-card">
+          <div class="book-cover-wrapper">
+            <img src="https://images.unsplash.com/photo-1531072901882-32786a401d73?w=300&h=450&fit=crop" alt="" />
+            <div class="book-badge-pdf">PDF</div>
+          </div>
+          <div class="book-title">رياض الصالحين</div>
+          <div class="book-author">الإمام النووي</div>
+          <div class="book-meta">
+            <span class="book-rating">⭐ 4.8</span>
+            <span class="book-views">· 👁️ 15.2K</span>
+          </div>
+        </div>
+        <div class="book-card">
+          <div class="book-cover-wrapper">
+            <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop" alt="" />
+          </div>
+          <div class="book-title">العقد الفريد</div>
+          <div class="book-author">ابن عبد ربه</div>
+          <div class="book-meta">
+            <span class="book-rating">⭐ 4.0</span>
+            <span class="book-views">· 👁️ 6.3K</span>
+          </div>
+        </div>
+        <div class="book-card">
+          <div class="book-cover-wrapper">
+            <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=450&fit=crop" alt="" />
+            <div class="book-badge-pdf">PDF</div>
+          </div>
+          <div class="book-title">الأغاني</div>
+          <div class="book-author">أبو الفرج الأصفهاني</div>
+          <div class="book-meta">
+            <span class="book-rating">⭐ 4.6</span>
+            <span class="book-views">· 👁️ 9.1K</span>
+          </div>
+        </div>
+        <div class="book-card">
+          <div class="book-cover-wrapper">
+            <img src="https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=300&h=450&fit=crop" alt="" />
+          </div>
+          <div class="book-title">مقامات الحريري</div>
+          <div class="book-author">الحريري البصري</div>
+          <div class="book-meta">
+            <span class="book-rating">⭐ 4.3</span>
+            <span class="book-views">· 👁️ 5.8K</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">
+            <span>📂</span>
+            <span>تصفّح حسب التصنيف</span>
+          </h2>
+          <p class="section-subtitle">اختر تصنيفك المفضل واكتشف كتباً جديدة</p>
+        </div>
+        <div class="section-link">عرض الكل ←</div>
+      </div>
+
+      <div class="categories-grid">
+        <div class="category-card" style="background: linear-gradient(135deg, #3b82f6, #1e3a8a);" data-icon="📖">
+          <div class="category-icon">📖</div>
+          <div>
+            <div class="category-name">الأدب العربي</div>
+            <div class="category-count">17 كتاب</div>
+          </div>
+        </div>
+        <div class="category-card" style="background: linear-gradient(135deg, #10b981, #047857);" data-icon="🕌">
+          <div class="category-icon">🕌</div>
+          <div>
+            <div class="category-name">الكتب الدينية</div>
+            <div class="category-count">5 كتب</div>
+          </div>
+        </div>
+        <div class="category-card" style="background: linear-gradient(135deg, #f59e0b, #b45309);" data-icon="📜">
+          <div class="category-icon">📜</div>
+          <div>
+            <div class="category-name">التاريخ والتراث</div>
+            <div class="category-count">4 كتب</div>
+          </div>
+        </div>
+        <div class="category-card" style="background: linear-gradient(135deg, #8b5cf6, #5b21b6);" data-icon="🔬">
+          <div class="category-icon">🔬</div>
+          <div>
+            <div class="category-name">العلوم والمعرفة</div>
+            <div class="category-count">3 كتب</div>
+          </div>
+        </div>
+        <div class="category-card" style="background: linear-gradient(135deg, #06b6d4, #0e7490);" data-icon="🌍">
+          <div class="category-icon">🌍</div>
+          <div>
+            <div class="category-name">الجغرافيا والرحلات</div>
+            <div class="category-count">1 كتاب</div>
+          </div>
+        </div>
+        <div class="category-card" style="background: linear-gradient(135deg, #ec4899, #9f1239);" data-icon="🎨">
+          <div class="category-icon">🎨</div>
+          <div>
+            <div class="category-name">الفنون والآداب</div>
+            <div class="category-count">0 كتاب</div>
+          </div>
+        </div>
+        <div class="category-card" style="background: linear-gradient(135deg, #f97316, #9a3412);" data-icon="🧸">
+          <div class="category-icon">🧸</div>
+          <div>
+            <div class="category-name">أدب الأطفال</div>
+            <div class="category-count">5 كتب</div>
+          </div>
+        </div>
+        <div class="category-card" style="background: linear-gradient(135deg, #14b8a6, #115e59);" data-icon="🌱">
+          <div class="category-icon">🌱</div>
+          <div>
+            <div class="category-name">التنمية البشرية</div>
+            <div class="category-count">2 كتاب</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Most Downloaded -->
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">
+            <span>🔥</span>
+            <span>الأكثر تنزيلاً</span>
+          </h2>
+          <p class="section-subtitle">الكتب الأكثر شعبية هذا الأسبوع</p>
+        </div>
+      </div>
+
+      <div class="ranking-list">
+        <div class="ranking-item">
+          <div class="ranking-num">1</div>
+          <div class="ranking-cover">
+            <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&h=140&fit=crop" alt="" />
+          </div>
+          <div class="ranking-info">
+            <div class="ranking-title">مقدمة ابن خلدون</div>
+            <div class="ranking-author">عبد الرحمن بن خلدون</div>
+            <div class="ranking-stats">
+              <span class="ranking-downloads">📥 3,287 تنزيل</span>
+              <span class="ranking-rating">⭐ 4.2</span>
+            </div>
+          </div>
+        </div>
+        <div class="ranking-item">
+          <div class="ranking-num">2</div>
+          <div class="ranking-cover">
+            <img src="https://images.unsplash.com/photo-1531072901882-32786a401d73?w=100&h=140&fit=crop" alt="" />
+          </div>
+          <div class="ranking-info">
+            <div class="ranking-title">رياض الصالحين</div>
+            <div class="ranking-author">الإمام النووي</div>
+            <div class="ranking-stats">
+              <span class="ranking-downloads">📥 2,156 تنزيل</span>
+              <span class="ranking-rating">⭐ 4.8</span>
+            </div>
+          </div>
+        </div>
+        <div class="ranking-item">
+          <div class="ranking-num">3</div>
+          <div class="ranking-cover">
+            <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=100&h=140&fit=crop" alt="" />
+          </div>
+          <div class="ranking-info">
+            <div class="ranking-title">البلاء والتبين</div>
+            <div class="ranking-author">الجاحظ</div>
+            <div class="ranking-stats">
+              <span class="ranking-downloads">📥 1,892 تنزيل</span>
+              <span class="ranking-rating">⭐ 4.5</span>
+            </div>
+          </div>
+        </div>
+        <div class="ranking-item">
+          <div class="ranking-num">4</div>
+          <div class="ranking-cover">
+            <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=100&h=140&fit=crop" alt="" />
+          </div>
+          <div class="ranking-info">
+            <div class="ranking-title">الأغاني</div>
+            <div class="ranking-author">أبو الفرج الأصفهاني</div>
+            <div class="ranking-stats">
+              <span class="ranking-downloads">📥 1,432 تنزيل</span>
+              <span class="ranking-rating">⭐ 4.6</span>
+            </div>
+          </div>
+        </div>
+        <div class="ranking-item">
+          <div class="ranking-num">5</div>
+          <div class="ranking-cover">
+            <img src="https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=100&h=140&fit=crop" alt="" />
+          </div>
+          <div class="ranking-info">
+            <div class="ranking-title">مقامات الحريري</div>
+            <div class="ranking-author">الحريري البصري</div>
+            <div class="ranking-stats">
+              <span class="ranking-downloads">📥 987 تنزيل</span>
+              <span class="ranking-rating">⭐ 4.3</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section">
+      <div class="cta-section">
+        <div class="cta-content">
+          <div class="cta-icon">✍️</div>
+          <h2 class="cta-title">هل أنت مؤلف؟</h2>
+          <p class="cta-text">
+            ارفع كتابك وانشره لآلاف القراء العرب مجاناً. انضم لمجتمع المؤلفين العرب.
+          </p>
+          <div class="cta-buttons">
+            <button class="cta-btn-primary">📤 ارفع كتابك</button>
+            <button class="cta-btn-secondary">تعرّف على المؤلفين</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="logo-icon" style="width: 32px; height: 32px;">📚</div>
+          <strong style="color: white;">ثقافتنا</strong>
+        </div>
+        <p class="footer-text">
+          منصة عربية تعليمية ترفيهية تجمع بين الألغاز التكيّفية والمكتبة الذكية.
+        </p>
+        <div class="footer-social">
+          <div class="social-btn">🐦</div>
+          <div class="social-btn">📘</div>
+          <div class="social-btn">📷</div>
+          <div class="social-btn">▶️</div>
+        </div>
+      </div>
+      <div>
+        <div class="footer-title">المكتبة</div>
+        <div class="footer-link">كل الكتب</div>
+        <div class="footer-link">التصنيفات</div>
+        <div class="footer-link">المؤلفون</div>
+        <div class="footer-link">مكتبتي</div>
+      </div>
+      <div>
+        <div class="footer-title">المساعدة</div>
+        <div class="footer-link">كيف أقرأ كتاباً؟</div>
+        <div class="footer-link">كيف أرفع كتابي؟</div>
+        <div class="footer-link">تواصل معنا</div>
+      </div>
+      <div>
+        <div class="footer-title">عن المكتبة</div>
+        <div class="footer-link">عن ثقافتنا</div>
+        <div class="footer-link">سياسة الخصوصية</div>
+        <div class="footer-link">شروط الاستخدام</div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 ثقافتنا · جميع الحقوق محفوظة</span>
+      <span>صُنع بـ ❤️ للغة وثقافة الأمة العربية</span>
+    </div>
+  </footer>
+
+  <script>
+    // Search interactions
+    const searchInput = document.querySelector('.search-input');
+    const placeholders = [
+      'ابحث عن كتاب... أو مؤلف... أو موضوع...',
+      'مثلاً: «مدخل إلى الليبرالية الكلاسيكية»',
+      'اكتب اسم مؤلفك المفضل...',
+      'ابحث في التصنيف: الدين الإسلامي',
+      'جرّب: «تطوير الذات»',
+    ];
+    let placeholderIdx = 0;
+    setInterval(() => {
+      if (document.activeElement !== searchInput) {
+        placeholderIdx = (placeholderIdx + 1) % placeholders.length;
+        searchInput.placeholder = placeholders[placeholderIdx];
+      }
+    }, 3000);
+
+    // Click on book cards
+    document.querySelectorAll('.book-card, .ranking-item, .category-card').forEach(card => {
+      card.addEventListener('click', () => {
+        card.style.transform = 'scale(0.97)';
+        setTimeout(() => card.style.transform = '', 150);
+      });
+    });
+  </script>
+</body>
+</html>

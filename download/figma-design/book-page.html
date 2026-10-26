@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ثقافتنا — Figma Mockup | صفحة الكتاب (Noor Editorial + Adaptive Cover)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Tajawal', 'Cairo', sans-serif;
+      background: linear-gradient(135deg, #0c0a09 0%, #1c1917 50%, #0c0a09 100%);
+      color: #f5f5f4;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== Glowing Background ===== */
+    .bg-orbs {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.2;
+    }
+    .orb-1 { top: -10%; right: -10%; width: 480px; height: 480px; background: #9333ea; }
+    .orb-2 { top: 50%; left: -10%; width: 480px; height: 480px; background: #2563eb; }
+    .orb-3 { bottom: -10%; right: 30%; width: 380px; height: 380px; background: #059669; opacity: 0.1; }
+
+    /* ===== Header ===== */
+    .header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(12, 10, 9, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(41, 37, 36, 0.6);
+      transition: all 0.3s ease;
+    }
+    .header-inner {
+      max-width: 1400px; margin: 0 auto; padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .back-btn {
+      display: flex; align-items: center; gap: 8px;
+      color: #d6d3d1; font-size: 14px; cursor: pointer;
+      transition: color 0.2s;
+    }
+    .back-btn:hover { color: #fff; }
+    .back-btn svg { width: 20px; height: 20px; }
+
+    /* Adaptive Cover in Header (shrinks on scroll) */
+    .header-cover {
+      display: flex; align-items: center; gap: 12px;
+      opacity: 0; transform: translateX(20px);
+      transition: all 0.4s ease;
+    }
+    .header.scrolled .header-cover { opacity: 1; transform: translateX(0); }
+    .header-cover img {
+      width: 32px; height: 44px; border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .header-cover-title {
+      font-size: 13px; font-weight: 600; color: #f5f5f4;
+      max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: rgba(41, 37, 36, 0.5); border: 1px solid rgba(68, 64, 60, 0.4);
+      display: flex; align-items: center; justify-content: center;
+      color: #a8a29e; cursor: pointer; transition: all 0.2s;
+    }
+    .icon-btn:hover { background: rgba(68, 64, 60, 0.6); color: #fff; }
+    .icon-btn.active { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
+    .icon-btn svg { width: 18px; height: 18px; }
+
+    /* ===== Main Layout ===== */
+    .main {
+      position: relative; z-index: 1;
+      max-width: 1400px; margin: 0 auto; padding: 32px 24px 100px;
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 48px;
+    }
+    @media (max-width: 1024px) {
+      .main { grid-template-columns: 1fr; gap: 32px; }
+      .sidebar { position: static !important; max-height: none !important; }
+    }
+
+    /* ===== Content Side ===== */
+    .content { min-width: 0; }
+
+    /* ===== Quote Section (Noor Style) ===== */
+    .quote-section {
+      text-align: center; margin-bottom: 56px; padding: 32px 0;
+      position: relative;
+    }
+    .quote-section::before, .quote-section::after {
+      content: ''; display: block; width: 60px; height: 1px;
+      background: linear-gradient(90deg, transparent, #57534e, transparent);
+      margin: 0 auto;
+    }
+    .quote-section::before { margin-bottom: 32px; }
+    .quote-section::after { margin-top: 32px; }
+    .quote-text {
+      font-family: 'Cairo', serif;
+      font-size: 22px; font-weight: 400; line-height: 1.8;
+      color: #e7e5e4; max-width: 640px; margin: 0 auto;
+      font-style: italic;
+    }
+    .quote-source {
+      margin-top: 16px; font-size: 13px; color: #78716c;
+    }
+
+    /* ===== Book Title Section ===== */
+    .book-title-section { margin-bottom: 48px; }
+    .category-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 100px;
+      background: rgba(147, 51, 234, 0.1);
+      border: 1px solid rgba(147, 51, 234, 0.3);
+      color: #c084fc; font-size: 12px; font-weight: 500;
+      margin-bottom: 16px; cursor: pointer; transition: all 0.2s;
+    }
+    .category-pill:hover { background: rgba(147, 51, 234, 0.2); }
+    .book-title {
+      font-family: 'Cairo', sans-serif;
+      font-size: 42px; font-weight: 800; line-height: 1.2;
+      color: #fff; margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+    .book-author {
+      font-size: 18px; color: #a8a29e; margin-bottom: 24px;
+    }
+    .book-author a { color: #c084fc; text-decoration: none; }
+    .book-author a:hover { text-decoration: underline; }
+
+    .book-stats {
+      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+      font-size: 14px; color: #a8a29e;
+    }
+    .rating { display: flex; align-items: center; gap: 6px; }
+    .stars { display: flex; gap: 2px; color: #fbbf24; }
+    .stars svg { width: 16px; height: 16px; }
+    .rating-value { font-weight: 700; color: #fbbf24; }
+    .stat-divider { color: #44403c; }
+
+    /* ===== Section ===== */
+    .section { margin-bottom: 56px; }
+    .section-title {
+      font-family: 'Cairo', sans-serif;
+      font-size: 24px; font-weight: 700; color: #fff;
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title .icon { font-size: 20px; }
+    .section-divider {
+      width: 100%; height: 1px; margin: 0 0 32px;
+      background: linear-gradient(90deg, transparent, #292524 20%, #292524 80%, transparent);
+    }
+
+    /* ===== Description ===== */
+    .description-text {
+      font-size: 17px; line-height: 1.9; color: #d6d3d1;
+      max-width: 720px;
+    }
+
+    /* ===== Info Grid ===== */
+    .info-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .info-card {
+      padding: 16px; border-radius: 14px;
+      background: rgba(28, 25, 23, 0.5);
+      border: 1px solid rgba(41, 37, 36, 0.6);
+      transition: all 0.2s;
+    }
+    .info-card:hover { border-color: rgba(68, 64, 60, 0.8); }
+    .info-label {
+      font-size: 11px; color: #78716c; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .info-value {
+      font-size: 15px; font-weight: 700; color: #fff;
+    }
+    .info-value.purple { color: #c084fc; }
+    .info-value.blue { color: #60a5fa; }
+    .info-value.emerald { color: #34d399; }
+    .info-value.amber { color: #fbbf24; }
+
+    /* ===== Keywords ===== */
+    .keywords { display: flex; flex-wrap: wrap; gap: 8px; }
+    .keyword {
+      padding: 6px 14px; border-radius: 8px;
+      background: rgba(28, 25, 23, 0.5);
+      border: 1px solid rgba(68, 64, 60, 0.4);
+      color: #d6d3d1; font-size: 13px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .keyword:hover {
+      background: rgba(147, 51, 234, 0.15);
+      border-color: rgba(147, 51, 234, 0.4);
+      color: #c084fc;
+    }
+
+    /* ===== Reviews ===== */
+    .review {
+      padding: 20px; border-radius: 14px;
+      background: rgba(28, 25, 23, 0.4);
+      border: 1px solid rgba(41, 37, 36, 0.6);
+      margin-bottom: 12px;
+    }
+    .review-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .review-author { display: flex; align-items: center; gap: 10px; }
+    .review-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #9333ea, #2563eb);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 700; font-size: 14px;
+    }
+    .review-name { font-size: 14px; font-weight: 600; color: #e7e5e4; }
+    .review-date { font-size: 12px; color: #78716c; }
+    .review-stars { display: flex; gap: 2px; color: #fbbf24; margin-bottom: 8px; }
+    .review-stars svg { width: 14px; height: 14px; }
+    .review-text {
+      font-size: 14px; line-height: 1.7; color: #a8a29e;
+    }
+
+    /* ===== Sidebar ===== */
+    .sidebar {
+      position: sticky; top: 96px;
+      align-self: start;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+      padding-left: 8px;
+    }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: #292524; border-radius: 3px; }
+
+    .sidebar-card {
+      background: rgba(28, 25, 23, 0.5);
+      border: 1px solid rgba(41, 37, 36, 0.6);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    /* ===== Adaptive Cover (in sidebar) ===== */
+    .adaptive-cover {
+      position: relative; padding: 24px; text-align: center;
+      background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(37, 99, 235, 0.1));
+    }
+    .cover-image {
+      width: 140px; height: 200px; margin: 0 auto 16px;
+      border-radius: 8px; overflow: hidden;
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6), 0 8px 16px -4px rgba(147, 51, 234, 0.3);
+      position: relative;
+      transition: transform 0.3s ease;
+    }
+    .cover-image:hover { transform: scale(1.05) rotate(-1deg); }
+    .cover-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .cover-badges {
+      display: flex; justify-content: center; gap: 6px; flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .badge {
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .badge-pdf {
+      background: rgba(239, 68, 68, 0.15); color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .badge-featured {
+      background: rgba(245, 158, 11, 0.15); color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    /* ===== CTA in Sidebar ===== */
+    .cta-section { padding: 0 16px 16px; }
+    .cta-primary {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, #9333ea, #ec4899, #f59e0b);
+      background-size: 200% 200%;
+      color: white; font-size: 15px; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      box-shadow: 0 8px 24px -8px rgba(147, 51, 234, 0.5);
+      transition: all 0.3s ease;
+      margin-bottom: 10px;
+    }
+    .cta-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px -8px rgba(147, 51, 234, 0.7);
+      background-position: 100% 100%;
+    }
+    .cta-secondary-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .cta-secondary {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 12px; font-size: 13px; font-weight: 600;
+      border-radius: 12px; cursor: pointer; transition: all 0.2s;
+      border: 1px solid;
+    }
+    .cta-download {
+      background: rgba(16, 185, 129, 0.1); color: #34d399;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    .cta-download:hover { background: rgba(16, 185, 129, 0.2); }
+    .cta-share {
+      background: rgba(68, 64, 60, 0.3); color: #d6d3d1;
+      border-color: rgba(68, 64, 60, 0.5);
+    }
+    .cta-share:hover { background: rgba(68, 64, 60, 0.5); }
+
+    /* ===== Sticky TOC ===== */
+    .toc-card { padding: 20px; }
+    .toc-title {
+      font-size: 13px; font-weight: 700; color: #a8a29e;
+      margin-bottom: 14px; text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .toc-list { list-style: none; }
+    .toc-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px; border-radius: 8px; cursor: pointer;
+      transition: all 0.2s; font-size: 13px;
+    }
+    .toc-item:hover { background: rgba(68, 64, 60, 0.3); }
+    .toc-item.active {
+      background: rgba(147, 51, 234, 0.15);
+      color: #c084fc;
+    }
+    .toc-num {
+      width: 22px; height: 22px; border-radius: 5px;
+      background: rgba(68, 64, 60, 0.5); color: #a8a29e;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .toc-item.active .toc-num {
+      background: #9333ea; color: white;
+    }
+    .toc-text { flex: 1; color: #d6d3d1; }
+    .toc-item.active .toc-text { color: #c084fc; font-weight: 600; }
+    .toc-time { font-size: 11px; color: #78716c; }
+
+    /* ===== Reading Progress ===== */
+    .progress-card { padding: 16px; }
+    .progress-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .progress-label { font-size: 12px; color: #a8a29e; }
+    .progress-value { font-size: 14px; font-weight: 700; color: #c084fc; }
+    .progress-bar {
+      height: 6px; background: rgba(41, 37, 36, 0.6);
+      border-radius: 3px; overflow: hidden; margin-bottom: 8px;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, #9333ea, #ec4899, #f59e0b);
+      box-shadow: 0 0 12px rgba(147, 51, 234, 0.5);
+    }
+    .progress-meta { font-size: 11px; color: #78716c; }
+
+    /* ===== Mobile Sticky CTA ===== */
+    .mobile-cta {
+      display: none; position: fixed; bottom: 0; left: 0; right: 0;
+      padding: 12px 16px; z-index: 50;
+      background: rgba(12, 10, 9, 0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(41, 37, 36, 0.6);
+    }
+    @media (max-width: 768px) {
+      .mobile-cta { display: flex; gap: 8px; }
+      .main { padding-bottom: 100px; }
+      .cta-section { display: none; }
+      .book-title { font-size: 28px; }
+      .quote-text { font-size: 17px; }
+    }
+    .mobile-cta .cta-primary { flex: 1; margin: 0; padding: 12px; font-size: 14px; }
+    .mobile-cta .cta-secondary { padding: 12px; }
+
+    /* ===== Annotations ===== */
+    .annotation {
+      position: relative; padding: 16px 20px;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px dashed rgba(245, 158, 11, 0.4);
+      border-radius: 12px;
+      margin: 24px 0;
+      font-size: 13px; color: #fbbf24;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .annotation-icon {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(245, 158, 11, 0.2);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-weight: 700;
+    }
+    .annotation strong { color: #f59e0b; }
+
+    /* ===== Color Palette Card (Figma-like) ===== */
+    .palette-card {
+      position: fixed; bottom: 24px; left: 24px; z-index: 100;
+      background: rgba(28, 25, 23, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(68, 64, 60, 0.5);
+      border-radius: 16px; padding: 16px;
+      max-width: 280px;
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
+    }
+    .palette-title {
+      font-size: 11px; font-weight: 700; color: #a8a29e;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+    .palette-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+    }
+    .palette-swatch {
+      aspect-ratio: 1; border-radius: 8px;
+      cursor: pointer; transition: transform 0.2s;
+      position: relative;
+    }
+    .palette-swatch:hover { transform: scale(1.1); }
+    .palette-swatch::after {
+      content: attr(data-color);
+      position: absolute; bottom: -18px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px; color: #78716c;
+      white-space: nowrap;
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .section { animation: fadeInUp 0.6s ease-out backwards; }
+    .section:nth-child(1) { animation-delay: 0.1s; }
+    .section:nth-child(2) { animation-delay: 0.2s; }
+    .section:nth-child(3) { animation-delay: 0.3s; }
+    .section:nth-child(4) { animation-delay: 0.4s; }
+    .section:nth-child(5) { animation-delay: 0.5s; }
+  </style>
+</head>
+<body>
+  <!-- Background Orbs -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <div class="header-left">
+        <div class="back-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+          <span>المكتبة</span>
+        </div>
+        <!-- Adaptive Cover (appears on scroll) -->
+        <div class="header-cover">
+          <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=80&h=110&fit=crop" alt="غلاف الكتاب" />
+          <div>
+            <div class="header-cover-title">مقدمة ابن خلدون</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="icon-btn active" title="إشارة مرجعية">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 5v16l7-5 7 5V5z"/></svg>
+        </button>
+        <button class="icon-btn" title="مشاركة">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </button>
+        <button class="icon-btn" title="الإعدادات">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <main class="main">
+    <!-- Content Side -->
+    <div class="content">
+      <!-- Quote Section (Noor Style) -->
+      <section class="quote-section">
+        <p class="quote-text">
+          «إن أحكام العمران البشري، وإن ظهرت في كل عصر وزمان،
+          فهي لا تخرج عن طبائع العمران وأحواله»
+        </p>
+        <p class="quote-source">— من المقدمة، الفصل السادس</p>
+      </section>
+
+      <!-- Book Title Section -->
+      <section class="section book-title-section">
+        <div class="category-pill">
+          <span>📜</span>
+          <span>التاريخ والتراث</span>
+        </div>
+        <h1 class="book-title">مقدمة ابن خلدون</h1>
+        <p class="book-author">
+          <a href="#">عبد الرحمن بن خلدون</a>
+          <span style="color: #44403c; margin: 0 8px;">·</span>
+          <span style="font-size: 13px;">صفحة المؤلف ←</span>
+        </p>
+
+        <div class="book-stats">
+          <div class="rating">
+            <div class="stars">
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="rating-value">4.2</span>
+            <span style="color: #78716c;">(1,243 تقييم)</span>
+          </div>
+          <span class="stat-divider">·</span>
+          <span>👁️ 12,453 قارئ</span>
+          <span class="stat-divider">·</span>
+          <span>📥 3,287 تنزيل</span>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Description -->
+      <section class="section">
+        <h2 class="section-title">
+          <span class="icon">📖</span>
+          <span>عن الكتاب</span>
+        </h2>
+        <p class="description-text">
+          يُعدّ كتاب "المقدمة" من أعظم الكتب التي وُضعت في علم العمران البشري، وقد قال عنه المؤرخون إنه أول تأمل فلسفي عميق في الظاهرة الاجتماعية. ألّفه عبد الرحمن بن خلدون في القرن الرابع عشر الميلادي، وقدّم فيه نظرة ثاقبة في نشأة الدول وسقوطها، وأحكام العمران، وطبائع البشر في الاجتماع الإنساني.
+          <br/><br/>
+          تميّز ابن خلدون بمنهج استقرائي يقوم على الملاحظة والتحليل، فكان رائدًا لعلم الاجتماع قبل قرون من ظهوره في الغرب. وقد جعل من "المقدمة" مدخلاً لكتابه "كتاب العبر" الضخم، إلّا أنها استقلّت بذاتها لتصبح مرجعًا قائمًا بذاته في الفلسفة الاجتماعية والتاريخ المقارن.
+        </p>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Info Grid -->
+      <section class="section">
+        <h2 class="section-title">
+          <span class="icon">📊</span>
+          <span>التفاصيل</span>
+        </h2>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-label">📚 الفئة</div>
+            <div class="info-value purple">التاريخ والتراث</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">🌐 اللغة</div>
+            <div class="info-value blue">العربية</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">📄 الصفحات</div>
+            <div class="info-value emerald">412 صفحة</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">⏱️ وقت القراءة</div>
+            <div class="info-value amber">65 دقيقة</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">📊 الصعوبة</div>
+            <div class="info-value purple">متوسط</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">📅 تاريخ النشر</div>
+            <div class="info-value blue">2026-10-15</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">📖 عدد الفصول</div>
+            <div class="info-value emerald">12 فصل</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">💾 حجم الملف</div>
+            <div class="info-value amber">4.2 MB</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Keywords -->
+      <section class="section">
+        <h2 class="section-title">
+          <span class="icon">🏷️</span>
+          <span>الكلمات المفتاحية</span>
+        </h2>
+        <div class="keywords">
+          <span class="keyword">#التاريخ</span>
+          <span class="keyword">#الاجتماع</span>
+          <span class="keyword">#الفلسفة</span>
+          <span class="keyword">#العمران</span>
+          <span class="keyword">#المقدمة</span>
+          <span class="keyword">#ابن_خلدون</span>
+          <span class="keyword">#التراث</span>
+          <span class="keyword">#المجتمع</span>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Reviews -->
+      <section class="section">
+        <h2 class="section-title">
+          <span class="icon">💬</span>
+          <span>مراجعات القرّاء</span>
+          <span style="font-size: 14px; color: #78716c; font-weight: 400;">(8 مراجعات)</span>
+        </h2>
+
+        <div class="review">
+          <div class="review-header">
+            <div class="review-author">
+              <div class="review-avatar">أ</div>
+              <div>
+                <div class="review-name">أحمد المصري</div>
+                <div class="review-date">2026-10-20</div>
+              </div>
+            </div>
+          </div>
+          <div class="review-stars">
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <p class="review-text">
+            كتاب غيّر نظرتي للتاريخ تمامًا. ابن خلدون ليس مجرد مؤرخ، بل فيلسوف اجتماعي سبق عصره بقرون. قراءتي لهذا الكتاب كانت رحلة فكرية عميقة، أنصح به لكل مهتم بالفلسفة الاجتماعية والتاريخ المقارن.
+          </p>
+        </div>
+
+        <div class="review">
+          <div class="review-header">
+            <div class="review-author">
+              <div class="review-avatar" style="background: linear-gradient(135deg, #ec4899, #f59e0b);">ف</div>
+              <div>
+                <div class="review-name">فاطمة الزهراء</div>
+                <div class="review-date">2026-10-18</div>
+              </div>
+            </div>
+          </div>
+          <div class="review-stars">
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <p class="review-text">
+            قراءة ممتعة لكن بعض الفصول معقدة وتحتاج تركيزًا عاليًا. أنصح المبتدئين بقراءة الفصول الأولى فقط قبل الخوض في التفاصيل العميقة.
+          </p>
+        </div>
+
+        <button style="background: rgba(28, 25, 23, 0.5); border: 1px solid rgba(68, 64, 60, 0.4); color: #c084fc; padding: 12px 24px; border-radius: 12px; cursor: pointer; font-family: inherit; font-size: 14px; width: 100%; transition: all 0.2s;">
+          عرض كل المراجعات الـ 8 ←
+        </button>
+      </section>
+
+      <!-- Annotation -->
+      <div class="annotation">
+        <div class="annotation-icon">i</div>
+        <div>
+          <strong>ملاحظة تصميمية:</strong> هذه الصفحة تستخدم نموذج <strong>Noor Editorial</strong> مع <strong>Adaptive Cover</strong>. الغلاف يظهر في الشريط الجانبي (يمين الصفحة) ويختفي من الـ Header عند التمرير. في الموبايل، الـ CTA يصبح sticky أسفل الشاشة.
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <!-- Adaptive Cover Card -->
+      <div class="sidebar-card">
+        <div class="adaptive-cover">
+          <div class="cover-image">
+            <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=280&h=400&fit=crop" alt="غلاف الكتاب" />
+          </div>
+          <div class="cover-badges">
+            <span class="badge badge-pdf">📄 PDF</span>
+            <span class="badge badge-featured">⭐ مميز</span>
+          </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="cta-section">
+          <button class="cta-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            <span>ابدأ القراءة</span>
+          </button>
+          <div class="cta-secondary-row">
+            <button class="cta-secondary cta-download">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span>تنزيل</span>
+            </button>
+            <button class="cta-secondary cta-share">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="18" cy="5" r="3"/>
+                <circle cx="6" cy="12" r="3"/>
+                <circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+              <span>مشاركة</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reading Progress Card -->
+      <div class="sidebar-card progress-card">
+        <div class="progress-header">
+          <span class="progress-label">📊 تقدّمك في القراءة</span>
+          <span class="progress-value">35%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 35%;"></div>
+        </div>
+        <p class="progress-meta">4 من 12 فصل مكتمل · آخر قراءة: اليوم</p>
+      </div>
+
+      <!-- Sticky TOC -->
+      <div class="sidebar-card toc-card">
+        <div class="toc-title">
+          <span>📑 الفهرس</span>
+          <span style="color: #78716c; font-size: 11px; font-weight: 400;">12 فصل</span>
+        </div>
+        <ul class="toc-list">
+          <li class="toc-item active">
+            <div class="toc-num">1</div>
+            <div class="toc-text">المقدمة وخلفية المؤلف</div>
+            <div class="toc-time">15د</div>
+          </li>
+          <li class="toc-item">
+            <div class="toc-num">2</div>
+            <div class="toc-text">في طبائع العمران</div>
+            <div class="toc-time">20د</div>
+          </li>
+          <li class="toc-item">
+            <div class="toc-num">3</div>
+            <div class="toc-text">البدو والحضر</div>
+            <div class="toc-time">18د</div>
+          </li>
+          <li class="toc-item">
+            <div class="toc-num">4</div>
+            <div class="toc-text">في الملك والدولة</div>
+            <div class="toc-time">22د</div>
+          </li>
+          <li class="toc-item">
+            <div class="toc-num">5</div>
+            <div class="toc-text">في المعاش والصنائع</div>
+            <div class="toc-time">17د</div>
+          </li>
+          <li class="toc-item">
+            <div class="toc-num">6</div>
+            <div class="toc-text">في العلوم والتعليم</div>
+            <div class="toc-time">19د</div>
+          </li>
+          <li class="toc-item">
+            <div class="toc-num">7</div>
+            <div class="toc-text">في اللغة والأدب</div>
+            <div class="toc-time">14د</div>
+          </li>
+          <li class="toc-item">
+            <div class="toc-num">8</div>
+            <div class="toc-text">في الفنون والصنائع</div>
+            <div class="toc-time">16د</div>
+          </li>
+          <li class="toc-item">
+            <div class="toc-num">9</div>
+            <div class="toc-text">في الغرائب والأخبار</div>
+            <div class="toc-time">21د</div>
+          </li>
+          <li class="toc-item">
+            <div class="toc-num">10</div>
+            <div class="toc-text">في المغرب والأندلس</div>
+            <div class="toc-time">23د</div>
+          </li>
+          <li class="toc-item">
+            <div class="toc-num">11</div>
+            <div class="toc-text">في الفلاسفة والحكماء</div>
+            <div class="toc-time">18د</div>
+          </li>
+          <li class="toc-item">
+            <div class="toc-num">12</div>
+            <div class="toc-text">الخاتمة والوصايا</div>
+            <div class="toc-time">12د</div>
+          </li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Mobile Sticky CTA -->
+  <div class="mobile-cta">
+    <button class="cta-primary">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+      </svg>
+      <span>اقرأ الآن</span>
+    </button>
+    <button class="cta-secondary cta-download">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Color Palette Card (Figma-like reference) -->
+  <div class="palette-card">
+    <div class="palette-title">🎨 لوحة الألوان</div>
+    <div class="palette-grid">
+      <div class="palette-swatch" style="background: #0c0a09;" data-color="stone-950"></div>
+      <div class="palette-swatch" style="background: #1c1917;" data-color="stone-900"></div>
+      <div class="palette-swatch" style="background: #292524;" data-color="stone-800"></div>
+      <div class="palette-swatch" style="background: #57534e;" data-color="stone-600"></div>
+      <div class="palette-swatch" style="background: #9333ea;" data-color="purple-600"></div>
+      <div class="palette-swatch" style="background: #c084fc;" data-color="purple-400"></div>
+      <div class="palette-swatch" style="background: #2563eb;" data-color="blue-600"></div>
+      <div class="palette-swatch" style="background: #60a5fa;" data-color="blue-400"></div>
+      <div class="palette-swatch" style="background: #f59e0b;" data-color="amber-500"></div>
+      <div class="palette-swatch" style="background: #fbbf24;" data-color="amber-400"></div>
+      <div class="palette-swatch" style="background: #10b981;" data-color="emerald-500"></div>
+      <div class="palette-swatch" style="background: #34d399;" data-color="emerald-400"></div>
+      <div class="palette-swatch" style="background: #ec4899;" data-color="pink-500"></div>
+      <div class="palette-swatch" style="background: #f87171;" data-color="red-400"></div>
+      <div class="palette-swatch" style="background: #f5f5f4;" data-color="stone-100"></div>
+      <div class="palette-swatch" style="background: #d6d3d1;" data-color="stone-300"></div>
+    </div>
+    <div style="margin-top: 24px; font-size: 10px; color: #78716c; line-height: 1.6;">
+      <strong style="color: #a8a29e;">Typography:</strong><br/>
+      Cairo (Headings) + Tajawal (Body)<br/>
+      <strong style="color: #a8a29e; display: block; margin-top: 6px;">Layout:</strong>
+      1400px max-width · 48px gap
+    </div>
+  </div>
+
+  <script>
+    // Header scroll behavior - Adaptive Cover
+    const header = document.getElementById('header');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 200) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    });
+
+    // Click on TOC items
+    document.querySelectorAll('.toc-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+      });
+    });
+
+    // Click on color swatches to copy
+    document.querySelectorAll('.palette-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        const color = swatch.getAttribute('data-color');
+        navigator.clipboard?.writeText(color);
+        swatch.style.transform = 'scale(1.2)';
+        setTimeout(() => swatch.style.transform = '', 200);
+      });
+    });
+
+    // CTA buttons (just for visual feedback)
+    document.querySelectorAll('.cta-primary, .cta-secondary').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(() => btn.style.transform = '', 150);
+      });
+    });
+  </script>
+</body>
+</html>
