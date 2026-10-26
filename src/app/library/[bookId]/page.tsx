@@ -176,180 +176,266 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
   const nextChapter = readingProgress?.currentChapter || 1;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-stone-950 via-stone-900 to-stone-950 text-stone-100">
+      {/* خلفية متوهّجة */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px]" />
+      </div>
+
       {/* الرأس */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-indigo-100 sticky top-0 z-30">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <header className="relative z-10 bg-stone-950/50 backdrop-blur-xl border-b border-stone-800/50 sticky top-0">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => router.push("/library")}
-            className="flex items-center gap-2 text-stone-600 hover:text-stone-900"
+            className="flex items-center gap-2 text-stone-300 hover:text-white"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="9 18 15 12 9 6" />
             </svg>
-            <span className="text-sm font-medium">المكتبة</span>
+            <span className="text-sm">المكتبة</span>
           </button>
           <div className="flex items-center gap-2">
             <button
               onClick={handleBookmark}
               className={cn(
                 "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
-                isBookmarked ? "bg-amber-100 text-amber-600" : "bg-stone-100 text-stone-500 hover:bg-stone-200"
+                isBookmarked ? "bg-amber-500/20 text-amber-400" : "bg-stone-800/50 text-stone-400 hover:bg-stone-800"
               )}
               title="إشارة مرجعية"
             >
               {isBookmarked ? "🔖" : "📑"}
             </button>
+            <button
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({ title: book.title, url: window.location.href }).catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert("📋 تم نسخ الرابط");
+                }
+              }}
+              className="w-9 h-9 rounded-lg bg-stone-800/50 hover:bg-stone-800 text-stone-400 flex items-center justify-center transition-colors"
+              title="مشاركة"
+            >
+              🔗
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* ===== معلومات الكتاب ===== */}
+      <main className="relative z-10 max-w-5xl mx-auto px-4 py-8 space-y-8">
+        {/* ===== معلومات الكتاب - تخطيط احترافي ===== */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex gap-4 sm:gap-6"
+          className="flex flex-col md:flex-row gap-8"
         >
-          {/* الغلاف الاحترافي */}
-          <div className="flex-shrink-0">
-            <BookCover
-              title={book.title}
-              author={book.author}
-              categoryName={book.category.name}
-              difficulty={book.difficulty}
-              size="md"
-            />
+          {/* الغلاف + شارة PDF */}
+          <div className="flex-shrink-0 mx-auto md:mx-0 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-blue-500/30 rounded-2xl blur-2xl" />
+            <div className="relative">
+              <BookCover
+                title={book.title}
+                author={book.author}
+                categoryName={book.category.name}
+                difficulty={book.difficulty}
+                size="lg"
+                coverImageUrl={book.coverImage}
+                showPdfBadge={!!book.pdfUrl}
+              />
+            </div>
+            {/* أزرار سريعة تحت الغلاف */}
+            <div className="mt-4 flex flex-col gap-2">
+              {book.pdfUrl && (
+                <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+                  <span>📄</span>
+                  <span>متاح كـ PDF</span>
+                </div>
+              )}
+              {book.isFeatured && (
+                <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
+                  <span>⭐</span>
+                  <span>كتاب مميز</span>
+                </div>
+              )}
+            </div>
           </div>
-          {/* المعلومات */}
+
+          {/* المعلومات الأساسية */}
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-stone-800 mb-1" style={{ fontFamily: "var(--font-tajawal)" }}>
+            {/* التصنيف */}
+            <div className="flex items-center gap-2 mb-3">
+              <Link
+                href={`/library?category=${book.category.id}`}
+                className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-medium hover:bg-purple-500/20 transition-colors"
+              >
+                {book.category.icon} {book.category.name}
+              </Link>
+              {book.isPremium && (
+                <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
+                  💎 Premium
+                </span>
+              )}
+            </div>
+
+            {/* العنوان */}
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3 leading-tight">
               {book.title}
             </h1>
-            <p className="text-sm text-stone-500 mb-3">{book.author}</p>
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-amber-500 text-sm font-bold">⭐ {book.ratingAvg || "—"}</span>
-              <span className="text-xs text-stone-400">({book.ratingCount} تقييم)</span>
-              <span className="text-xs text-stone-400">👁️ {book.views} قارئ</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                {book.category.icon} {book.category.name}
-              </Badge>
-              <span className={cn("px-2 py-0.5 rounded-full text-xs font-bold", diff.color)}>
-                {diff.icon} {diff.label}
+
+            {/* المؤلف */}
+            <Link
+              href={`/library/authors/${encodeURIComponent(book.author)}`}
+              className="inline-flex items-center gap-2 text-stone-400 hover:text-purple-300 transition-colors mb-4"
+            >
+              <span className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                {book.author.charAt(0)}
               </span>
-              <span className="text-xs text-stone-400">⏱️ {book.readingTimeMin} دقيقة</span>
-              {book.pages > 0 && <span className="text-xs text-stone-400">📄 {book.pages} صفحة</span>}
+              <span className="text-base font-medium">{book.author}</span>
+              <span className="text-xs text-stone-600">·</span>
+              <span className="text-xs text-stone-500">صفحة المؤلف ←</span>
+            </Link>
+
+            {/* التقييم + الإحصائيات */}
+            <div className="flex items-center gap-6 mb-6 flex-wrap">
+              <div className="flex items-center gap-2">
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <svg
+                      key={star}
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill={star <= Math.round(book.ratingAvg) ? "#fbbf24" : "none"}
+                      stroke={star <= Math.round(book.ratingAvg) ? "#fbbf24" : "#52525b"}
+                      strokeWidth="2"
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  ))}
+                </div>
+                <div className="text-sm">
+                  <span className="font-bold text-amber-400">{book.ratingAvg || "—"}</span>
+                  <span className="text-stone-500"> ({book.ratingCount} تقييم)</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-stone-400">
+                <span className="flex items-center gap-1">👁️ {book.views} قارئ</span>
+                {book.downloads > 0 && <span className="flex items-center gap-1">📥 {book.downloads} تنزيل</span>}
+                {book._count?.reviews > 0 && <span className="flex items-center gap-1">💬 {book._count.reviews} مراجعة</span>}
+              </div>
+            </div>
+
+            {/* معلومات إضافية أنيقة */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              {[
+                { label: "الصعوبة", value: diff.label, icon: diff.icon, color: "text-purple-400" },
+                { label: "وقت القراءة", value: `${book.readingTimeMin} د`, icon: "⏱️", color: "text-blue-400" },
+                { label: "عدد الصفحات", value: book.pages || "—", icon: "📄", color: "text-emerald-400" },
+                { label: "اللغة", value: book.language === "ar" ? "عربي" : book.language, icon: "🌐", color: "text-amber-400" },
+              ].map((info, i) => (
+                <div key={i} className="p-3 rounded-xl bg-stone-900/50 border border-stone-800">
+                  <div className="text-xs text-stone-500 mb-1">{info.icon} {info.label}</div>
+                  <div className={cn("text-sm font-bold", info.color)}>{info.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* أزرار الإجراء الرئيسية */}
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <Button
+                  className="flex-1 h-14 bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 hover:from-purple-600 hover:via-pink-600 hover:to-amber-600 text-white font-bold text-base rounded-2xl shadow-xl shadow-purple-500/30 transition-all hover:scale-[1.02]"
+                  onClick={() => {
+                    if (book.pdfUrl) {
+                      setShowPdfPreview(true);
+                    } else {
+                      router.push(`/library/reader/${book.id}/${nextChapter}`);
+                    }
+                  }}
+                >
+                  {book.pdfUrl ? (
+                    <span className="flex items-center gap-2">
+                      <span className="text-xl">📄</span>
+                      <span>{readingProgress ? "📖 متابعة القراءة" : "📖 اقرأ الآن"}</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <span className="text-xl">📖</span>
+                      <span>{readingProgress ? "متابعة القراءة" : "ابدأ القراءة"}</span>
+                    </span>
+                  )}
+                </Button>
+
+                {book.pdfUrl && (
+                  <Button
+                    variant="outline"
+                    className="h-14 px-6 border-2 border-emerald-500 text-emerald-400 hover:bg-emerald-500/10 font-bold rounded-2xl bg-transparent"
+                    onClick={async () => {
+                      if (!userId) {
+                        alert('⚠️ يجب تسجيل الدخول لتنزيل الكتاب\n\nسجّل دخولك من الصفحة الرئيسية للحصول على معرّف مستخدم.');
+                        return;
+                      }
+                      window.location.href = `/api/books/${book.id}/download?userId=${encodeURIComponent(userId)}`;
+                    }}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-xl">⬇️</span>
+                      <span>تنزيل</span>
+                    </span>
+                  </Button>
+                )}
+              </div>
+
+              {book.pdfUrl && !showPdfPreview && (
+                <Button
+                  variant="ghost"
+                  className="w-full text-stone-400 hover:text-purple-300 hover:bg-purple-500/10 text-sm"
+                  onClick={() => setShowPdfPreview(true)}
+                >
+                  👁️ معاينة الكتاب داخل الصفحة
+                </Button>
+              )}
             </div>
           </div>
         </motion.div>
 
         {/* ===== شريط التقدّم ===== */}
         {readingProgress && (
-          <Card className="p-4 bg-indigo-50 border-indigo-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-bold text-indigo-700">📊 تقدّمك في القراءة</span>
-              <span className="text-sm text-indigo-600">{completionRate}%</span>
+          <Card className="p-5 bg-gradient-to-r from-purple-900/30 to-blue-900/30 border-purple-500/30 backdrop-blur">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-bold text-purple-300 flex items-center gap-2">
+                <span>📊</span>
+                <span>تقدّمك في القراءة</span>
+              </span>
+              <span className="text-lg font-bold text-purple-300">{completionRate}%</span>
             </div>
-            <div className="h-2 bg-indigo-100 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-stone-800 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${completionRate}%` }}
-                className="h-full bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full"
+                className="h-full bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 rounded-full shadow-lg shadow-purple-500/50"
               />
             </div>
-            <p className="text-xs text-indigo-400 mt-1">
-              {completedChapters.length} من {book.chapters.length} فصل مكتمل
+            <p className="text-xs text-stone-400 mt-2">
+              {completedChapters.length} من {book.chapters.length} فصل مكتمل · {Math.round((Date.now() - new Date(readingProgress.lastReadAt).getTime()) / (1000 * 60 * 60 * 24))} يوم منذ آخر قراءة
             </p>
           </Card>
         )}
 
         {/* ===== الوصف ===== */}
         <div>
-          <h2 className="text-lg font-bold text-stone-700 mb-2">📝 الوصف</h2>
-          <p className="text-sm text-stone-600 leading-relaxed">{book.description}</p>
+          <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+            <span className="text-purple-400">📝</span>
+            <span>عن الكتاب</span>
+          </h2>
+          <div className="p-5 rounded-2xl bg-stone-900/50 border border-stone-800">
+            <p className="text-stone-300 leading-relaxed">{book.description}</p>
+          </div>
         </div>
 
-        {/* ===== الكلمات المفتاحية ===== */}
-        {book.keywords.length > 0 && (
-          <div>
-            <h2 className="text-sm font-bold text-stone-500 mb-2">🏷️ الكلمات المفتاحية</h2>
-            <div className="flex flex-wrap gap-2">
-              {book.keywords.map((kw, i) => (
-                <span key={i} className="px-2 py-1 rounded-lg bg-purple-100 text-purple-700 text-xs">
-                  {kw}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ===== أزرار الإجراء الرئيسية ===== */}
-        <div className="space-y-3">
-          {/* الأزرار الرئيسية */}
-          <div className="flex gap-3">
-            {/* زر القراءة - الأهم */}
-            <Button
-              className="flex-1 h-14 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold text-base rounded-2xl shadow-xl shadow-purple-500/30 transition-all hover:scale-[1.02]"
-              onClick={() => {
-                // إن كان للكتاب PDF، افتحه مباشرة
-                if (book.pdfUrl) {
-                  setShowPdfPreview(true)
-                } else {
-                  // وإلا، اذهب لقارئ النص
-                  router.push(`/library/reader/${book.id}/${nextChapter}`)
-                }
-              }}
-            >
-              {book.pdfUrl ? (
-                <span className="flex items-center gap-2">
-                  <span className="text-xl">📄</span>
-                  <span>{readingProgress ? "📖 متابعة القراءة" : "📖 اقرأ الآن"}</span>
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <span className="text-xl">📖</span>
-                  <span>{readingProgress ? "متابعة القراءة" : "ابدأ القراءة"}</span>
-                </span>
-              )}
-            </Button>
-
-            {/* زر التنزيل - للكتب التي بها PDF */}
-            {book.pdfUrl && (
-              <Button
-                variant="outline"
-                className="h-14 px-6 border-2 border-emerald-500 text-emerald-700 hover:bg-emerald-50 font-bold rounded-2xl"
-                onClick={async () => {
-                  if (!userId) {
-                    alert('⚠️ يجب تسجيل الدخول لتنزيل الكتاب\n\nسجّل دخولك من الصفحة الرئيسية للحصول على معرّف مستخدم.')
-                    return
-                  }
-                  // زيادة عداد التنزيلات ثم توجيه
-                  window.location.href = `/api/books/${book.id}/download?userId=${encodeURIComponent(userId)}`
-                }}
-              >
-                <span className="flex items-center gap-2">
-                  <span className="text-xl">⬇️</span>
-                  <span>تنزيل</span>
-                </span>
-              </Button>
-            )}
-          </div>
-
-          {/* معاينة سريعة - زر صغير */}
-          {book.pdfUrl && !showPdfPreview && (
-            <Button
-              variant="ghost"
-              className="w-full text-stone-600 hover:text-indigo-600 hover:bg-indigo-50 text-sm"
-              onClick={() => setShowPdfPreview(true)}
-            >
-              👁️ معاينة الكتاب داخل الصفحة
-            </Button>
-          )}
-        </div>
-
-        {/* ===== معاينة PDF داخلية (اختيارية) ===== */}
+        {/* ===== معاينة PDF داخلية ===== */}
         {showPdfPreview && book.pdfUrl && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -358,13 +444,13 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
             className="space-y-3"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-stone-800 flex items-center gap-2">
-                <span>📖</span>
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <span className="text-blue-400">📖</span>
                 <span>معاينة الكتاب</span>
-              </h3>
+              </h2>
               <button
                 onClick={() => setShowPdfPreview(false)}
-                className="px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium"
+                className="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 text-sm font-medium transition-colors"
               >
                 ✕ إغلاق المعاينة
               </button>
@@ -375,24 +461,24 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
               pdfSize={book.pdfSize || 0}
               pageCount={book.pdfPageCount || 0}
               title={book.title}
-              isDarkMode={false}
+              isDarkMode={true}
             />
           </motion.div>
         )}
 
-        {/* ===== معلومات الملف المرفوع ===== */}
+        {/* ===== بطاقة معلومات الملف ===== */}
         {book.pdfUrl && (
-          <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <Card className="p-5 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border-blue-500/30">
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white text-xl font-bold shadow-lg">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-red-500/30">
                   PDF
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-stone-800">
+                  <div className="font-bold text-white text-sm mb-1">
                     {book.pdfFileName || 'ملف PDF'}
                   </div>
-                  <div className="text-xs text-stone-500 flex gap-3 mt-0.5">
+                  <div className="text-xs text-stone-400 flex gap-3 flex-wrap">
                     {book.pdfSize > 0 && <span>💾 {formatBytes(book.pdfSize)}</span>}
                     {book.pdfPageCount > 0 && <span>📑 {book.pdfPageCount} صفحة</span>}
                     {book.downloads > 0 && <span>📥 {book.downloads} تنزيل</span>}
@@ -404,7 +490,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
                 href={book.pdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-1.5 rounded-lg bg-white border border-blue-300 hover:bg-blue-50 text-blue-700 text-xs font-medium transition-colors"
+                className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors border border-white/20"
               >
                 🔗 فتح في نافذة
               </a>
@@ -412,112 +498,174 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
           </Card>
         )}
 
-        {/* ===== الفصول ===== */}
-        <div>
-          <h2 className="text-lg font-bold text-stone-700 mb-3 flex items-center gap-2">
-            📑 الفصول ({book.chapters.length})
-          </h2>
-          <div className="space-y-2">
-            {book.chapters.map((chapter, idx) => {
-              const isCompleted = completedChapters.includes(chapter.number);
-              const isCurrent = readingProgress?.currentChapter === chapter.number;
-              return (
-                <motion.div
-                  key={chapter.id}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.05 }}
+        {/* ===== الكلمات المفتاحية ===== */}
+        {book.keywords.length > 0 && (
+          <div>
+            <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+              <span>🏷️</span>
+              <span>الكلمات المفتاحية</span>
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {book.keywords.map((kw, i) => (
+                <Link
+                  key={i}
+                  href={`/library?search=${encodeURIComponent(kw)}`}
+                  className="px-3 py-1.5 rounded-lg bg-stone-800/50 hover:bg-purple-500/20 border border-stone-700 hover:border-purple-500/50 text-stone-300 hover:text-purple-300 text-xs transition-colors"
                 >
-                  <Link href={`/library/reader/${book.id}/${chapter.number}`}>
-                    <Card className={cn(
-                      "p-4 cursor-pointer hover:shadow-md transition-all flex items-center gap-3",
-                      isCurrent ? "border-indigo-400 bg-indigo-50" : "border-stone-200",
-                      isCompleted && "border-green-300 bg-green-50"
-                    )}>
+                  #{kw}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ===== الفصول ===== */}
+        {book.chapters.length > 0 && (
+          <div>
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-emerald-400">📑</span>
+              <span>فهرس الكتاب</span>
+              <span className="text-sm text-stone-500 font-normal">({book.chapters.length} فصل)</span>
+            </h2>
+            <div className="space-y-2">
+              {book.chapters.map((chapter, idx) => {
+                const isCompleted = completedChapters.includes(chapter.number);
+                const isCurrent = readingProgress?.currentChapter === chapter.number;
+                return (
+                  <motion.div
+                    key={chapter.id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  >
+                    <Link
+                      href={`/library/reader/${book.id}/${chapter.number}`}
+                      className={cn(
+                        "flex items-center gap-4 p-4 rounded-xl border transition-all group",
+                        isCurrent
+                          ? "bg-purple-500/10 border-purple-500/30"
+                          : isCompleted
+                          ? "bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10"
+                          : "bg-stone-900/50 border-stone-800 hover:bg-stone-800/50"
+                      )}
+                    >
                       <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0",
-                        isCompleted ? "bg-green-500 text-white" : isCurrent ? "bg-indigo-500 text-white" : "bg-stone-200 text-stone-600"
+                        "w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0",
+                        isCurrent ? "bg-purple-500 text-white" : isCompleted ? "bg-emerald-500/20 text-emerald-400" : "bg-stone-800 text-stone-400"
                       )}>
                         {isCompleted ? "✓" : chapter.number}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-sm text-stone-800 truncate">{chapter.title}</h3>
-                        <p className="text-xs text-stone-400">⏱️ {chapter.readingTimeMin} دقيقة</p>
+                        <h3 className={cn(
+                          "font-bold text-sm truncate",
+                          isCurrent ? "text-purple-300" : isCompleted ? "text-emerald-300" : "text-stone-200"
+                        )}>
+                          {chapter.title}
+                        </h3>
+                        <p className="text-xs text-stone-500 mt-0.5">
+                          ⏱️ {chapter.readingTimeMin} دقيقة
+                          {chapter.isFree === false && " · 🔒 Premium"}
+                        </p>
                       </div>
-                      {chapter.relatedLevelId && (
-                        <Badge className="bg-amber-100 text-amber-700 text-[10px] border-0">
-                          🎮 لغز
-                        </Badge>
-                      )}
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-400">
-                        <polyline points="15 18 9 12 15 6" />
-                      </svg>
-                    </Card>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ===== شهادة الإتقان ===== */}
-        {readingProgress?.completedAt && (
-          <div>
-            <CertificateDisplay
-              bookId={book.id}
-              userId={userId}
-              bookTitle={book.title}
-              bookAuthor={book.author}
-            />
+                      <div className="text-stone-600 group-hover:text-purple-400 transition-colors">
+                        ←
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         )}
 
         {/* ===== التقييم ===== */}
-        <Card className="p-5">
-          <h2 className="font-bold text-stone-700 mb-3">⭐ تقييمك</h2>
-          <div className="flex items-center gap-2 mb-3">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                onClick={() => submitRating(star)}
-                onMouseEnter={() => setHoverRating(star)}
-                onMouseLeave={() => setHoverRating(0)}
-                className="text-3xl transition-transform hover:scale-110"
-              >
-                <span className={cn(
-                  (hoverRating || userRating) >= star ? "text-amber-400" : "text-stone-300"
-                )}>
-                  ★
-                </span>
-              </button>
-            ))}
-            {userRating > 0 && (
-              <span className="text-sm text-stone-500 mr-2">شكراً لتقييمك!</span>
-            )}
-          </div>
-          {book.reviews.length > 0 && (
-            <div className="space-y-3 mt-4 pt-4 border-t border-stone-100">
-              <h3 className="text-sm font-bold text-stone-600">آخر المراجعات</h3>
-              {book.reviews.map((review: any, i: number) => (
-                <div key={i} className="bg-stone-50 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-stone-700">{review.user.name || "قارئ"}</span>
-                    <span className="text-amber-400 text-xs">{"★".repeat(review.rating)}</span>
-                  </div>
-                  {review.review && <p className="text-xs text-stone-600">{review.review}</p>}
-                </div>
+        <div>
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <span className="text-amber-400">⭐</span>
+            <span>قيّم هذا الكتاب</span>
+          </h2>
+          <div className="p-5 rounded-2xl bg-stone-900/50 border border-stone-800 text-center">
+            <div className="flex justify-center gap-2 mb-3">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => submitRating(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  className="transition-transform hover:scale-125"
+                >
+                  <svg
+                    width="36"
+                    height="36"
+                    viewBox="0 0 24 24"
+                    fill={star <= (hoverRating || userRating) ? "#fbbf24" : "none"}
+                    stroke={star <= (hoverRating || userRating) ? "#fbbf24" : "#52525b"}
+                    strokeWidth="2"
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                </button>
               ))}
             </div>
-          )}
-        </Card>
+            <p className="text-sm text-stone-400">
+              {userRating > 0 ? `شكراً! تقييمك: ${userRating} نجوم` : "اضغط على النجوم للتقييم"}
+            </p>
+          </div>
+        </div>
+
+        {/* ===== المراجعات ===== */}
+        {book.reviews && book.reviews.length > 0 && (
+          <div>
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-blue-400">💬</span>
+              <span>مراجعات القرّاء</span>
+              <span className="text-sm text-stone-500 font-normal">({book._count.reviews})</span>
+            </h2>
+            <div className="space-y-3">
+              {book.reviews.slice(0, 5).map((review: any, i: number) => (
+                <motion.div
+                  key={review.id || i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="p-4 rounded-xl bg-stone-900/50 border border-stone-800"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                      {review.user?.name?.charAt(0) || "م"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-bold text-stone-200 text-sm">{review.user?.name || "قارئ"}</h4>
+                        <span className="text-xs text-stone-500">
+                          {new Date(review.createdAt).toLocaleDateString('ar-EG')}
+                        </span>
+                      </div>
+                      <div className="flex mb-2">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill={s <= review.rating ? "#fbbf24" : "none"} stroke={s <= review.rating ? "#fbbf24" : "#52525b"} strokeWidth="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                          </svg>
+                        ))}
+                      </div>
+                      {review.comment && (
+                        <p className="text-sm text-stone-400 leading-relaxed">{review.comment}</p>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ===== كتب ذات صلة ===== */}
         <RelatedBooks bookId={book.id} categoryId={book.category.id} />
-
       </main>
     </div>
   );
 }
+
 
 // ============================================================
 // كتب ذات صلة (من نفس التصنيف)
