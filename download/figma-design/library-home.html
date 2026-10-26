@@ -56,7 +56,7 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    .logo-subtitle { font-size: 10px; color: #78716c; margin-top: -2px; }
+    .logo-subtitle { font-size: 10px; color: #a8a29e; margin-top: -2px; }
 
     .nav { display: flex; align-items: center; gap: 4px; }
     .nav-item {
@@ -146,7 +146,7 @@
       box-shadow: 0 20px 40px -10px rgba(0,0,0,0.4);
     }
     .search-icon {
-      padding: 0 16px 0 8px; color: #78716c;
+      padding: 0 16px 0 8px; color: #a8a29e;
     }
     .search-input {
       flex: 1; background: transparent; border: none; outline: none;
@@ -172,7 +172,7 @@
       display: flex; align-items: center; justify-content: center;
       gap: 8px; flex-wrap: wrap; margin-top: 16px;
     }
-    .suggestion-label { font-size: 12px; color: #78716c; }
+    .suggestion-label { font-size: 12px; color: #a8a29e; }
     .suggestion-chip {
       padding: 6px 14px; border-radius: 100px;
       background: rgba(41, 37, 36, 0.5);
@@ -224,7 +224,7 @@
       font-size: 28px; font-weight: 700;
       display: flex; align-items: center; gap: 12px;
     }
-    .section-subtitle { font-size: 14px; color: #78716c; margin-top: 4px; }
+    .section-subtitle { font-size: 14px; color: #a8a29e; margin-top: 4px; }
     .section-link {
       font-size: 14px; color: #c084fc; cursor: pointer;
       transition: color 0.2s;
@@ -268,7 +268,7 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .book-author {
-      font-size: 12px; color: #78716c;
+      font-size: 12px; color: #a8a29e;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .book-meta {
@@ -276,7 +276,7 @@
       margin-top: 6px; font-size: 11px;
     }
     .book-rating { color: #fbbf24; }
-    .book-views { color: #78716c; }
+    .book-views { color: #a8a29e; }
 
     /* Categories Grid */
     .categories-grid {
@@ -332,7 +332,7 @@
       margin-bottom: 4px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .ranking-author { font-size: 12px; color: #78716c; margin-bottom: 8px; }
+    .ranking-author { font-size: 12px; color: #a8a29e; margin-bottom: 8px; }
     .ranking-stats { display: flex; gap: 12px; font-size: 11px; }
     .ranking-downloads { color: #34d399; font-weight: 600; }
     .ranking-rating { color: #fbbf24; }
@@ -405,14 +405,14 @@
       display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
     }
     .footer-text {
-      font-size: 12px; color: #78716c; line-height: 1.7;
+      font-size: 12px; color: #a8a29e; line-height: 1.7;
     }
     .footer-title {
       font-size: 13px; font-weight: 700; color: #d6d3d1;
       margin-bottom: 12px;
     }
     .footer-link {
-      display: block; font-size: 13px; color: #78716c;
+      display: block; font-size: 13px; color: #a8a29e;
       padding: 4px 0; cursor: pointer; transition: color 0.2s;
     }
     .footer-link:hover { color: #c084fc; }
@@ -433,7 +433,7 @@
     }
 
     /* Annotation */
-    .annotation {
+    .annotation { display: none !important; /* REMOVED */
       position: fixed; top: 80px; left: 24px; z-index: 100;
       padding: 14px 18px;
       background: rgba(245, 158, 11, 0.1);
@@ -443,7 +443,7 @@
       max-width: 240px; line-height: 1.6;
       backdrop-filter: blur(20px);
     }
-    @media (max-width: 1024px) { .annotation { display: none; } }
+    @media (max-width: 1024px) { .annotation { display: none !important; /* REMOVED */ display: none; } }
     .annotation strong { color: #f59e0b; }
 
     @keyframes fadeInUp {
@@ -485,7 +485,7 @@
         <div class="nav-item active">الرئيسية</div>
         <div class="nav-item">التصنيفات</div>
         <div class="nav-item">المؤلفون</div>
-        <div class="nav-item">⭐ مكتبتي</div>
+        
       </nav>
 
       <div class="header-actions">
@@ -818,13 +818,13 @@
       <div class="cta-section">
         <div class="cta-content">
           <div class="cta-icon">✍️</div>
-          <h2 class="cta-title">هل أنت مؤلف؟</h2>
+          <h2 class="cta-title">هل تريد نشر كتابك؟</h2>
           <p class="cta-text">
-            ارفع كتابك وانشره لآلاف القراء العرب مجاناً. انضم لمجتمع المؤلفين العرب.
+            تواصل معنا لإضافة كتابك إلى المكتبة. نراجع كل طلب يدويًا لضمان الجودة.
           </p>
           <div class="cta-buttons">
-            <button class="cta-btn-primary">📤 ارفع كتابك</button>
-            <button class="cta-btn-secondary">تعرّف على المؤلفين</button>
+            <button class="cta-btn-primary">📧 تواصل معنا</button>
+            <button class="cta-btn-secondary">تصفّح المؤلفين</button>
           </div>
         </div>
       </div>

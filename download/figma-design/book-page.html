@@ -64,10 +64,7 @@
       width: 32px; height: 44px; border-radius: 4px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
-    .header-cover-title {
-      font-size: 13px; font-weight: 600; color: #f5f5f4;
-      max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
+/* AA-compliant colors: #a8a29e (4.6:1 on dark) instead of #78716c (2.5:1) */
 
     .header-actions { display: flex; align-items: center; gap: 8px; }
     .icon-btn {
@@ -115,7 +112,7 @@
       font-style: italic;
     }
     .quote-source {
-      margin-top: 16px; font-size: 13px; color: #78716c;
+      margin-top: 16px; font-size: 13px; color: #a8a29e;
     }
 
     /* ===== Book Title Section ===== */
@@ -184,7 +181,7 @@
     }
     .info-card:hover { border-color: rgba(68, 64, 60, 0.8); }
     .info-label {
-      font-size: 11px; color: #78716c; margin-bottom: 6px;
+      font-size: 11px; color: #a8a29e; margin-bottom: 6px;
       display: flex; align-items: center; gap: 6px;
     }
     .info-value {
@@ -229,7 +226,7 @@
       color: white; font-weight: 700; font-size: 14px;
     }
     .review-name { font-size: 14px; font-weight: 600; color: #e7e5e4; }
-    .review-date { font-size: 12px; color: #78716c; }
+    .review-date { font-size: 12px; color: #a8a29e; }
     .review-stars { display: flex; gap: 2px; color: #fbbf24; margin-bottom: 8px; }
     .review-stars svg { width: 14px; height: 14px; }
     .review-text {
@@ -355,7 +352,7 @@
     }
     .toc-text { flex: 1; color: #d6d3d1; }
     .toc-item.active .toc-text { color: #c084fc; font-weight: 600; }
-    .toc-time { font-size: 11px; color: #78716c; }
+    .toc-time { font-size: 11px; color: #a8a29e; }
 
     /* ===== Reading Progress ===== */
     .progress-card { padding: 16px; }
@@ -374,7 +371,7 @@
       background: linear-gradient(90deg, #9333ea, #ec4899, #f59e0b);
       box-shadow: 0 0 12px rgba(147, 51, 234, 0.5);
     }
-    .progress-meta { font-size: 11px; color: #78716c; }
+    .progress-meta { font-size: 11px; color: #a8a29e; }
 
     /* ===== Mobile Sticky CTA ===== */
     .mobile-cta {
@@ -395,7 +392,7 @@
     .mobile-cta .cta-secondary { padding: 12px; }
 
     /* ===== Annotations ===== */
-    .annotation {
+    .annotation { display: none !important; /* REMOVED: Figma leftover */
       position: relative; padding: 16px 20px;
       background: rgba(245, 158, 11, 0.08);
       border: 1px dashed rgba(245, 158, 11, 0.4);
@@ -413,7 +410,7 @@
     .annotation strong { color: #f59e0b; }
 
     /* ===== Color Palette Card (Figma-like) ===== */
-    .palette-card {
+    .palette-card { display: none !important; /* REMOVED: Figma leftover */
       position: fixed; bottom: 24px; left: 24px; z-index: 100;
       background: rgba(28, 25, 23, 0.95);
       backdrop-filter: blur(20px);
@@ -440,7 +437,7 @@
       content: attr(data-color);
       position: absolute; bottom: -18px; left: 50%;
       transform: translateX(-50%);
-      font-size: 9px; color: #78716c;
+      font-size: 9px; color: #a8a29e;
       white-space: nowrap;
     }
 
@@ -521,7 +518,7 @@
         <p class="book-author">
           <a href="#">عبد الرحمن بن خلدون</a>
           <span style="color: #44403c; margin: 0 8px;">·</span>
-          <span style="font-size: 13px;">صفحة المؤلف ←</span>
+          
         </p>
 
         <div class="book-stats">
@@ -534,7 +531,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
             <span class="rating-value">4.2</span>
-            <span style="color: #78716c;">(1,243 تقييم)</span>
+            <span style="color: #a8a29e;">(1,243 تقييم)</span>
           </div>
           <span class="stat-divider">·</span>
           <span>👁️ 12,453 قارئ</span>
@@ -588,8 +585,12 @@
             <div class="info-value purple">متوسط</div>
           </div>
           <div class="info-card">
-            <div class="info-label">📅 تاريخ النشر</div>
+            <div class="info-label">📅 تاريخ الإضافة</div>
             <div class="info-value blue">2026-10-15</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">📜 تاريخ النشر الأصلي</div>
+            <div class="info-value blue">القرن 14 م</div>
           </div>
           <div class="info-card">
             <div class="info-label">📖 عدد الفصول</div>
@@ -629,7 +630,7 @@
         <h2 class="section-title">
           <span class="icon">💬</span>
           <span>مراجعات القرّاء</span>
-          <span style="font-size: 14px; color: #78716c; font-weight: 400;">(8 مراجعات)</span>
+          <span style="font-size: 14px; color: #a8a29e; font-weight: 400;">(8 مراجعات)</span>
         </h2>
 
         <div class="review">
@@ -752,7 +753,7 @@
       <div class="sidebar-card toc-card">
         <div class="toc-title">
           <span>📑 الفهرس</span>
-          <span style="color: #78716c; font-size: 11px; font-weight: 400;">12 فصل</span>
+          <span style="color: #a8a29e; font-size: 11px; font-weight: 400;">12 فصل</span>
         </div>
         <ul class="toc-list">
           <li class="toc-item active">
@@ -859,7 +860,7 @@
       <div class="palette-swatch" style="background: #f5f5f4;" data-color="stone-100"></div>
       <div class="palette-swatch" style="background: #d6d3d1;" data-color="stone-300"></div>
     </div>
-    <div style="margin-top: 24px; font-size: 10px; color: #78716c; line-height: 1.6;">
+    <div style="margin-top: 24px; font-size: 10px; color: #a8a29e; line-height: 1.6;">
       <strong style="color: #a8a29e;">Typography:</strong><br/>
       Cairo (Headings) + Tajawal (Body)<br/>
       <strong style="color: #a8a29e; display: block; margin-top: 6px;">Layout:</strong>

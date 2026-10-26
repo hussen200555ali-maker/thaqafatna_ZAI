@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ثقافتنا — Admin Mockups | 13 شاشة إدارية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f8fafc;
+      --sidebar-bg: #0f172a;
+      --sidebar-text: #cbd5e1;
+      --sidebar-active: #1e293b;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --text-light: #64748b;
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --info: #0ea5e9;
+      --info-light: #f0f9ff;
+    }
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== Index Navigation ===== */
+    .index-nav {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 280px; z-index: 100;
+      background: var(--sidebar-bg); padding: 24px 16px; overflow-y: auto;
+    }
+    .index-title {
+      color: white; font-size: 18px; font-weight: 700; margin-bottom: 4px;
+      font-family: 'Cairo', sans-serif;
+    }
+    .index-subtitle { color: #64748b; font-size: 12px; margin-bottom: 24px; }
+    .index-list { list-style: none; }
+    .index-item {
+      padding: 10px 12px; border-radius: 8px; cursor: pointer;
+      color: var(--sidebar-text); font-size: 13px; margin-bottom: 2px;
+      transition: all 0.15s; display: flex; align-items: center; gap: 10px;
+    }
+    .index-item:hover { background: var(--sidebar-active); color: white; }
+    .index-item.active { background: var(--primary); color: white; }
+    .index-item-num {
+      width: 22px; height: 22px; border-radius: 5px;
+      background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+    .index-item.active .index-item-num { background: rgba(255,255,255,0.2); }
+
+    /* ===== Main Content ===== */
+    .main { margin-right: 280px; padding: 32px; }
+    .screen { display: none; animation: fadeIn 0.3s ease-out; }
+    .screen.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== Admin Layout Components ===== */
+    .admin-layout {
+      display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 64px);
+      background: var(--bg); border-radius: 12px; overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08); border: 1px solid var(--border);
+    }
+    .admin-sidebar {
+      background: var(--sidebar-bg); color: var(--sidebar-text);
+      padding: 16px 12px;
+    }
+    .admin-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px 16px; border-bottom: 1px solid #1e293b; margin-bottom: 16px;
+    }
+    .admin-logo-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .admin-logo-text { color: white; font-weight: 700; font-size: 14px; }
+    .admin-nav-item {
+      padding: 9px 12px; border-radius: 8px; cursor: pointer;
+      color: var(--sidebar-text); font-size: 13px; margin-bottom: 2px;
+      display: flex; align-items: center; gap: 10px; transition: all 0.15s;
+    }
+    .admin-nav-item:hover { background: #1e293b; color: white; }
+    .admin-nav-item.active { background: var(--primary); color: white; }
+    .admin-nav-icon { width: 16px; text-align: center; }
+
+    .admin-main { padding: 24px; }
+    .admin-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+    }
+    .topbar-title { font-size: 22px; font-weight: 700; font-family: 'Cairo', sans-serif; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .admin-user {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 12px; background: white; border: 1px solid var(--border); border-radius: 8px;
+    }
+    .admin-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 12px;
+    }
+
+    /* ===== Components ===== */
+    .btn {
+      padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; border: 1px solid transparent;
+      display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: #4338ca; }
+    .btn-secondary { background: white; color: var(--text); border-color: var(--border); }
+    .btn-secondary:hover { background: var(--bg); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-sm { padding: 6px 10px; font-size: 12px; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+    }
+    .card-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; font-family: 'Cairo', sans-serif; }
+
+    /* ===== Tables ===== */
+    .table-wrapper {
+      background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .table-toolbar {
+      padding: 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .search-input {
+      flex: 1; min-width: 200px; padding: 8px 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 13px; font-family: inherit;
+    }
+    .search-input:focus { outline: none; border-color: var(--primary); }
+    .filter-select {
+      padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 13px; background: white; font-family: inherit; cursor: pointer;
+    }
+    table {
+      width: 100%; border-collapse: collapse;
+    }
+    th {
+      text-align: right; padding: 12px 16px; font-size: 12px; font-weight: 700;
+      color: var(--text-light); background: #f8fafc;
+      border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    td {
+      padding: 14px 16px; font-size: 13px; border-bottom: 1px solid var(--border);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: #f8fafc; }
+
+    .checkbox-cell { width: 32px; }
+    .row-actions { display: flex; gap: 4px; }
+    .icon-action {
+      width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border);
+      background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; font-size: 13px;
+    }
+    .icon-action:hover { background: var(--bg); }
+    .icon-action.danger:hover { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
+
+    /* ===== Badges ===== */
+    .badge {
+      padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .badge-success { background: var(--success-light); color: var(--success); }
+    .badge-warning { background: var(--warning-light); color: var(--warning); }
+    .badge-danger { background: var(--danger-light); color: var(--danger); }
+    .badge-info { background: var(--info-light); color: var(--info); }
+    .badge-neutral { background: #f1f5f9; color: var(--text-muted); }
+
+    /* ===== KPI Cards ===== */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .kpi-card {
+      background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+    }
+    .kpi-label { font-size: 12px; color: var(--text-light); margin-bottom: 8px; }
+    .kpi-value { font-size: 28px; font-weight: 800; font-family: 'Cairo', sans-serif; }
+    .kpi-trend { font-size: 11px; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+    .kpi-trend.up { color: var(--success); }
+    .kpi-trend.down { color: var(--danger); }
+    .kpi-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    /* ===== Login Page ===== */
+    .login-container {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); padding: 24px;
+    }
+    .login-card {
+      background: white; border-radius: 16px; padding: 40px;
+      max-width: 420px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .login-logo {
+      width: 56px; height: 56px; border-radius: 14px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+    }
+    .login-title { text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 8px; font-family: 'Cairo', sans-serif; }
+    .login-subtitle { text-align: center; color: var(--text-light); font-size: 13px; margin-bottom: 28px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
+    .form-input {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 14px; font-family: inherit; transition: all 0.15s;
+    }
+    .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+    .login-warning {
+      background: var(--warning-light); border: 1px solid #fde68a;
+      padding: 12px; border-radius: 8px; font-size: 12px; color: #92400e; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ===== OTP/2FA ===== */
+    .otp-container { display: flex; gap: 8px; justify-content: center; margin: 16px 0; }
+    .otp-input {
+      width: 44px; height: 52px; border: 2px solid var(--border); border-radius: 8px;
+      text-align: center; font-size: 22px; font-weight: 700; font-family: monospace;
+    }
+    .otp-input:focus { outline: none; border-color: var(--primary); }
+
+    /* ===== Tabs (Book Form) ===== */
+    .tabs-wrapper { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .tabs-header { display: flex; border-bottom: 1px solid var(--border); background: #f8fafc; }
+    .tab {
+      padding: 14px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+      border-bottom: 2px solid transparent; color: var(--text-light);
+      transition: all 0.15s; display: flex; align-items: center; gap: 8px;
+    }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: white; }
+    .tab-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #e2e8f0; color: var(--text-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+    .tab.active .tab-num { background: var(--primary); color: white; }
+    .tab-content { padding: 24px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-textarea {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 14px; font-family: inherit; min-height: 100px; resize: vertical;
+    }
+
+    /* ===== Drop Zone ===== */
+    .dropzone {
+      border: 2px dashed var(--border); border-radius: 12px; padding: 40px;
+      text-align: center; cursor: pointer; transition: all 0.15s;
+    }
+    .dropzone:hover { border-color: var(--primary); background: var(--primary-light); }
+    .dropzone-icon { font-size: 40px; margin-bottom: 12px; }
+    .dropzone-text { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .dropzone-hint { font-size: 12px; color: var(--text-light); }
+
+    /* ===== Audit Log Diff ===== */
+    .diff-block {
+      background: #f8fafc; border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px; font-family: 'Courier New', monospace; font-size: 12px;
+      max-height: 200px; overflow-y: auto; direction: ltr; text-align: left;
+    }
+    .diff-line { padding: 2px 8px; border-radius: 4px; margin-bottom: 1px; }
+    .diff-removed { background: var(--danger-light); color: var(--danger); }
+    .diff-added { background: var(--success-light); color: var(--success); }
+
+    /* ===== Roles Matrix ===== */
+    .matrix-table th, .matrix-table td { text-align: center; }
+    .matrix-table th:first-child, .matrix-table td:first-child { text-align: right; }
+    .check-icon { color: var(--success); font-size: 16px; }
+    .cross-icon { color: var(--text-light); opacity: 0.3; font-size: 16px; }
+
+    /* ===== Reports Charts ===== */
+    .chart-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .chart-bars { display: flex; align-items: flex-end; gap: 8px; height: 200px; padding-top: 20px; }
+    .chart-bar {
+      flex: 1; background: linear-gradient(180deg, #6366f1, #8b5cf6);
+      border-radius: 6px 6px 0 0; position: relative; transition: all 0.3s;
+    }
+    .chart-bar:hover { opacity: 0.8; }
+    .chart-bar-label {
+      position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%);
+      font-size: 11px; color: var(--text-light); white-space: nowrap;
+    }
+    .chart-bar-value {
+      position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
+      font-size: 11px; font-weight: 700; color: var(--text);
+    }
+
+    /* ===== Settings ===== */
+    .settings-section {
+      background: white; border: 1px solid var(--border); border-radius: 12px;
+      padding: 20px; margin-bottom: 16px;
+    }
+    .settings-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .toggle {
+      width: 44px; height: 24px; background: #e2e8f0; border-radius: 12px;
+      position: relative; cursor: pointer; transition: all 0.2s;
+    }
+    .toggle.on { background: var(--success); }
+    .toggle::after {
+      content: ''; position: absolute; top: 2px; right: 2px;
+      width: 20px; height: 20px; background: white; border-radius: 50%;
+      transition: all 0.2s;
+    }
+    .toggle.on::after { right: auto; left: 2px; }
+    .danger-zone {
+      background: var(--danger-light); border: 1px solid #fecaca;
+      border-radius: 12px; padding: 20px;
+    }
+
+    /* ===== Pagination ===== */
+    .pagination {
+      display: flex; align-items: center; gap: 4px;
+      padding: 16px; border-top: 1px solid var(--border); background: #f8fafc;
+    }
+    .pagination-info { font-size: 12px; color: var(--text-light); margin-right: auto; }
+    .pagination-btn {
+      width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border);
+      background: white; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
+    }
+    .pagination-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .pagination-btn:hover:not(.active) { background: var(--bg); }
+
+    /* ===== Activity Feed ===== */
+    .activity-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 16px;
+    }
+    .activity-content { flex: 1; min-width: 0; }
+    .activity-text { font-size: 13px; margin-bottom: 2px; }
+    .activity-text strong { font-weight: 700; }
+    .activity-time { font-size: 11px; color: var(--text-light); }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 1024px) {
+      .index-nav { display: none; }
+      .main { margin-right: 0; padding: 16px; }
+      .admin-layout { grid-template-columns: 1fr; }
+      .admin-sidebar { display: none; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== Index Navigation ===== -->
+<nav class="index-nav">
+  <div class="index-title">🎛️ Admin Mockups</div>
+  <div class="index-subtitle">13 شاشة · ثقافتنا</div>
+  <ul class="index-list" id="indexList">
+    <li class="index-item active" data-screen="1"><span class="index-item-num">1</span>دخول الأدمن + 2FA</li>
+    <li class="index-item" data-screen="2"><span class="index-item-num">2</span>لوحة التحكم</li>
+    <li class="index-item" data-screen="3"><span class="index-item-num">3</span>إدارة الكتب</li>
+    <li class="index-item" data-screen="4"><span class="index-item-num">4</span>إضافة/تعديل كتاب</li>
+    <li class="index-item" data-screen="5"><span class="index-item-num">5</span>سجل الإصدارات</li>
+    <li class="index-item" data-screen="6"><span class="index-item-num">6</span>التصنيفات</li>
+    <li class="index-item" data-screen="7"><span class="index-item-num">7</span>المؤلفون</li>
+    <li class="index-item" data-screen="8"><span class="index-item-num">8</span>المستخدمون</li>
+    <li class="index-item" data-screen="9"><span class="index-item-num">9</span>الأدوار والصلاحيات</li>
+    <li class="index-item" data-screen="10"><span class="index-item-num">10</span>طابور المراجعات</li>
+    <li class="index-item" data-screen="11"><span class="index-item-num">11</span>سجل التدقيق</li>
+    <li class="index-item" data-screen="12"><span class="index-item-num">12</span>التقارير</li>
+    <li class="index-item" data-screen="13"><span class="index-item-num">13</span>الإعدادات</li>
+  </ul>
+</nav>
+
+<div class="main">
+
+<!-- ════════════════ SCREEN 1: Admin Login + 2FA ════════════════ -->
+<section class="screen active" id="screen-1">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-logo">🔐</div>
+      <h1 class="login-title">لوحة تحكم ثقافتنا</h1>
+      <p class="login-subtitle">دخول الأدمن — منفصل عن المستخدمين</p>
+
+      <div class="login-warning">
+        <span>⚠️</span>
+        <span>3 محاولات خاطئة فقط، ثم يُقفل الحساب 15 دقيقة</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">البريد الإلكتروني</label>
+        <input type="email" class="form-input" placeholder="admin@thaqafatna.com" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">كلمة المرور</label>
+        <input type="password" class="form-input" placeholder="••••••••" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">رمز التحقق الثنائي (2FA)</label>
+        <div class="otp-container">
+          <input class="otp-input" maxlength="1" value="" />
+          <input class="otp-input" maxlength="1" value="" />
+          <input class="otp-input" maxlength="1" value="" />
+          <input class="otp-input" maxlength="1" value="" />
+          <input class="otp-input" maxlength="1" value="" />
+          <input class="otp-input" maxlength="1" value="" />
+        </div>
+        <p style="font-size: 11px; color: var(--text-light); text-align: center; margin-top: 8px;">
+          افتح Google Authenticator واكتب الرمز
+        </p>
+      </div>
+
+      <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 14px;">
+        🔓 تسجيل الدخول
+      </button>
+
+      <p style="text-align: center; font-size: 12px; color: var(--text-light); margin-top: 20px;">
+        لا يوجد رابط "أنشئ حسابًا"<br/>الحسابات الإدارية تُنشأ من أدمن آخر
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 2: Dashboard ════════════════ -->
+<section class="screen" id="screen-2">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">
+        <div class="admin-logo-icon">📚</div>
+        <div class="admin-logo-text">ثقافتنا</div>
+      </div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">📊</span>لوحة التحكم</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📚</span>الكتب</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📂</span>التصنيفات</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">✍️</span>المؤلفون</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">👥</span>المستخدمون</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">🛡️</span>الأدوار</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">💬</span>المراجعات <span class="badge badge-warning" style="margin-right: auto;">8</span></div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📜</span>سجل التدقيق</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📈</span>التقارير</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">⚙️</span>الإعدادات</div>
+      <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid #1e293b;">
+        <div class="admin-nav-item"><span class="admin-nav-icon">🚪</span>تسجيل الخروج</div>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">لوحة التحكم</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">مرحبًا، حسين · آخر دخول: اليوم 14:32</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">📥 تصدير تقرير</button>
+          <div class="admin-user">
+            <div class="admin-avatar">ح</div>
+            <div style="font-size: 13px;">حسين</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--primary-light); color: var(--primary);">📚</div>
+          <div class="kpi-label">إجمالي الكتب</div>
+          <div class="kpi-value">34</div>
+          <div class="kpi-trend up">↑ 3 هذا الأسبوع</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--success-light); color: var(--success);">📥</div>
+          <div class="kpi-label">تنزيلات اليوم</div>
+          <div class="kpi-value">247</div>
+          <div class="kpi-trend up">↑ 18% عن الأمس</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--warning-light); color: var(--warning);">👥</div>
+          <div class="kpi-label">مستخدمون نشطون</div>
+          <div class="kpi-value">1,243</div>
+          <div class="kpi-trend up">↑ 87 هذا الأسبوع</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background: var(--info-light); color: var(--info);">⭐</div>
+          <div class="kpi-label">مراجعات معلّقة</div>
+          <div class="kpi-value">8</div>
+          <div class="kpi-trend down">↓ 2 عن الأمس</div>
+        </div>
+      </div>
+
+      <!-- Activity + Quick Actions -->
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+        <div class="card">
+          <div class="card-title">النشاط الأخير</div>
+          <div class="activity-item">
+            <div class="activity-icon" style="background: var(--success-light); color: var(--success);">📥</div>
+            <div class="activity-content">
+              <div class="activity-text"><strong>أحمد المصري</strong> نزّل كتاب "مقدمة ابن خلدون"</div>
+              <div class="activity-time">قبل 5 دقائق · من الرياض</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon" style="background: var(--warning-light); color: var(--warning);">💬</div>
+            <div class="activity-content">
+              <div class="activity-text"><strong>فاطمة</strong> أضافت مراجعة على "رياض الصالحين" — بانتظار الاعتدال</div>
+              <div class="activity-time">قبل 12 دقيقة</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon" style="background: var(--primary-light); color: var(--primary);">📚</div>
+            <div class="activity-content">
+              <div class="activity-text"><strong>أمين المكتبة</strong> رفع إصدارًا جديدًا من "البلاء والتبين" (v3)</div>
+              <div class="activity-time">قبل ساعة</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon" style="background: var(--danger-light); color: var(--danger);">🚨</div>
+            <div class="activity-content">
+              <div class="activity-text">محاولة دخول إداري فاشلة من <strong>IP 91.221.x.x</strong> — تم قفلها</div>
+              <div class="activity-time">قبل 3 ساعات · critical</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">إجراءات سريعة</div>
+          <button class="btn btn-primary" style="width: 100%; justify-content: center; margin-bottom: 8px;">➕ إضافة كتاب جديد</button>
+          <button class="btn btn-secondary" style="width: 100%; justify-content: center; margin-bottom: 8px;">💬 مراجعة 8 مراجعات</button>
+          <button class="btn btn-secondary" style="width: 100%; justify-content: center; margin-bottom: 8px;">👤 إضافة مستخدم</button>
+          <button class="btn btn-secondary" style="width: 100%; justify-content: center;">📤 تصدير الكتالوج</button>
+
+          <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+            <div class="card-title" style="font-size: 13px;">مهام معلّقة</div>
+            <div style="font-size: 12px; color: var(--text-light); line-height: 1.8;">
+              ✅ 3 كتب بانتظار النشر<br/>
+              ✅ 8 مراجعات بانتظار الاعتدال<br/>
+              ✅ 2 طلب مؤلف جديد
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 3: Books Management ════════════════ -->
+<section class="screen" id="screen-3">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📊</span>لوحة التحكم</div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">📚</span>الكتب</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📂</span>التصنيفات</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">✍️</span>المؤلفون</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">👥</span>المستخدمون</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">🛡️</span>الأدوار</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">💬</span>المراجعات <span class="badge badge-warning" style="margin-right: auto;">8</span></div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">📚 إدارة الكتب</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">34 كتاب · 28 منشور · 6 مسودة</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">📥 تصدير CSV</button>
+          <button class="btn btn-primary btn-sm">➕ كتاب جديد</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <div class="table-toolbar">
+          <input type="text" class="search-input" placeholder="🔍 ابحث بالعنوان أو المؤلف..." />
+          <select class="filter-select">
+            <option>كل التصنيفات</option>
+            <option>الأدب العربي</option>
+            <option>الكتب الدينية</option>
+            <option>التاريخ والتراث</option>
+          </select>
+          <select class="filter-select">
+            <option>كل الحالات</option>
+            <option>منشور</option>
+            <option>مسودة</option>
+            <option>مميز</option>
+          </select>
+          <select class="filter-select">
+            <option>ترتيب: الأحدث</option>
+            <option>الأكثر مشاهدة</option>
+            <option>الأكثر تنزيلاً</option>
+            <option>أبجدي</option>
+          </select>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th class="checkbox-cell"><input type="checkbox" /></th>
+              <th>الكتاب</th>
+              <th>المؤلف</th>
+              <th>التصنيف</th>
+              <th>الحالة</th>
+              <th>المشاهدات</th>
+              <th>التنزيلات</th>
+              <th>PDF</th>
+              <th>تاريخ الإضافة</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong>مقدمة ابن خلدون</strong></td>
+              <td>عبد الرحمن بن خلدون</td>
+              <td><span class="badge badge-neutral">📜 التاريخ</span></td>
+              <td><span class="badge badge-success">منشور</span></td>
+              <td>12,453</td>
+              <td>3,287</td>
+              <td><span class="badge badge-info">v3</span></td>
+              <td>2026-10-15</td>
+              <td><div class="row-actions">
+                <button class="icon-action" title="تعديل">✏️</button>
+                <button class="icon-action" title="نسخ">📋</button>
+                <button class="icon-action" title="إصدارات">📦</button>
+                <button class="icon-action danger" title="حذف">🗑️</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong>البلاء والتبين</strong></td>
+              <td>الجاحظ</td>
+              <td><span class="badge badge-neutral">📖 الأدب</span></td>
+              <td><span class="badge badge-success">منشور</span></td>
+              <td>8,734</td>
+              <td>1,892</td>
+              <td><span class="badge badge-info">v2</span></td>
+              <td>2026-10-12</td>
+              <td><div class="row-actions">
+                <button class="icon-action">✏️</button>
+                <button class="icon-action">📋</button>
+                <button class="icon-action">📦</button>
+                <button class="icon-action danger">🗑️</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong>رياض الصالحين</strong></td>
+              <td>الإمام النووي</td>
+              <td><span class="badge badge-neutral">🕌 الدينية</span></td>
+              <td><span class="badge badge-success">منشور</span> <span class="badge badge-warning">مميز</span></td>
+              <td>15,234</td>
+              <td>2,156</td>
+              <td><span class="badge badge-info">v1</span></td>
+              <td>2026-10-10</td>
+              <td><div class="row-actions">
+                <button class="icon-action">✏️</button>
+                <button class="icon-action">📋</button>
+                <button class="icon-action">📦</button>
+                <button class="icon-action danger">🗑️</button>
+              </div></td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong>الأغاني (مسودة)</strong></td>
+              <td>أبو الفرج الأصفهاني</td>
+              <td><span class="badge badge-neutral">📖 الأدب</span></td>
+              <td><span class="badge badge-warning">مسودة</span></td>
+              <td>—</td>
+              <td>—</td>
+              <td><span class="badge badge-neutral">لا</span></td>
+              <td>2026-10-08</td>
+              <td><div class="row-actions">
+                <button class="icon-action">✏️</button>
+                <button class="icon-action">📋</button>
+                <button class="icon-action danger">🗑️</button>
+              </div></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="pagination">
+          <span class="pagination-info">عرض 1-4 من 34 كتاب</span>
+          <button class="pagination-btn">›</button>
+          <button class="pagination-btn active">1</button>
+          <button class="pagination-btn">2</button>
+          <button class="pagination-btn">3</button>
+          <button class="pagination-btn">‹</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 4: Book Form (5 Tabs) ════════════════ -->
+<section class="screen" id="screen-4">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📊</span>لوحة التحكم</div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">📚</span>الكتب</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📂</span>التصنيفات</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">➕ إضافة كتاب جديد</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">الخطوة 1 من 5 · البيانات الأساسية</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">إلغاء</button>
+          <button class="btn btn-secondary btn-sm">حفظ كمسودة</button>
+          <button class="btn btn-primary btn-sm">التالي ←</button>
+        </div>
+      </div>
+
+      <div class="tabs-wrapper">
+        <div class="tabs-header">
+          <div class="tab active"><span class="tab-num">1</span>البيانات</div>
+          <div class="tab"><span class="tab-num">2</span>الغلاف</div>
+          <div class="tab"><span class="tab-num">3</span>الملف (PDF)</div>
+          <div class="tab"><span class="tab-num">4</span>Dublin Core</div>
+          <div class="tab"><span class="tab-num">5</span>إعدادات النشر</div>
+        </div>
+
+        <div class="tab-content">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">عنوان الكتاب *</label>
+              <input type="text" class="form-input" placeholder="مثلاً: مقدمة ابن خلدون" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">المؤلف *</label>
+              <input type="text" class="form-input" placeholder="عبد الرحمن بن خلدون" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">التصنيف *</label>
+              <select class="form-input"><option>التاريخ والتراث</option><option>الأدب العربي</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">الصعوبة</label>
+              <select class="form-input"><option>متوسط</option><option>سهل</option><option>صعب</option></select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">الوصف</label>
+            <textarea class="form-textarea" placeholder="وصف مختصر للكتاب..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">عدد الصفحات</label>
+              <input type="number" class="form-input" placeholder="412" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">وقت القراءة (دقيقة)</label>
+              <input type="number" class="form-input" placeholder="65" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">اللغة</label>
+              <select class="form-input"><option>العربية</option><option>الإنجليزية</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">تاريخ النشر الأصلي</label>
+              <input type="text" class="form-input" placeholder="القرن 14 ميلادي" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">الكلمات المفتاحية (مفصولة بفواصل)</label>
+            <input type="text" class="form-input" placeholder="تاريخ, اجتماع, فلسفة, عمران" />
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 5: Book Versions ════════════════ -->
+<section class="screen" id="screen-5">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📊</span>لوحة التحكم</div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">📚</span>الكتب</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">📦 سجل إصدارات: مقدمة ابن خلدون</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">3 إصدارات · النشط: v3</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm">📤 رفع إصدار جديد</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 12px; border-right: 4px solid var(--success);">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+              <span class="badge badge-success">نشط</span>
+              <strong style="font-size: 16px;">الإصدار 3</strong>
+              <span style="color: var(--text-light); font-size: 12px;">· 2.4 MB · 412 صفحة</span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-muted);">
+              📅 اليوم 14:32 · بواسطة <strong>حسين</strong><br/>
+              📝 إصلاح صفحة 45 (تداخل النص)
+            </div>
+          </div>
+          <div class="row-actions">
+            <button class="icon-action" title="عرض">👁️</button>
+            <button class="icon-action" title="تنزيل">⬇️</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+              <span class="badge badge-neutral">أرشيف</span>
+              <strong>الإصدار 2</strong>
+              <span style="color: var(--text-light); font-size: 12px;">· 2.3 MB · 410 صفحات</span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-muted);">
+              📅 2026-10-15 · بواسطة <strong>أمين المكتبة</strong><br/>
+              📝 النسخة الأولية الكاملة
+            </div>
+          </div>
+          <div class="row-actions">
+            <button class="icon-action" title="عرض">👁️</button>
+            <button class="icon-action" title="تنزيل">⬇️</button>
+            <button class="icon-action" title="استعادة" style="color: var(--warning); border-color: var(--warning);">↩️</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+              <span class="badge badge-neutral">أرشيف</span>
+              <strong>الإصدار 1</strong>
+              <span style="color: var(--text-light); font-size: 12px;">· 1.8 MB · 380 صفحة</span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-muted);">
+              📅 2026-10-01 · بواسطة <strong>الأدمن</strong><br/>
+              📝 المسودة الأولى
+            </div>
+          </div>
+          <div class="row-actions">
+            <button class="icon-action">👁️</button>
+            <button class="icon-action">⬇️</button>
+            <button class="icon-action" style="color: var(--warning); border-color: var(--warning);">↩️</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dropzone">
+        <div class="dropzone-icon">📤</div>
+        <div class="dropzone-text">اسحب ملف PDF هنا لإنشاء إصدار جديد</div>
+        <div class="dropzone-hint">حد أقصى 50 MB · سيُنشئ إصدارًا جديدًا تلقائيًا</div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 6: Categories ════════════════ -->
+<section class="screen" id="screen-6">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📚</span>الكتب</div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">📂</span>التصنيفات</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">📂 التصنيفات</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">8 تصنيفات</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm">➕ تصنيف جديد</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>الترتيب</th>
+              <th>الأيقونة</th>
+              <th>الاسم</th>
+              <th>الـ Slug</th>
+              <th>اللون</th>
+              <th>عدد الكتب</th>
+              <th>الحالة</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td style="font-size: 20px;">📖</td>
+              <td><strong>الأدب العربي</strong></td>
+              <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">arabic-literature</code></td>
+              <td><div style="width: 24px; height: 24px; border-radius: 4px; background: linear-gradient(135deg, #3b82f6, #1e3a8a);"></div></td>
+              <td>17 كتاب</td>
+              <td><span class="badge badge-success">منشور</span></td>
+              <td><div class="row-actions"><button class="icon-action">✏️</button><button class="icon-action danger">🗑️</button></div></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td style="font-size: 20px;">🕌</td>
+              <td><strong>الكتب الدينية</strong></td>
+              <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">religious</code></td>
+              <td><div style="width: 24px; height: 24px; border-radius: 4px; background: linear-gradient(135deg, #10b981, #047857);"></div></td>
+              <td>5 كتب</td>
+              <td><span class="badge badge-success">منشور</span></td>
+              <td><div class="row-actions"><button class="icon-action">✏️</button><button class="icon-action danger">🗑️</button></div></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td style="font-size: 20px;">📜</td>
+              <td><strong>التاريخ والتراث</strong></td>
+              <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">history</code></td>
+              <td><div style="width: 24px; height: 24px; border-radius: 4px; background: linear-gradient(135deg, #f59e0b, #b45309);"></div></td>
+              <td>4 كتب</td>
+              <td><span class="badge badge-success">منشور</span></td>
+              <td><div class="row-actions"><button class="icon-action">✏️</button><button class="icon-action danger">🗑️</button></div></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td style="font-size: 20px;">🎨</td>
+              <td><strong>الفنون والآداب</strong></td>
+              <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">arts</code></td>
+              <td><div style="width: 24px; height: 24px; border-radius: 4px; background: linear-gradient(135deg, #ec4899, #9f1239);"></div></td>
+              <td>0 كتاب</td>
+              <td><span class="badge badge-warning">مخفي</span></td>
+              <td><div class="row-actions"><button class="icon-action">✏️</button><button class="icon-action danger">🗑️</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 7: Authors ════════════════ -->
+<section class="screen" id="screen-7">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📚</span>الكتب</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">📂</span>التصنيفات</div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">✍️</span>المؤلفون</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">✍️ المؤلفون</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">24 مؤلف</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">📥 استيراد</button>
+          <button class="btn btn-primary btn-sm">➕ إضافة مؤلف</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <div class="table-toolbar">
+          <input type="text" class="search-input" placeholder="🔍 ابحث عن مؤلف..." />
+          <select class="filter-select"><option>ترتيب: الأكثر كتبًا</option><option>الأبجدي</option><option>الأحدث</option></select>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>المؤلف</th>
+              <th>عدد الكتب</th>
+              <th>إجمالي المشاهدات</th>
+              <th>إجمالي التنزيلات</th>
+              <th>متوسط التقييم</th>
+              <th>تاريخ الإضافة</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div style="display: flex; align-items: center; gap: 10px;"><div class="admin-avatar">ع</div><strong>عبد الرحمن بن خلدون</strong></div></td>
+              <td>3 كتب</td>
+              <td>15,234</td>
+              <td>4,128</td>
+              <td>⭐ 4.5</td>
+              <td>2026-09-15</td>
+              <td><div class="row-actions"><button class="icon-action">👁️</button><button class="icon-action">✏️</button></div></td>
+            </tr>
+            <tr>
+              <td><div style="display: flex; align-items: center; gap: 10px;"><div class="admin-avatar" style="background: linear-gradient(135deg, #ec4899, #f59e0b);">ج</div><strong>الجاحظ</strong></div></td>
+              <td>2 كتاب</td>
+              <td>8,734</td>
+              <td>1,892</td>
+              <td>⭐ 4.3</td>
+              <td>2026-09-20</td>
+              <td><div class="row-actions"><button class="icon-action">👁️</button><button class="icon-action">✏️</button></div></td>
+            </tr>
+            <tr>
+              <td><div style="display: flex; align-items: center; gap: 10px;"><div class="admin-avatar" style="background: linear-gradient(135deg, #10b981, #14b8a6);">ن</div><strong>الإمام النووي</strong></div></td>
+              <td>1 كتاب</td>
+              <td>15,234</td>
+              <td>2,156</td>
+              <td>⭐ 4.8</td>
+              <td>2026-10-10</td>
+              <td><div class="row-actions"><button class="icon-action">👁️</button><button class="icon-action">✏️</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 8: Users ════════════════ -->
+<section class="screen" id="screen-8">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">👥</span>المستخدمون</div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">🛡️</span>الأدوار</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">👥 المستخدمون</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">1,243 مستخدم · 1,238 قارئ · 4 أمناء · 1 أدمن</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">📥 استيراد CSV</button>
+          <button class="btn btn-primary btn-sm">➕ مستخدم جديد</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <div class="table-toolbar">
+          <input type="text" class="search-input" placeholder="🔍 ابحث بالاسم أو البريد..." />
+          <select class="filter-select"><option>كل الأدوار</option><option>قارئ</option><option>مساعد</option><option>أمين مكتبة</option><option>مدير</option></select>
+          <select class="filter-select"><option>كل الحالات</option><option>نشط</option><option>موقوف</option></select>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th class="checkbox-cell"><input type="checkbox" /></th>
+              <th>المستخدم</th>
+              <th>البريد</th>
+              <th>الدور</th>
+              <th>2FA</th>
+              <th>الحالة</th>
+              <th>آخر دخول</th>
+              <th>تاريخ التسجيل</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><div style="display: flex; align-items: center; gap: 8px;"><div class="admin-avatar" style="background: linear-gradient(135deg, #ef4444, #ec4899);">ح</div><strong>حسين علي</strong></div></td>
+              <td>admin@thaqafatna.com</td>
+              <td><span class="badge badge-danger">مدير</span></td>
+              <td><span class="badge badge-success">✓ مفعّل</span></td>
+              <td><span class="badge badge-success">نشط</span></td>
+              <td>اليوم 14:32</td>
+              <td>2026-09-01</td>
+              <td><div class="row-actions"><button class="icon-action">✏️</button><button class="icon-action">🛡️</button></div></td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><div style="display: flex; align-items: center; gap: 8px;"><div class="admin-avatar" style="background: linear-gradient(135deg, #10b981, #14b8a6);">أ</div><strong>أمين المكتبة</strong></div></td>
+              <td>librarian@thaqafatna.com</td>
+              <td><span class="badge badge-info">أمين مكتبة</span></td>
+              <td><span class="badge badge-success">✓ مفعّل</span></td>
+              <td><span class="badge badge-success">نشط</span></td>
+              <td>أمس 16:45</td>
+              <td>2026-09-15</td>
+              <td><div class="row-actions"><button class="icon-action">✏️</button><button class="icon-action">🛡️</button></div></td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><div style="display: flex; align-items: center; gap: 8px;"><div class="admin-avatar">ف</div><strong>فاطمة الزهراء</strong></div></td>
+              <td>fatima@example.com</td>
+              <td><span class="badge badge-neutral">قارئ</span></td>
+              <td><span class="badge badge-neutral">معطّل</span></td>
+              <td><span class="badge badge-warning">موقوف</span></td>
+              <td>قبل 3 أيام</td>
+              <td>2026-10-18</td>
+              <td><div class="row-actions"><button class="icon-action">✏️</button><button class="icon-action danger">🗑️</button></div></td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><div style="display: flex; align-items: center; gap: 8px;"><div class="admin-avatar" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">أ</div><strong>أحمد المصري</strong></div></td>
+              <td>ahmed@example.com</td>
+              <td><span class="badge badge-neutral">قارئ</span></td>
+              <td><span class="badge badge-neutral">معطّل</span></td>
+              <td><span class="badge badge-success">نشط</span></td>
+              <td>اليوم 09:15</td>
+              <td>2026-10-20</td>
+              <td><div class="row-actions"><button class="icon-action">✏️</button><button class="icon-action danger">🗑️</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="pagination">
+          <span class="pagination-info">عرض 1-4 من 1,243 مستخدم</span>
+          <button class="pagination-btn">›</button>
+          <button class="pagination-btn active">1</button>
+          <button class="pagination-btn">2</button>
+          <button class="pagination-btn">3</button>
+          <button class="pagination-btn">...</button>
+          <button class="pagination-btn">311</button>
+          <button class="pagination-btn">‹</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 9: Roles Matrix ════════════════ -->
+<section class="screen" id="screen-9">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">👥</span>المستخدمون</div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">🛡️</span>الأدوار</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">🛡️ الأدوار والصلاحيات</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">4 أدوار · للقراءة فقط — التعديل للمدير فقط</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">📤 تصدير CSV</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 16px; background: var(--info-light); border-color: #bae6fd; color: #075985;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+          <span>ℹ️</span>
+          <span>هذه مصفوفة الصلاحيات الافتراضية. يمكن للمدير فقط تعديل الأدوار (لأن الأدوار معرّفة كـ <code>isSystem: true</code>).</span>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>الصلاحية</th>
+              <th>قارئ</th>
+              <th>مساعد</th>
+              <th>أمين مكتبة</th>
+              <th>مدير</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>تصفّح المكتبة</td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>تنزيل الكتب</td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>إضافة تقييم/مراجعة</td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>إنشاء قوائم مفضلة</td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>رفع PDF/أغلفة</td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>إضافة/تعديل الكتب</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>نشر/إخفاء الكتب</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>إدارة التصنيفات</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>اعتدال المراجعات</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>إدارة المستخدمين</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>تعديل الأدوار</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>عرض سجل التدقيق</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>حذف نهائي</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td></tr>
+            <tr><td>الإعدادات العامة</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 10: Reviews Moderation Queue ════════════════ -->
+<section class="screen" id="screen-10">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item"><span class="admin-nav-icon">💬</span>المراجعات <span class="badge badge-warning" style="margin-right: auto;">8</span></div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">💬 طابور الاعتدال</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">8 مراجعات بانتظار الاعتدال · 3 منها مشبوهة</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">الموافقة الجماعية</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button class="btn btn-primary btn-sm">بانتظار (8)</button>
+        <button class="btn btn-secondary btn-sm">موافق عليها (124)</button>
+        <button class="btn btn-secondary btn-sm">مرفوضة (12)</button>
+        <button class="btn btn-secondary btn-sm" style="margin-right: auto;">الكل</button>
+      </div>
+
+      <div class="card" style="margin-bottom: 12px; border-right: 4px solid var(--warning);">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="admin-avatar" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">س</div>
+            <div>
+              <div><strong>سارة الأحمد</strong> على "رياض الصالحين"</div>
+              <div style="font-size: 11px; color: var(--text-light);">قبل 12 دقيقة · IP: 91.221.x.x</div>
+            </div>
+          </div>
+          <div>
+            <span class="badge badge-warning">⚠️ مشبوهة</span>
+            <span class="badge badge-info">⭐ 5</span>
+          </div>
+        </div>
+        <div style="background: #f8fafc; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px;">
+          "كتاب رائع جدًا! اشترِ منصتك من bestdeals.com لزيادة المبيعات! رابط: suspicious-link.com"
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-success btn-sm">✓ موافقة</button>
+          <button class="btn btn-danger btn-sm">✗ رفض</button>
+          <button class="btn btn-secondary btn-sm">🚫 حظر المستخدم</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="admin-avatar">ف</div>
+            <div>
+              <div><strong>فاطمة الزهراء</strong> على "رياض الصالحين"</div>
+              <div style="font-size: 11px; color: var(--text-light);">قبل ساعة · IP: 188.45.x.x</div>
+            </div>
+          </div>
+          <div>
+            <span class="badge badge-info">⭐ 5</span>
+          </div>
+        </div>
+        <div style="background: #f8fafc; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px;">
+          "كتاب غيّر حياتي تمامًا. الأحاديث مرتّبة بشكل رائع وسهلة الحفظ. أنصح به لكل مسلم."
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-success btn-sm">✓ موافقة</button>
+          <button class="btn btn-danger btn-sm">✗ رفض</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="admin-avatar" style="background: linear-gradient(135deg, #10b981, #14b8a6);">أ</div>
+            <div>
+              <div><strong>أحمد المصري</strong> على "مقدمة ابن خلدون"</div>
+              <div style="font-size: 11px; color: var(--text-light);">قبل 3 ساعات · IP: 156.21.x.x</div>
+            </div>
+          </div>
+          <div>
+            <span class="badge badge-info">⭐ 4</span>
+          </div>
+        </div>
+        <div style="background: #f8fafc; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px;">
+          "كتاب غيّر نظرتي للتاريخ تمامًا. ابن خلدون ليس مجرد مؤرخ، بل فيلسوف اجتماعي سبق عصره بقرون."
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-success btn-sm">✓ موافقة</button>
+          <button class="btn btn-danger btn-sm">✗ رفض</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 11: Audit Logs ════════════════ -->
+<section class="screen" id="screen-11">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">📜</span>سجل التدقيق</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">📜 سجل التدقيق</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">آخر 90 يومًا · الاحتفاظ: info=90 يوم، critical=1 سنة</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">📥 تصدير CSV</button>
+          <button class="btn btn-secondary btn-sm">📦 أرشيف</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <div class="table-toolbar">
+          <input type="text" class="search-input" placeholder="🔍 ابحث في السجلات..." />
+          <select class="filter-select"><option>كل العمليات</option><option>CREATE</option><option>UPDATE</option><option>DELETE</option><option>LOGIN</option><option>DOWNLOAD</option><option>ROLE_CHANGE</option></select>
+          <select class="filter-select"><option>كل الخطورة</option><option>info</option><option>warning</option><option>critical</option></select>
+          <select class="filter-select"><option>كل المستخدمين</option><option>حسين علي</option><option>أمين المكتبة</option><option>النظام</option></select>
+          <input type="date" class="filter-select" />
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>الوقت</th>
+              <th>المستخدم</th>
+              <th>العملية</th>
+              <th>الكيان</th>
+              <th>الخطورة</th>
+              <th>IP</th>
+              <th>التفاصيل</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span style="font-family: monospace; font-size: 12px;">2026-10-26 14:32</span></td>
+              <td><strong>حسين علي</strong></td>
+              <td><span class="badge badge-info">LOGIN</span></td>
+              <td>—</td>
+              <td><span class="badge badge-neutral">info</span></td>
+              <td><code style="font-size: 11px;">188.45.12.3</code></td>
+              <td><button class="btn btn-secondary btn-sm">عرض</button></td>
+            </tr>
+            <tr>
+              <td><span style="font-family: monospace; font-size: 12px;">2026-10-26 14:25</span></td>
+              <td><strong>حسين علي</strong></td>
+              <td><span class="badge badge-info">UPDATE</span></td>
+              <td>Book #1</td>
+              <td><span class="badge badge-neutral">info</span></td>
+              <td><code style="font-size: 11px;">188.45.12.3</code></td>
+              <td><button class="btn btn-secondary btn-sm">عرض الفروق</button></td>
+            </tr>
+            <tr>
+              <td><span style="font-family: monospace; font-size: 12px;">2026-10-26 13:15</span></td>
+              <td><strong>أمين المكتبة</strong></td>
+              <td><span class="badge badge-success">CREATE</span></td>
+              <td>BookVersion #4</td>
+              <td><span class="badge badge-neutral">info</span></td>
+              <td><code style="font-size: 11px;">156.21.5.4</code></td>
+              <td><button class="btn btn-secondary btn-sm">عرض</button></td>
+            </tr>
+            <tr>
+              <td><span style="font-family: monospace; font-size: 12px;">2026-10-26 11:45</span></td>
+              <td><strong>حسين علي</strong></td>
+              <td><span class="badge badge-warning">ROLE_CHANGE</span></td>
+              <td>User #87</td>
+              <td><span class="badge badge-warning">warning</span></td>
+              <td><code style="font-size: 11px;">188.45.12.3</code></td>
+              <td><button class="btn btn-secondary btn-sm">عرض الفروق</button></td>
+            </tr>
+            <tr>
+              <td><span style="font-family: monospace; font-size: 12px;">2026-10-26 09:32</span></td>
+              <td><strong>محاولة دخول مجهولة</strong></td>
+              <td><span class="badge badge-danger">LOGIN_FAILED</span></td>
+              <td>—</td>
+              <td><span class="badge badge-danger">critical</span></td>
+              <td><code style="font-size: 11px;">91.221.x.x</code></td>
+              <td><button class="btn btn-secondary btn-sm">عرض التفاصيل</button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="padding: 20px; background: #f8fafc; border-top: 1px solid var(--border);">
+          <div class="card-title" style="margin-bottom: 12px;">📋 تفاصيل السجل: UPDATE Book #1</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div>
+              <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--danger);">قبل:</div>
+              <div class="diff-block">
+                <div class="diff-line diff-removed">"title": "مقدمة ابن خلدون (نسخة قديمة)"</div>
+                <div class="diff-line diff-removed">"pages": 380</div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--success);">بعد:</div>
+              <div class="diff-block">
+                <div class="diff-line diff-added">"title": "مقدمة ابن خلدون"</div>
+                <div class="diff-line diff-added">"pages": 412</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 12: Reports ════════════════ -->
+<section class="screen" id="screen-12">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">📈</span>التقارير</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">📈 التقارير والتحليلات</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">آخر 30 يومًا</div>
+        </div>
+        <div class="topbar-actions">
+          <select class="filter-select"><option>آخر 30 يومًا</option><option>هذا الأسبوع</option><option>هذا الشهر</option><option>هذا العام</option></select>
+          <button class="btn btn-secondary btn-sm">📥 تصدير PDF</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">إجمالي التنزيلات</div>
+          <div class="kpi-value">3,287</div>
+          <div class="kpi-trend up">↑ 23% عن الشهر الماضي</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">مستخدمون جدد</div>
+          <div class="kpi-value">87</div>
+          <div class="kpi-trend up">↑ 12% عن الشهر الماضي</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">متوسط وقت القراءة</div>
+          <div class="kpi-value">18 دقيقة</div>
+          <div class="kpi-trend up">↑ 3 دقائق</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">معدل الإكمال</div>
+          <div class="kpi-value">42%</div>
+          <div class="kpi-trend down">↓ 2% عن الشهر الماضي</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div class="chart-card">
+          <div class="card-title">📊 التنزيلات اليومية (آخر 7 أيام)</div>
+          <div class="chart-bars">
+            <div class="chart-bar" style="height: 60%;"><div class="chart-bar-value">142</div><div class="chart-bar-label">السبت</div></div>
+            <div class="chart-bar" style="height: 75%;"><div class="chart-bar-value">187</div><div class="chart-bar-label">الأحد</div></div>
+            <div class="chart-bar" style="height: 90%;"><div class="chart-bar-value">234</div><div class="chart-bar-label">الإثنين</div></div>
+            <div class="chart-bar" style="height: 70%;"><div class="chart-bar-value">165</div><div class="chart-bar-label">الثلاثاء</div></div>
+            <div class="chart-bar" style="height: 85%;"><div class="chart-bar-value">198</div><div class="chart-bar-label">الأربعاء</div></div>
+            <div class="chart-bar" style="height: 95%;"><div class="chart-bar-value">247</div><div class="chart-bar-label">الخميس</div></div>
+            <div class="chart-bar" style="height: 80%;"><div class="chart-bar-value">187</div><div class="chart-bar-label">الجمعة</div></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="card-title">🏆 الكتب الأكثر تنزيلاً</div>
+          <div style="font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+              <span>1. مقدمة ابن خلدون</span><strong>3,287</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+              <span>2. رياض الصالحين</span><strong>2,156</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+              <span>3. البلاء والتبين</span><strong>1,892</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+              <span>4. الأغاني</span><strong>1,432</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+              <span>5. مقامات الحريري</span><strong>987</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="chart-card">
+          <div class="card-title">📂 التوزيع حسب التصنيف</div>
+          <div style="font-size: 13px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <span style="width: 80px;">📖 الأدب</span>
+              <div style="flex: 1; height: 16px; background: #f1f5f9; border-radius: 8px; overflow: hidden;">
+                <div style="height: 100%; width: 50%; background: var(--primary);"></div>
+              </div>
+              <strong style="width: 30px;">17</strong>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <span style="width: 80px;">🕌 الدينية</span>
+              <div style="flex: 1; height: 16px; background: #f1f5f9; border-radius: 8px; overflow: hidden;">
+                <div style="height: 100%; width: 15%; background: var(--success);"></div>
+              </div>
+              <strong style="width: 30px;">5</strong>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <span style="width: 80px;">📜 التاريخ</span>
+              <div style="flex: 1; height: 16px; background: #f1f5f9; border-radius: 8px; overflow: hidden;">
+                <div style="height: 100%; width: 12%; background: var(--warning);"></div>
+              </div>
+              <strong style="width: 30px;">4</strong>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 80px;">🔬 العلوم</span>
+              <div style="flex: 1; height: 16px; background: #f1f5f9; border-radius: 8px; overflow: hidden;">
+                <div style="height: 100%; width: 9%; background: #8b5cf6;"></div>
+              </div>
+              <strong style="width: 30px;">3</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="card-title">🌍 المستخدمون حسب الدولة</div>
+          <div style="font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+              <span>🇸🇦 السعودية</span><strong>423</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+              <span>🇪🇬 مصر</span><strong>287</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+              <span>🇦🇪 الإمارات</span><strong>156</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+              <span>🇲🇦 المغرب</span><strong>89</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+              <span>🌍 أخرى</span><strong>288</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ════════════════ SCREEN 13: Settings ════════════════ -->
+<section class="screen" id="screen-13">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo"><div class="admin-logo-icon">📚</div><div class="admin-logo-text">ثقافتنا</div></div>
+      <div class="admin-nav-item active"><span class="admin-nav-icon">⚙️</span>الإعدادات</div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <div class="topbar-title">⚙️ الإعدادات</div>
+          <div style="font-size: 12px; color: var(--text-light); margin-top: 4px;">إعدادات الموقع والسياسات والتكاملات</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm">💾 حفظ التغييرات</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
+        <button class="btn btn-primary btn-sm">عام</button>
+        <button class="btn btn-secondary btn-sm">الأمان</button>
+        <button class="btn btn-secondary btn-sm">السياسات</button>
+        <button class="btn btn-secondary btn-sm">التكاملات</button>
+        <button class="btn btn-secondary btn-sm">الإشعارات</button>
+        <button class="btn btn-secondary btn-sm">منطقة الخطر</button>
+      </div>
+
+      <div class="settings-section">
+        <div class="card-title">🌐 إعدادات عامة</div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">اسم الموقع</div>
+            <div style="font-size: 12px; color: var(--text-light);">يظهر في الـ Header وفي المتصفح</div>
+          </div>
+          <input type="text" class="form-input" value="ثقافتنا" style="width: 240px;" />
+        </div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">الوصف المختصر</div>
+            <div style="font-size: 12px; color: var(--text-light);">يظهر في محركات البحث</div>
+          </div>
+          <input type="text" class="form-input" value="منصة عربية تعليمية ترفيهية" style="width: 320px;" />
+        </div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">اللغة الافتراضية</div>
+            <div style="font-size: 12px; color: var(--text-light);">لغة الواجهة الرئيسية</div>
+          </div>
+          <select class="form-input" style="width: 200px;"><option>العربية</option></select>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">السماح بتسجيل مستخدمين جدد</div>
+            <div style="font-size: 12px; color: var(--text-light);">عند الإيقاف، لا يمكن لأحد إنشاء حساب</div>
+          </div>
+          <div class="toggle on"></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="card-title">🛡️ إعدادات الأمان</div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">2FA إلزامي للأدمن</div>
+            <div style="font-size: 12px; color: var(--text-light);">يجب تفعيل التحقق الثنائي لكل حساب إداري</div>
+          </div>
+          <div class="toggle on"></div>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">حد تسجيل الدخول الإداري</div>
+            <div style="font-size: 12px; color: var(--text-light);">عدد المحاولات قبل القفل</div>
+          </div>
+          <input type="number" class="form-input" value="3" style="width: 80px;" />
+        </div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">مدة القفل (دقيقة)</div>
+            <div style="font-size: 12px; color: var(--text-light);">بعد تجاوز المحاولات</div>
+          </div>
+          <input type="number" class="form-input" value="15" style="width: 80px;" />
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="card-title">📜 السياسات</div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">اعتدال المراجعات تلقائيًا</div>
+            <div style="font-size: 12px; color: var(--text-light);">المراجعات الجديدة تنتظر موافقة الأدمن</div>
+          </div>
+          <div class="toggle on"></div>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">حد تنزيل PDF (لكل مستخدم/ساعة)</div>
+            <div style="font-size: 12px; color: var(--text-light);">منع الإفراط في التنزيل</div>
+          </div>
+          <input type="number" class="form-input" value="10" style="width: 80px;" />
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="card-title">🔌 التكاملات</div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">Vercel Blob (تخزين الملفات)</div>
+            <div style="font-size: 12px; color: var(--text-light);">✓ متصل · 1 GB مستخدم من 10 GB</div>
+          </div>
+          <span class="badge badge-success">مفعّل</span>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">Upstash Redis (Rate Limiting)</div>
+            <div style="font-size: 12px; color: var(--text-light);">✓ متصل · 4,231 طلب اليوم</div>
+          </div>
+          <span class="badge badge-success">مفعّل</span>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">Neon PostgreSQL</div>
+            <div style="font-size: 12px; color: var(--text-light);">✓ متصل · 156 MB مستخدم</div>
+          </div>
+          <span class="badge badge-success">مفعّل</span>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">Sentry (مراقبة الأخطاء)</div>
+            <div style="font-size: 12px; color: var(--text-light);">غير مفعّل</div>
+          </div>
+          <button class="btn btn-secondary btn-sm">إعداد</button>
+        </div>
+      </div>
+
+      <div class="danger-zone">
+        <div class="card-title" style="color: var(--danger);">⚠️ منطقة الخطر</div>
+        <div class="settings-row" style="border-bottom: 1px solid #fecaca;">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">تصدير كل البيانات</div>
+            <div style="font-size: 12px; color: var(--text-light);">تنزيل نسخة كاملة من قاعدة البيانات</div>
+          </div>
+          <button class="btn btn-secondary btn-sm">📥 تصدير</button>
+        </div>
+        <div class="settings-row" style="border-bottom: 1px solid #fecaca;">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">حذف كل المستخدمين غير النشطين</div>
+            <div style="font-size: 12px; color: var(--text-light);">حسابات لم تسجّل دخول منذ 90 يومًا</div>
+          </div>
+          <button class="btn btn-danger btn-sm">حذف (87)</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px; color: var(--danger);">حذف المكتبة نهائيًا</div>
+            <div style="font-size: 12px; color: var(--text-light);">⚠️ لا يمكن التراجع — سيُحذف كل شيء</div>
+          </div>
+          <button class="btn btn-danger btn-sm">حذف نهائي</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+</div>
+
+<script>
+  const items = document.querySelectorAll('.index-item');
+  const screens = document.querySelectorAll('.screen');
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      const screenNum = item.dataset.screen;
+      items.forEach(i => i.classList.remove('active'));
+      screens.forEach(s => s.classList.remove('active'));
+      item.classList.add('active');
+      document.getElementById('screen-' + screenNum).classList.add('active');
+      window.scrollTo(0, 0);
+    });
+  });
+</script>
+</body>
+</html>

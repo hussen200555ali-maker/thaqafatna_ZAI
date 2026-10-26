@@ -130,10 +130,19 @@ model User {
   id           String   @id @default(cuid())
   email        String?  @unique
   name         String?
-  role         String   @default("player") // player | editor | admin
+  role         String   @default("player") // player | editor | admin (legacy - استخدم userRoles)
   coins        Int      @default(100)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  // ===== Sprint 0: مصادقة NextAuth =====
+  passwordHash String?  // لكلمة المرور (email/password)
+  emailVerified DateTime?
+  image        String?  // صورة الملف الشخصي
+  twoFactorSecret String? // سرّ TOTP للـ 2FA
+  twoFactorEnabled Boolean @default(false)
+  lastLoginAt  DateTime?
+  lastLoginIp  String?
 
   progress         PlayerProgress[]
   streak           UserStreak?
@@ -149,6 +158,10 @@ model User {
   certificates     UserCertificate[]
   // ===== نظام التكرار المتباعد =====
   wordMastery      UserWordMastery[]
+  // ===== Sprint 0: الأمان + الإدارة =====
+  userRoles        UserRole[]
+  auditLogs        AuditLog[]
+  uploadedVersions BookVersion[]
 }
 
 // ===== نموذج تقدم اللاعب =====
@@ -432,6 +445,9 @@ model Book {
   reviews         BookReview[]
   readingProgress UserReadingProgress[]
   certificates    UserCertificate[]
+  // ===== Sprint 0: الإصدارات + الوسوم =====
+  versions        BookVersion[]
+  tags            BookTag[]
 
   // ربط مع اللعبة: JSON array of level IDs
   relatedLevels   String   @default("[]")
@@ -448,10 +464,16 @@ model Book {
 model BookChapter {
   id              Int      @id @default(autoincrement())
   bookId          Int
-  number          Int      // رقم الفصل
+  number          Int      // رقم الفصل (= order للتوافق مع الأصل)
+  order           Int      // ترتيب العرض (يدعم إعادة الترتيب مستقبلاً)
   title           String
   content         String   @default("")  // محتوى HTML
   readingTimeMin  Int      @default(5)
+  estimatedMinutes Int?    // تقدير دقيق للوقت (اختياري، يُحسب تلقائيًا)
+
+  // ===== صفحات PDF (Sprint 3) =====
+  pageStart       Int?     // أول صفحة في PDF
+  pageEnd         Int?     // آخر صفحة في PDF
 
   // حالة الفصل
   isFree          Boolean  @default(true)
@@ -465,7 +487,8 @@ model BookChapter {
 
   book            Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
-  @@index([bookId])
+  @@unique([bookId, number])
+  @@index([bookId, order])
 }
 
 // ===== 4. الإشارات المرجعية =====
@@ -492,6 +515,14 @@ model BookReview {
   rating      Int      // 1-5
   review      String   @default("")
   likes        Int      @default(0)
+
+  // ===== معتدل المراجعات (Sprint 2) =====
+  // ضروري لأن المكتبة مفتوحة هدف للسبام
+  status      String   @default("pending") // pending | approved | rejected
+  rejectionReason String? // سبب الرفض (إن رُفضت)
+  moderatedBy String?  // الأدمن الذي راجعها
+  moderatedAt DateTime?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -500,6 +531,7 @@ model BookReview {
 
   @@unique([userId, bookId])
   @@index([bookId])
+  @@index([status, createdAt]) // للأدمن: فلترة حسب الحالة
 }
 
 // ===== 6. تتبّع تقدّم القراءة =====
@@ -595,4 +627,122 @@ model ReviewLog {
   
   @@index([userId, reviewedAt])
   @@index([word])
+}
+
+// ════════════════════════════════════════════════════════════════
+// ██████ نماذج Sprint 0: الأمان + الإدارة + الإصدارات ██████
+// ════════════════════════════════════════════════════════════════
+
+// ===== 10. الوسوم (Tags) — مفقود =====
+// يدعم نظام وسوم مرن للكتب (مختلف عن keywords الموجودة)
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  slug      String    @unique  // للروابط: /library?tag=الفلسفة
+  createdAt DateTime  @default(now())
+
+  books     BookTag[]
+
+  @@index([name])
+}
+
+// ===== 11. ربط الكتب بالوسوم (BookTag) — مفقود =====
+model BookTag {
+  bookId    Int
+  tagId     Int
+  createdAt DateTime @default(now())
+
+  book      Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  tag       Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, tagId])
+  @@index([tagId])
+}
+
+// ===== 12. سجل التدقيق (AuditLog) — Sprint 1 =====
+// ضروري لأن المكتبة مفتوحة هدف للاعتداء
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  userId      String?  // null = عملية من النظام
+  action      String   // CREATE | UPDATE | DELETE | LOGIN | LOGOUT | DOWNLOAD | ROLE_CHANGE | PUBLISH | UNPUBLISH
+  entityType  String   // Book | User | Category | Chapter | Role | Review | Tag
+  entityId    String?  // معرّف الكيان المتأثر
+  changes     Json?    // { before: {}, after: {} } — لـ UPDATE
+  ipAddress   String?
+  userAgent   String?
+  severity    String   @default("info") // info | warning | critical
+  createdAt   DateTime @default(now())
+
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@index([severity, createdAt])
+  @@index([action, createdAt])
+}
+
+// ===== 13. الأدوار (Role) — Sprint 1 =====
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // admin | librarian | assistant | reader
+  displayName String   // الاسم العربي: مدير | أمين مكتبة | مساعد | قارئ
+  description String   @default("")
+  permissions Json     // مصفوفة صلاحيات: ["books.create", "books.publish", "users.manage", ...]
+  isSystem    Boolean  @default(false) // true = لا يمكن حذفه (admin, reader)
+  createdAt   DateTime @default(now())
+
+  userRoles   UserRole[]
+
+  @@index([name])
+}
+
+// ===== 14. ربط المستخدمين بالأدوار (UserRole) — Sprint 1 =====
+model UserRole {
+  userId     String
+  roleId     Int
+  assignedAt DateTime @default(now())
+  assignedBy String?  // الأدمن الذي منح الدور
+
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+}
+
+// ===== 15. إصدارات الكتب (BookVersion) — Sprint 3 =====
+// يحتفظ بكل إصدارات PDF لكل كتاب
+model BookVersion {
+  id           Int      @id @default(autoincrement())
+  bookId       Int
+  version      Int      // رقم الإصدار (1, 2, 3...)
+  pdfUrl       String
+  pdfFileName  String
+  pdfSize      Int
+  pdfPageCount Int
+  uploadedBy   String   // userId
+  uploadedAt   DateTime @default(now())
+  isActive     Boolean  @default(false) // الإصدار النشط حاليًا
+  notes        String?  // سبب الرفع (مثلاً: "إصلاح صفحة 45")
+
+  book         Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  uploader     User     @relation(fields: [uploadedBy], references: [id])
+
+  @@index([bookId, version])
+  @@unique([bookId, version])
+}
+
+// ===== 16. جهات الاتصال (AuthorContact) — بديل CTA "ارفع كتابك" =====
+// نموذج اتصال للمؤلفين بدلاً من رفع مباشر
+model AuthorContact {
+  id         Int      @id @default(autoincrement())
+  name       String   // اسم المؤلف
+  email      String   // بريد التواصل
+  bookTitle  String   // عنوان الكتاب المقترح
+  message    String   // وصف الكتاب
+  fileUrl    String?  // رابط للملف (Google Drive, إلخ) — لا رفع مباشر
+  status     String   @default("new") // new | contacted | accepted | rejected
+  createdAt  DateTime @default(now())
+
+  @@index([status, createdAt])
 }
