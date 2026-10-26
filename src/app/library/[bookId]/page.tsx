@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/game-store";
 import { CertificateDisplay } from "@/components/library/certificate-display";
 import { BookCover } from "@/components/library/book-cover";
+import { PDFViewer } from "@/components/library/pdf-viewer";
 
 /**
  * صفحة الكتاب التفصيلية
@@ -76,6 +77,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
 
   useEffect(() => {
     params.then((p) => setBookId(parseInt(p.bookId)));
@@ -283,41 +285,131 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
           </div>
         )}
 
-        {/* ===== أزرار الإجراء ===== */}
-        <div className="flex gap-3">
-          <Link href={`/library/reader/${book.id}/${nextChapter}`} className="flex-1">
-            <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3 rounded-xl shadow-lg">
-              {readingProgress ? "📖 متابعة القراءة" : "📖 ابدأ القراءة"}
-            </Button>
-          </Link>
-          {book.pdfUrl && (
+        {/* ===== أزرار الإجراء الرئيسية ===== */}
+        <div className="space-y-3">
+          {/* الأزرار الرئيسية */}
+          <div className="flex gap-3">
+            {/* زر القراءة - الأهم */}
             <Button
-              variant="outline"
-              className="flex-1 border-indigo-300 text-indigo-700 hover:bg-indigo-50 py-3 rounded-xl"
-              onClick={async () => {
-                if (!userId) {
-                  alert('⚠️ يجب تسجيل الدخول لتنزيل الكتاب\n\nسجّل دخولك من الصفحة الرئيسية للحصول على معرّف مستخدم.');
-                  return;
+              className="flex-1 h-14 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold text-base rounded-2xl shadow-xl shadow-purple-500/30 transition-all hover:scale-[1.02]"
+              onClick={() => {
+                // إن كان للكتاب PDF، افتحه مباشرة
+                if (book.pdfUrl) {
+                  setShowPdfPreview(true)
+                } else {
+                  // وإلا، اذهب لقارئ النص
+                  router.push(`/library/reader/${book.id}/${nextChapter}`)
                 }
-                // إعادة توجيه لـ API التنزيل (يزيد العداد ثم يوجّه للرابط)
-                window.location.href = `/api/books/${book.id}/download?userId=${encodeURIComponent(userId)}`;
               }}
             >
-              ⬇️ تنزيل PDF
+              {book.pdfUrl ? (
+                <span className="flex items-center gap-2">
+                  <span className="text-xl">📄</span>
+                  <span>{readingProgress ? "📖 متابعة القراءة" : "📖 اقرأ الآن"}</span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <span className="text-xl">📖</span>
+                  <span>{readingProgress ? "متابعة القراءة" : "ابدأ القراءة"}</span>
+                </span>
+              )}
+            </Button>
+
+            {/* زر التنزيل - للكتب التي بها PDF */}
+            {book.pdfUrl && (
+              <Button
+                variant="outline"
+                className="h-14 px-6 border-2 border-emerald-500 text-emerald-700 hover:bg-emerald-50 font-bold rounded-2xl"
+                onClick={async () => {
+                  if (!userId) {
+                    alert('⚠️ يجب تسجيل الدخول لتنزيل الكتاب\n\nسجّل دخولك من الصفحة الرئيسية للحصول على معرّف مستخدم.')
+                    return
+                  }
+                  // زيادة عداد التنزيلات ثم توجيه
+                  window.location.href = `/api/books/${book.id}/download?userId=${encodeURIComponent(userId)}`
+                }}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-xl">⬇️</span>
+                  <span>تنزيل</span>
+                </span>
+              </Button>
+            )}
+          </div>
+
+          {/* معاينة سريعة - زر صغير */}
+          {book.pdfUrl && !showPdfPreview && (
+            <Button
+              variant="ghost"
+              className="w-full text-stone-600 hover:text-indigo-600 hover:bg-indigo-50 text-sm"
+              onClick={() => setShowPdfPreview(true)}
+            >
+              👁️ معاينة الكتاب داخل الصفحة
             </Button>
           )}
         </div>
 
+        {/* ===== معاينة PDF داخلية (اختيارية) ===== */}
+        {showPdfPreview && book.pdfUrl && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-stone-800 flex items-center gap-2">
+                <span>📖</span>
+                <span>معاينة الكتاب</span>
+              </h3>
+              <button
+                onClick={() => setShowPdfPreview(false)}
+                className="px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium"
+              >
+                ✕ إغلاق المعاينة
+              </button>
+            </div>
+            <PDFViewer
+              pdfUrl={book.pdfUrl}
+              pdfFileName={book.pdfFileName || 'كتاب PDF'}
+              pdfSize={book.pdfSize || 0}
+              pageCount={book.pdfPageCount || 0}
+              title={book.title}
+              isDarkMode={false}
+            />
+          </motion.div>
+        )}
+
         {/* ===== معلومات الملف المرفوع ===== */}
         {book.pdfUrl && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-medium">📄 ملف PDF متاح للتنزيل</span>
-              {book.pdfSize > 0 && <span>· 💾 {formatBytes(book.pdfSize)}</span>}
-              {book.pdfPageCount > 0 && <span>· 📑 {book.pdfPageCount} صفحة</span>}
-              {book.downloads > 0 && <span>· 📥 {book.downloads} تنزيل</span>}
+          <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white text-xl font-bold shadow-lg">
+                  PDF
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-stone-800">
+                    {book.pdfFileName || 'ملف PDF'}
+                  </div>
+                  <div className="text-xs text-stone-500 flex gap-3 mt-0.5">
+                    {book.pdfSize > 0 && <span>💾 {formatBytes(book.pdfSize)}</span>}
+                    {book.pdfPageCount > 0 && <span>📑 {book.pdfPageCount} صفحة</span>}
+                    {book.downloads > 0 && <span>📥 {book.downloads} تنزيل</span>}
+                    {book.uploadedAt && <span>📅 {new Date(book.uploadedAt).toLocaleDateString('ar-EG')}</span>}
+                  </div>
+                </div>
+              </div>
+              <a
+                href={book.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-lg bg-white border border-blue-300 hover:bg-blue-50 text-blue-700 text-xs font-medium transition-colors"
+              >
+                🔗 فتح في نافذة
+              </a>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* ===== الفصول ===== */}
