@@ -136,10 +136,10 @@ model User {
   updatedAt    DateTime @updatedAt
 
   // ===== Sprint 0: مصادقة NextAuth =====
-  passwordHash String?  // لكلمة المرور (email/password)
+  passwordHash String?  // لكلمة المرور (bcrypt)
   emailVerified DateTime?
   image        String?  // صورة الملف الشخصي
-  twoFactorSecret String? // سرّ TOTP للـ 2FA
+  twoFactorSecret String? // سرّ TOTP — مُشفّر بـ AES-256-GCM عبر src/lib/crypto.ts (TOTP_ENCRYPTION_KEY)
   twoFactorEnabled Boolean @default(false)
   lastLoginAt  DateTime?
   lastLoginIp  String?
@@ -412,12 +412,12 @@ model Book {
   audioUrl        String   @default("")
 
   // ميتاداتا الملفات المرفوعة (Vercel Blob)
-  pdfFileName     String   @default("")  // الاسم الأصلي للملف
-  pdfSize         Int      @default(0)   // الحجم بالبايت
-  pdfPageCount    Int      @default(0)   // عدد الصفحات
-  coverImageFileName String @default("") // الاسم الأصلي لصورة الغلاف
-  coverImageSize  Int      @default(0)   // حجم صورة الغلاف بالبايت
-  uploadedAt      DateTime?               // تاريخ آخر رفع
+  pdfFileName     String   @default("")
+  pdfSize         Int      @default(0)
+  pdfPageCount    Int      @default(0)
+  coverImageFileName String @default("")
+  coverImageSize  Int      @default(0)
+  uploadedAt      DateTime?
 
   // خصائص
   difficulty      String   @default("medium") // easy | medium | hard
@@ -436,8 +436,9 @@ model Book {
   ratingCount     Int      @default(0)
 
   // الحالة
-  isPublished     Boolean  @default(false)
-  isFeatured       Boolean  @default(false)
+  status          BookStatus @default(draft) // enum (draft | published | archived)
+  isPublished     Boolean  @default(false) // legacy (يتم مزامنته مع status)
+  isFeatured      Boolean  @default(false)
   isPremium       Boolean  @default(false)
 
   // علاقات
@@ -450,6 +451,8 @@ model Book {
   // ===== Sprint 0: الإصدارات + الوسوم =====
   versions        BookVersion[]
   tags            BookTag[]
+  // ===== Sprint 0: رسائل التواصل (تحويل رسالة إلى كتاب) =====
+  contactConversions ContactMessage[] @relation("ConvertedToBook")
 
   // ربط مع اللعبة: JSON array of level IDs
   relatedLevels   String   @default("[]")
@@ -463,19 +466,21 @@ model Book {
 }
 
 // ===== 3. فصول الكتاب =====
+// إصلاح #4: تنظيف الحقول المكررة (حذف number + readingTimeMin)
+// - حذف number (كان = order legacy، استخدمنا migrate script لنقل البيانات)
+// - حذف readingTimeMin (كرّر estimatedMinutes)
+// - ابقينا على estimatedMinutes كحقل واحد لوقت القراءة
 model BookChapter {
-  id              Int      @id @default(autoincrement())
-  bookId          Int
-  number          Int      // رقم الفصل (= order للتوافق مع الأصل)
-  order           Int      // ترتيب العرض (يدعم إعادة الترتيب مستقبلاً)
-  title           String
-  content         String   @default("")  // محتوى HTML
-  readingTimeMin  Int      @default(5)
-  estimatedMinutes Int?    // تقدير دقيق للوقت (اختياري، يُحسب تلقائيًا)
+  id               Int      @id @default(autoincrement())
+  bookId           Int
+  order            Int      // ترتيب العرض (يدعم إعادة الترتيب مستقبلاً)
+  title            String
+  content          String   @default("")  // محتوى HTML
+  estimatedMinutes Int      @default(5)  // تقدير وقت القراءة بالدقائق
 
   // ===== صفحات PDF (Sprint 3) =====
-  pageStart       Int?     // أول صفحة في PDF
-  pageEnd         Int?     // آخر صفحة في PDF
+  pageStart        Int?     // أول صفحة في PDF
+  pageEnd          Int?     // آخر صفحة في PDF
 
   // حالة الفصل
   isFree          Boolean  @default(true)
@@ -489,7 +494,7 @@ model BookChapter {
 
   book            Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
-  @@unique([bookId, number])
+  @@unique([bookId, order])
   @@index([bookId, order])
 }
 
@@ -518,9 +523,10 @@ model BookReview {
   review      String   @default("")
   likes        Int      @default(0)
 
-  // ===== معتدل المراجعات (Sprint 2) =====
+  // ===== معتدل المراجعات (Sprint 2) — إصلاح #3: status كـ enum =====
   // ضروري لأن المكتبة مفتوحة هدف للسبام
-  status      String   @default("pending") // pending | approved | rejected
+  // (سابقًا: String — سمح بأخطاء إملائية مثل "aproved" أو "Approved")
+  status      ReviewStatus @default(pending) // enum (يمنع القيم الشاذة)
   rejectionReason String? // سبب الرفض (إن رُفضت)
   moderatedBy String?  // الأدمن الذي راجعها
   moderatedAt DateTime?
@@ -656,6 +662,14 @@ enum ContactStatus {
   rejected   // مرفوض
 }
 
+// ===== Sprint 0 إصلاح #3: توحيد status كـ enum =====
+// (سابقًا: String @default("pending") — يسمح بأخطاء إملائية)
+enum ReviewStatus {
+  pending    // بانتظار الاعتدال
+  approved   // موافق عليها (تظهر للجمهور)
+  rejected   // مرفوضة (مع سبب)
+}
+
 // ===== 10. الوسوم (Tags) — مفقود =====
 // يدعم نظام وسوم مرن للكتب (مختلف عن keywords الموجودة)
 model Tag {
@@ -763,16 +777,17 @@ model ContactMessage {
   id           Int           @id @default(autoincrement())
   name         String        // اسم المرسل
   email        String        // بريد التواصل
-  bookTitle    String?       // عنوان الكتاب المقترح (إن كان مؤلفًا)
+  bookTitle    String?       // عنوان الكتاب المقترح
   message      String        // نص الرسالة
-  fileUrl      String?       // رابط للملف (Google Drive, إلخ) — لا رفع مباشر
-  status       ContactStatus @default(new) // new | read | replied | converted | rejected
+  fileUrl      String?       // رابط للملف (Google Drive) — لا رفع مباشر
+  status       ContactStatus @default(new)
   // إدارة الرد
   reply        String?       // رد الإدارة على الرسالة
   repliedBy    String?       // userId للأدمن الذي ردّ
   repliedAt    DateTime?
-  // التحويل إلى كتاب
+  // التحويل إلى كتاب (علاقة فعلية مع Book — ليست scalar فقط)
   convertedBookId Int?       // معرّف الكتاب إن تم التحويل
+  convertedBook   Book?      @relation("ConvertedToBook", fields: [convertedBookId], references: [id], onDelete: SetNull)
   convertedAt  DateTime?
   // التتبّع
   ipAddress    String?
