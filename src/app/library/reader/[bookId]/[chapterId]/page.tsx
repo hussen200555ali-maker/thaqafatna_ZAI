@@ -168,7 +168,7 @@ export default function BookReaderPage({
     );
   }
 
-  const currentIdx = allChapters.findIndex((c) => c.number === chapterNumber);
+  const currentIdx = allChapters.findIndex((c) => c.order === chapterNumber);
   const prevChapter = currentIdx > 0 ? allChapters[currentIdx - 1] : null;
   const nextChapter =
     currentIdx < allChapters.length - 1 ? allChapters[currentIdx + 1] : null;
@@ -262,7 +262,7 @@ export default function BookReaderPage({
             "text-xs mb-1",
             isDarkMode ? "text-stone-400" : "text-stone-400"
           )}>
-            الفصل {chapter.number} من {allChapters.length}
+            الفصل {chapter.order} من {allChapters.length}
           </p>
           <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: "var(--font-tajawal)" }}>
             {chapter.title}
@@ -271,7 +271,7 @@ export default function BookReaderPage({
             "text-xs",
             isDarkMode ? "text-stone-500" : "text-stone-400"
           )}>
-            ⏱️ {chapter.readingTimeMin} دقيقة قراءة
+            ⏱️ {chapter.estimatedMinutes} دقيقة قراءة
           </p>
         </div>
 
@@ -363,7 +363,7 @@ export default function BookReaderPage({
         {/* ===== أزرار التنقّل ===== */}
         <div className="flex items-center justify-between mt-12 pt-6 border-t border-stone-200">
           {prevChapter ? (
-            <Link href={`/library/reader/${bookId}/${prevChapter.number}`}>
+            <Link href={`/library/reader/${bookId}/${prevChapter.order}`}>
               <Button variant="outline" className="gap-2">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <polyline points="15 18 9 12 15 6" />
@@ -385,7 +385,7 @@ export default function BookReaderPage({
           </div>
 
           {nextChapter ? (
-            <Link href={`/library/reader/${bookId}/${nextChapter.number}`}>
+            <Link href={`/library/reader/${bookId}/${nextChapter.order}`}>
               <Button className="bg-gradient-to-r from-indigo-500 to-purple-600 gap-2">
                 <span className="text-xs">التالي</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

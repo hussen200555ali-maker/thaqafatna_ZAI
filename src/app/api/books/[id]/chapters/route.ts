@@ -17,12 +17,12 @@ export async function GET(
 
     const chapters = await db.bookChapter.findMany({
       where: { bookId, isPublished: true },
-      orderBy: { number: "asc" },
+      orderBy: { order: "asc" },
       select: {
         id: true,
-        number: true,
+        order: true,
         title: true,
-        readingTimeMin: true,
+        estimatedMinutes: true,
         isFree: true,
         keywords: true,
         relatedLevelId: true,
@@ -60,17 +60,17 @@ export async function POST(
     // جلب آخر رقم فصل
     const lastChapter = await db.bookChapter.findFirst({
       where: { bookId },
-      orderBy: { number: "desc" },
+      orderBy: { order: "desc" },
     });
-    const nextNumber = (lastChapter?.number || 0) + 1;
+    const nextOrder = (lastChapter?.order || 0) + 1;
 
     const chapter = await db.bookChapter.create({
       data: {
         bookId,
-        number: nextNumber,
+        order: nextOrder,
         title,
         content: content || "",
-        readingTimeMin: readingTimeMin || 5,
+        estimatedMinutes: readingTimeMin || 5,
         isFree: isFree !== undefined ? isFree : true,
         keywords: Array.isArray(keywords)
           ? JSON.stringify(keywords)

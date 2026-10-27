@@ -17,13 +17,13 @@ export async function GET(
     const chapterNumber = parseInt(chapterId);
 
     const chapter = await db.bookChapter.findFirst({
-      where: { bookId, number: chapterNumber, isPublished: true },
+      where: { bookId, order: chapterNumber, isPublished: true },
       select: {
         id: true,
-        number: true,
+        order: true,
         title: true,
         content: true,
-        readingTimeMin: true,
+        estimatedMinutes: true,
         isFree: true,
         relatedLevelId: true,
       },

@@ -256,9 +256,9 @@ export function PdfImportTool({ categories }: { categories: any[] }) {
                   <Card key={i} className="p-3">
                     <div className="flex items-center justify-between mb-1">
                       <h4 className="font-bold text-sm text-stone-800">
-                        {ch.number}. {ch.title}
+                        {ch.order}. {ch.title}
                       </h4>
-                      <span className="text-xs text-stone-400">⏱️ {ch.readingTimeMin} دقيقة</span>
+                      <span className="text-xs text-stone-400">⏱️ {ch.estimatedMinutes} دقيقة</span>
                     </div>
                     <div
                       className="text-xs text-stone-600 line-clamp-3 prose prose-sm max-w-none"

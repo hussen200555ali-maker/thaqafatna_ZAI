@@ -1,27 +1,39 @@
 /**
- * POST /api/admin/2fa/verify
+ * POST /api/admin/2fa/verify — Sprint 1 (speakeasy حقيقي)
  *
  * يتحقق من رمز TOTP الذي أدخله المستخدم.
  * يفك تشفير السر المخزّن بـ AES-256-GCM قبل التحقق.
  *
- * ⚠️ SPRINT 1 STUB: هذا ملف هيكلي لإثبات أن crypto.ts موصول فعليًا.
+ * التحفظات المطبّقة:
+ * - runtime = 'nodejs'
+ * - speakeasy.totp.verify مع window: 1 (30 ثانية انحراف)
+ * - decryptSecret من src/lib/crypto.ts
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import speakeasy from 'speakeasy'
 import { decryptSecret } from '@/lib/crypto'
 import { db } from '@/lib/db'
+import { auth } from '@/lib/auth'
+import { logAction } from '@/lib/audit'
+
+export const runtime = 'nodejs' // إلزامي
 
 export async function POST(request: NextRequest) {
-  const userId = request.headers.get('x-user-id')
-  if (!userId) {
+  const session = await auth()
+  if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const userId = session.user.id
   const body = await request.json()
   const { token } = body as { token: string }
 
-  if (!token || token.length !== 6) {
-    return NextResponse.json({ error: 'الرمز يجب أن يكون 6 أرقام' }, { status: 400 })
+  if (!token || token.length !== 6 || !/^\d{6}$/.test(token)) {
+    return NextResponse.json(
+      { error: 'الرمز يجب أن يكون 6 أرقام' },
+      { status: 400 }
+    )
   }
 
   // 1. جلب المستخدم مع السر المُشفّر
@@ -31,19 +43,38 @@ export async function POST(request: NextRequest) {
   })
 
   if (!user || !user.twoFactorSecret) {
-    return NextResponse.json({ error: 'لم يُفعّل 2FA بعد. شغّله من /setup أولًا' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'لم يُفعّل 2FA بعد. شغّله من /setup أولًا' },
+      { status: 400 }
+    )
   }
 
-  // 2. 🔐 فك تشفير السر (هذا هو الربط الفعلي بين crypto.ts و 2FA)
+  // 2. 🔐 فك تشفير السر
   const totpSecret = decryptSecret(user.twoFactorSecret)
 
-  // 3. التحقق من الرمز
-  // TODO Sprint 1: استخدم speakeasy.totp.verify({ secret: totpSecret, token, encoding: 'base32' })
-  const isValid = verifyTOTP(totpSecret, token)
+  // 3. التحقق من الرمز بـ speakeasy الحقيقي (window: 1)
+  const isValid = speakeasy.totp.verify({
+    secret: totpSecret,
+    encoding: 'base32',
+    token,
+    window: 1, // 30 ثانية انحراف مسموح
+  })
 
   if (!isValid) {
-    // TODO Sprint 1: سجّل المحاولة الفاشلة في AuditLog (severity: critical)
-    return NextResponse.json({ error: 'رمز غير صحيح' }, { status: 400 })
+    // تسجيل المحاولة الفاشلة (severity: critical)
+    await logAction({
+      userId,
+      action: '2FA_VERIFY_FAILED',
+      entityType: 'User',
+      entityId: userId,
+      severity: 'critical',
+      changes: { token: '***' },
+    })
+
+    return NextResponse.json(
+      { error: 'رمز غير صحيح' },
+      { status: 400 }
+    )
   }
 
   // 4. تفعيل 2FA نهائيًا
@@ -52,17 +83,33 @@ export async function POST(request: NextRequest) {
     data: { twoFactorEnabled: true },
   })
 
-  // TODO Sprint 1: سجّل التفعيل في AuditLog (severity: warning)
-  return NextResponse.json({ success: true, message: 'تم تفعيل 2FA بنجاح' })
+  // 5. تسجيل التفعيل
+  await logAction({
+    userId,
+    action: '2FA_ENABLED',
+    entityType: 'User',
+    entityId: userId,
+    severity: 'warning',
+    changes: { twoFactorEnabled: true },
+  })
+
+  return NextResponse.json({
+    success: true,
+    message: 'تم تفعيل 2FA بنجاح',
+  })
 }
 
 /**
- * تحقق TOTP مبسّط (Sprint 1 سيستخدم مكتبة speakeasy)
- * @param secret السر (base32) بعد فك التشفير
- * @param token الرمز الذي أدخله المستخدم
+ * اختبار وحدة (يُشغّل في Day 2):
+ *
+ * import speakeasy from 'speakeasy'
+ * const secret = speakeasy.generateSecret({ length: 20 })
+ * const token = speakeasy.totp({ secret: secret.base32, encoding: 'base32' })
+ * const isValid = speakeasy.totp.verify({
+ *   secret: secret.base32,
+ *   encoding: 'base32',
+ *   token,
+ *   window: 1,
+ * })
+ * expect(isValid).toBe(true)
  */
-function verifyTOTP(secret: string, token: string): boolean {
-  // TODO Sprint 1: استبدل بـ speakeasy.totp.verify
-  // هذا stub بسيط للتأكد من الربط فقط
-  return token.length === 6 && /^\d{6}$/.test(token)
-}

@@ -20,7 +20,7 @@ export async function GET(
       where: { id: bookId },
       include: {
         category: true,
-        chapters: { orderBy: { number: "asc" } },
+        chapters: { orderBy: { order: "asc" } },
       },
     });
 

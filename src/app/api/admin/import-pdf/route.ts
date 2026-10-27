@@ -128,10 +128,10 @@ export async function POST(request: NextRequest) {
         await db.bookChapter.create({
           data: {
             bookId: book.id,
-            number: ch.number,
+            order: ch.number, // order بدلًا من number (تم حذف number في Sprint 0)
             title: ch.title,
             content: ch.content,
-            readingTimeMin: ch.readingTimeMin,
+            estimatedMinutes: ch.readingTimeMin || 5, // estimatedMinutes بدلًا من readingTimeMin
             isFree: true,
             isPublished: true,
           },

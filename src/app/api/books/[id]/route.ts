@@ -26,7 +26,7 @@ export async function GET(
         category: true,
         chapters: {
           where: { isPublished: true },
-          orderBy: { number: "asc" },
+          orderBy: { order: "asc" },
         },
         reviews: {
           include: {

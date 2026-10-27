@@ -450,13 +450,13 @@ function ChaptersTab() {
           ) : (
             chapters.map((ch) => (
               <Card key={ch.id} className="p-3 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">{ch.number}</div>
+                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">{ch.order}</div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-sm text-stone-800 truncate">{ch.title}</h3>
-                  <p className="text-xs text-stone-400">⏱️ {ch.readingTimeMin} دقيقة {ch.isFree ? "· 🆓 مجاني" : "· 🔒 مدفوع"}</p>
+                  <p className="text-xs text-stone-400">⏱️ {ch.estimatedMinutes} دقيقة {ch.isFree ? "· 🆓 مجاني" : "· 🔒 مدفوع"}</p>
                 </div>
                 {ch.relatedLevelId && <Badge className="bg-amber-100 text-amber-700 text-[9px] border-0">🎮 لغز</Badge>}
-                <a href={`/library/reader/${selectedBook}/${ch.number}`} target="_blank" className="text-xs text-indigo-600 hover:underline">معاينة</a>
+                <a href={`/library/reader/${selectedBook}/${ch.order}`} target="_blank" className="text-xs text-indigo-600 hover:underline">معاينة</a>
               </Card>
             ))
           )}
