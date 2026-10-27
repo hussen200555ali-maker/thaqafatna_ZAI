@@ -154,15 +154,15 @@ function LoginForm() {
         {step === 1 && (
           <form onSubmit={handleCredentialsSubmit}>
             <div style={formGroupStyle}>
-              <label style={labelStyle}>البريد الإلكتروني</label>
+              <label style={labelStyle}>البريد الإلكتروني أو اسم المستخدم</label>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@thaqafatna.com"
+                placeholder="admin@thaqafatna.com أو admin"
                 required
                 style={inputStyle}
-                autoComplete="email"
+                autoComplete="username"
               />
             </div>
 

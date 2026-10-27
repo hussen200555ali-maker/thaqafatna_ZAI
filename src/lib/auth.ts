@@ -42,8 +42,17 @@ const init = (NextAuth as any)({
           return null
         }
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email as string },
+        const loginInput = credentials.email as string
+
+        // البحث بالبريد الإلكتروني أو اسم المستخدم
+        const user = await db.user.findFirst({
+          where: {
+            OR: [
+              { email: loginInput },
+              { name: loginInput },
+              { id: loginInput },
+            ],
+          },
           select: {
             id: true,
             email: true,

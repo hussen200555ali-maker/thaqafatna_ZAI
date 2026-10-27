@@ -36,9 +36,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'البريد وكلمة المرور مطلوبان' }, { status: 400 })
   }
 
-  // جلب المستخدم
-  const user = await db.user.findUnique({
-    where: { email },
+  // جلب المستخدم (بالبريد أو اسم المستخدم)
+  const user = await db.user.findFirst({
+    where: {
+      OR: [
+        { email },
+        { name: email },
+        { id: email },
+      ],
+    },
     select: {
       id: true,
       email: true,
