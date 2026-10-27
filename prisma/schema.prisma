@@ -435,11 +435,13 @@ model Book {
   ratingAvg       Float    @default(0)
   ratingCount     Int      @default(0)
 
-  // الحالة
-  status          BookStatus @default(draft) // enum (draft | published | archived)
-  isPublished     Boolean  @default(false) // legacy (يتم مزامنته مع status)
-  isFeatured      Boolean  @default(false)
-  isPremium       Boolean  @default(false)
+  // الحالة (إصلاح #5 + ثغرة إضافية: source of truth واحد)
+  status          BookStatus @default(draft) // enum: المصدر الوحيد للحقيقة
+  // isPublished أصبح GENERATED COLUMN في DB (migration.sql)
+  // Prisma @ignore: لا يكتب إليه، الكود القديم سيُهاجر لـ status في Sprint 1
+  isPublished     Boolean   @default(false) @ignore
+  isFeatured      Boolean   @default(false)
+  isPremium       Boolean   @default(false)
 
   // علاقات
   category        BookCategory @relation(fields: [categoryId], references: [id])
@@ -461,7 +463,7 @@ model Book {
   updatedAt       DateTime @updatedAt
 
   @@index([categoryId])
-  @@index([isPublished])
+  @@index([status])
   @@index([isFeatured])
 }
 

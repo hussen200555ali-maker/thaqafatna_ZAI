@@ -73,14 +73,23 @@ ALTER TABLE "User" ADD COLUMN "twoFactorEnabled" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "User" ADD COLUMN "lastLoginAt" TIMESTAMP(3);
 ALTER TABLE "User" ADD COLUMN "lastLoginIp" TEXT;
 
--- ===== 4. تحديث Book: إضافة status (enum) =====
--- (إصلاح #5: تأكيد Book.status كـ BookStatus enum)
+-- ===== 4. تحديث Book: إضافة status (enum) + تحويل isPublished إلى GENERATED COLUMN =====
+-- (إصلاح #5 + ثغرة source-of-truth: مصدر واحد للحقيقة)
 CREATE TYPE "BookStatus" AS ENUM ('draft', 'published', 'archived');
 ALTER TABLE "Book" ADD COLUMN "status" "BookStatus" NOT NULL DEFAULT 'draft';
 
--- مزامنة status مع isPublished للبيانات الموجودة
+-- مزامنة status مع isPublished للبيانات الموجودة (قبل حذف isPublished القديم)
 UPDATE "Book" SET "status" = 'published' WHERE "isPublished" = true;
 UPDATE "Book" SET "status" = 'draft' WHERE "isPublished" = false;
+
+-- حذف isPublished القديم ثم إعادة إنشائه كـ GENERATED COLUMN
+-- isPublished يُحسب تلقائيًا من status = لا فساد صامت للبيانات
+ALTER TABLE "Book" DROP COLUMN IF EXISTS "isPublished";
+ALTER TABLE "Book" ADD COLUMN "isPublished" BOOLEAN
+  GENERATED ALWAYS AS (status = 'published') STORED;
+
+-- فهرس على status (بديل عن isPublished index المحذوف)
+CREATE INDEX IF NOT EXISTS "Book_status_idx" ON "Book"("status");
 
 -- ===== 5. Enums =====
 CREATE TYPE "AuditSeverity" AS ENUM ('info', 'warning', 'critical');
