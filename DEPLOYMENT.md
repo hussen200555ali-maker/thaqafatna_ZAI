@@ -282,3 +282,93 @@ git push origin feature/new-feature
 3. اضغط **Delete**
 
 </div>
+
+---
+
+## ⚠️ Sprint 1 Day 1 — التحقق الفعلي من Migration 0003
+
+### مهم: قبل أي شيء آخر في Sprint 1
+
+`0003_sprint0_security_metadata` **لم يُطبَّق بعد** على Neon. يجب تطبيقه + التحقق من الـ Trigger.
+
+### الخطوة 1: تطبيق الـ migration
+
+```bash
+# على جهازك المحلي (بعد ربط Vercel):
+vercel env pull .env.local
+npx prisma migrate deploy
+```
+
+**المخرجات المتوقعة:**
+```
+Applying migration `0003_sprint0_security_metadata`
+```
+
+### الخطوة 2: اختبار تكامل للـ Trigger
+
+```typescript
+// scripts/verify-trigger.ts
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
+
+async function main() {
+  // 1. إنشاء كتاب draft
+  const draft = await prisma.book.create({
+    data: { title: 'Test Draft', author: 'Test', status: 'draft', categoryId: 1 }
+  })
+  console.log('Draft isPublished:', draft.isPublished) // يجب أن يكون false
+
+  // 2. نشر الكتاب (تغيير status فقط)
+  await prisma.book.update({
+    where: { id: draft.id },
+    data: { status: 'published' }
+  })
+  const published = await prisma.book.findUnique({ where: { id: draft.id } })
+  console.log('Published isPublished:', published?.isPublished) // يجب أن يكون true (Trigger)
+
+  // 3. محاولة كتابة مباشرة (يجب أن يُتجاوزها الـ Trigger)
+  await prisma.book.update({
+    where: { id: draft.id },
+    data: { isPublished: false }
+  })
+  const stillPublished = await prisma.book.findUnique({ where: { id: draft.id } })
+  console.log('After direct write, isPublished:', stillPublished?.isPublished)
+  // يجب أن يكون true (الـ Trigger منع الكتابة المباشرة)
+
+  // 4. التنظيف
+  await prisma.book.delete({ where: { id: draft.id } })
+  console.log('✅ Trigger verification passed!')
+}
+
+main().catch(console.error).finally(() => prisma.$disconnect())
+```
+
+### الخطوة 3: التحقق من باقي المكونات
+
+```sql
+-- partial unique index
+SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'BookVersion';
+-- يجب أن يظهر: WHERE (isActive = true)
+
+-- المراجعات
+SELECT status, COUNT(*) FROM "BookReview" GROUP BY status;
+-- يجب أن يظهر: pending فقط
+
+-- الفصول
+SELECT COUNT(*) FROM "BookChapter" WHERE "order" IS NULL;
+-- يجب أن يكون: 0
+
+-- الـ Trigger
+SELECT tgname FROM pg_trigger WHERE tgrelid = '"Book"'::regclass;
+-- يجب أن يظهر: trg_sync_book_is_published
+```
+
+### معايير القبول (Definition of Done — Sprint 1 Day 1)
+
+- [ ] `prisma migrate deploy` يُطبّق `0003` بنجاح
+- [ ] الـ Trigger يعمل (draft → false, published → true)
+- [ ] الكتابة المباشرة على `isPublished` يُتجاوزها الـ Trigger
+- [ ] Partial unique index موجود على `BookVersion`
+- [ ] كل المراجعات القديمة `pending`
+- [ ] كل الفصول لها `order` (لا NULL)
+- [ ] `verifyTOTP` الحقيقي مع `speakeasy` (Sprint 1 Day 2)

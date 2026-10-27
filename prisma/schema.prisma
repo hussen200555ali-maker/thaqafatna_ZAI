@@ -437,8 +437,10 @@ model Book {
 
   // الحالة (إصلاح #5 + حل source-of-truth عبر Trigger)
   status          BookStatus @default(draft) // enum: المصدر الوحيد للحقيقة (يُكتب فقط)
-  // isPublished يُزامَن تلقائيًا مع status عبر Trigger في DB (migration.sql)
-  // Prisma يقرأه ويكتبه كحقل عادي — لا @ignore — الكود القديم يعمل كما هو
+  /// ⚠️ لا تكتب على isPublished مباشرة.
+  /// لنشر كتاب، غيّر status إلى 'published'.
+  /// isPublished يُزامَن تلقائيًا عبر Trigger في DB (migration.sql).
+  /// أي محاولة كتابة مباشرة سيتم تجاوزها من قبل الـ Trigger.
   isPublished     Boolean   @default(false)
   isFeatured      Boolean   @default(false)
   isPremium       Boolean   @default(false)
