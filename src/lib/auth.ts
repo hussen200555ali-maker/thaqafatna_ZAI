@@ -127,8 +127,35 @@ const init = (NextAuth as any)({
     maxAge: 60 * 60 * 24, // 24 ساعة
   },
 
-  // Callbacks — فصل جلسة الأدمن (التحفظ #2)
+  // Callbacks — فصل جلسة الأدمن (التحفظ #2) + منع تجاوز 2FA
   callbacks: {
+    // 🔒 منع أدمن من الدخول عبر GitHub OAuth (ثغرة تجاوز 2FA)
+    async signIn({ user, account }) {
+      // لو الدخول عبر GitHub OAuth
+      if (account?.provider === 'github') {
+        // تحقق من دور المستخدم
+        if (user?.id) {
+          const dbUser = await db.user.findUnique({
+            where: { id: user.id },
+            select: {
+              userRoles: { include: { role: true } },
+            },
+          })
+          const roles = dbUser?.userRoles.map((ur) => ur.role.name) || []
+          const isAdminRole = roles.some((r) =>
+            ['admin', 'librarian', 'assistant'].includes(r)
+          )
+
+          // أدمن يحاول الدخول عبر OAuth → ارفض (يجب استخدام Credentials + 2FA)
+          if (isAdminRole) {
+            console.warn(`⚠️ Admin ${user.id} attempted OAuth login — blocked`)
+            return false
+          }
+        }
+      }
+      return true
+    },
+
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id

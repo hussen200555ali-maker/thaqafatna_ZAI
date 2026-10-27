@@ -372,3 +372,47 @@ SELECT tgname FROM pg_trigger WHERE tgrelid = '"Book"'::regclass;
 - [ ] كل المراجعات القديمة `pending`
 - [ ] كل الفصول لها `order` (لا NULL)
 - [ ] `verifyTOTP` الحقيقي مع `speakeasy` (Sprint 1 Day 2)
+
+---
+
+## 🚚 ترحيل المستخدمين إلى NextAuth — Day 2
+
+### آلية تسليم كلمة المرور المؤقتة
+
+1. **شغّل السكربت على جهازك:**
+   ```bash
+   npx tsx scripts/migrate-users-to-auth.ts
+   ```
+
+2. **السكربت يطبع كلمات المرور المؤقتة في الـ terminal فقط:**
+   ```
+   🔑 كلمات المرور المؤقتة (احفظها بأمان ثم احذف هذا السجل):
+   ═══════════════════════════════════════════
+   hussen | hussen@thaqafatna.com | a3f8b2c9d1e7
+   ═══════════════════════════════════════════
+   ```
+
+3. **لا يتم إرسال بريد إلكتروني تلقائيًا.** الأدمن يجب أن:
+   - ينسخ كلمات المرور من الـ terminal
+   - يرسلها يدويًا لكل مستخدم (عبر بريد أو رسالة خاصة)
+   - يُطالب كل مستخدم بتغيير كلمة المرور عند أول دخول
+
+### Force Password Change (TODO Sprint 2)
+
+حاليًا لا يوجد `forceChangePassword` flag. **TODO Sprint 2:**
+- أضف `forcePasswordChange Boolean @default(false)` إلى User model
+- السكربت يضبط `forcePasswordChange = true` للمستخدمين المُرحّلين
+- في `authorize()`: لو `forcePasswordChange = true` → وجّه لـ `/admin/change-password`
+- بعد تغيير كلمة المرور: `forcePasswordChange = false`
+
+### المستخدمون بدون بريد إلكتروني
+
+السكربت يُنشئ بريدًا مؤقتًا بصيغة `{userId}@migration.thaqafatna.local`:
+- لا يُستخدم للإرسال — فقط لتفرد NextAuth
+- الأدمن يجب أن يحدّث البريد لاحقًا من `/admin/users`
+
+### إلغاء الجلسات القديمة
+
+بعد الترحيل، **كل الجلسات القديمة (userId-based) تُلغى تلقائيًا** لأن:
+- NextAuth يستخدم JWT cookies (ليس userId القديم)
+- المستخدمون يجب أن يسجّلوا دخولهم من جديد عبر `/admin/login`
