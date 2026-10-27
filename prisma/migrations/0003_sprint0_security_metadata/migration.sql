@@ -73,22 +73,36 @@ ALTER TABLE "User" ADD COLUMN "twoFactorEnabled" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "User" ADD COLUMN "lastLoginAt" TIMESTAMP(3);
 ALTER TABLE "User" ADD COLUMN "lastLoginIp" TEXT;
 
--- ===== 4. تحديث Book: إضافة status (enum) + تحويل isPublished إلى GENERATED COLUMN =====
--- (إصلاح #5 + ثغرة source-of-truth: مصدر واحد للحقيقة)
+-- ===== 4. تحديث Book: إضافة status (enum) + Trigger لمزامنة isPublished =====
+-- (إصلاح #5 + حل source-of-truth: Trigger بدلًا من Generated Column)
+-- لماذا Trigger وليس Generated Column؟
+-- - Generated Column يتطلب @ignore في Prisma → يكسر الكود القديم على مستوى TypeScript
+-- - Trigger يسمح لـ Prisma بالقراءة والكتابة كحقل عادي + يُزامن تلقائيًا
 CREATE TYPE "BookStatus" AS ENUM ('draft', 'published', 'archived');
 ALTER TABLE "Book" ADD COLUMN "status" "BookStatus" NOT NULL DEFAULT 'draft';
 
--- مزامنة status مع isPublished للبيانات الموجودة (قبل حذف isPublished القديم)
+-- مزامنة status مع isPublished للبيانات الموجودة (قبل إنشاء الـ Trigger)
 UPDATE "Book" SET "status" = 'published' WHERE "isPublished" = true;
 UPDATE "Book" SET "status" = 'draft' WHERE "isPublished" = false;
 
--- حذف isPublished القديم ثم إعادة إنشائه كـ GENERATED COLUMN
--- isPublished يُحسب تلقائيًا من status = لا فساد صامت للبيانات
-ALTER TABLE "Book" DROP COLUMN IF EXISTS "isPublished";
-ALTER TABLE "Book" ADD COLUMN "isPublished" BOOLEAN
-  GENERATED ALWAYS AS (status = 'published') STORED;
+-- إنشاء دالة الـ Trigger
+CREATE OR REPLACE FUNCTION sync_book_is_published()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW."isPublished" = (NEW."status" = 'published');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
--- فهرس على status (بديل عن isPublished index المحذوف)
+-- إنشاء الـ Trigger (يعمل قبل INSERT و UPDATE)
+CREATE TRIGGER trg_sync_book_is_published
+BEFORE INSERT OR UPDATE ON "Book"
+FOR EACH ROW EXECUTE FUNCTION sync_book_is_published();
+
+-- تحديث isPublished للبيانات الموجودة (مرة أخيرة للتأكيد)
+UPDATE "Book" SET "isPublished" = ("status" = 'published');
+
+-- فهرس على status (للاستعلامات الجديدة)
 CREATE INDEX IF NOT EXISTS "Book_status_idx" ON "Book"("status");
 
 -- ===== 5. Enums =====
