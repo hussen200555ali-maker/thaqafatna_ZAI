@@ -6,9 +6,10 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   reactStrictMode: false,
-  // تحسينات الأداء
   compress: true,
   poweredByHeader: false,
+  // معالجة حزم تحتاج external (preact من NextAuth)
+  serverExternalPackages: ["@auth/core", "preact", "preact-render-to-string"],
   // headers للأمان + caching
   async headers() {
     return [
@@ -43,6 +44,13 @@ const nextConfig: NextConfig = {
       "@radix-ui/react-select",
       "framer-motion",
     ],
+  },
+  // Turbopack config (Next.js 16 default)
+  turbopack: {
+    resolveAlias: {
+      // تجاهل pdf.worker.js (تحويل لملف فارغ بدل boolean)
+      "./pdf.worker.js": "./node_modules/next/dist/compiled/empty.js",
+    },
   },
 };
 
