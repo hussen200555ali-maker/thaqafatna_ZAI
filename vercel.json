@@ -10,11 +10,6 @@
     "NEXT_PUBLIC_APP_NAME": "ثقافتنا",
     "NEXT_TELEMETRY_DISABLED": "1"
   },
-  "build": {
-    "env": {
-      "DATABASE_URL": "@database-url"
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
