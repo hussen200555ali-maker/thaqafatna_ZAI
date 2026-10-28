@@ -1,418 +1,114 @@
-# 🚀 دليل النشر الكامل — مشروع ثقافتنا
+# 🚀 دليل النشر — مشروع ثقافتنا
 
-<div dir="rtl">
+## متغيرات البيئة المطلوبة (10 متغيرات)
 
-دليل خطوة بخطوة لنشر مشروع **ثقافتنا** على Vercel مع قاعدة بيانات PostgreSQL من Neon.
+| Variable | الوصف | كيف يُولَّد |
+|---|---|---|
+| `DATABASE_URL` | Neon pooled connection string | Neon dashboard → Connection Details → Pooled |
+| `NEXTAUTH_SECRET` | مفتاح تشفير الجلسة (32+ حرف) | `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | رابط الموقع الكامل | `https://your-domain.vercel.app` |
+| `GITHUB_CLIENT_ID` | GitHub OAuth App ID | github.com/settings/developers |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth Secret | github.com/settings/developers → Generate |
+| `TOTP_ENCRYPTION_KEY` | مفتاح تشفير AES-256 (64 hex) | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `UPSTASH_REDIS_REST_URL` | Upstash Redis URL | console.upstash.com → REST API |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis Token | console.upstash.com → REST API |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob token | Vercel → Storage → Blob → Connect |
+| `SENTRY_DSN` | Sentry DSN (اختياري) | sentry.io |
 
----
+## إعدادات Vercel
 
-## 📋 المتطلبات
+| الإعداد | القيمة |
+|---|---|
+| **Framework** | Next.js |
+| **Build Command** | `npm run build` |
+| **Output Directory** | `.next` (default) |
+| **Install Command** | `npm install` |
+| **Node Version** | 20.x أو 22.x |
 
-قبل البدء، تأكد من وجودك في:
+## إعدادات Prisma
 
-- ✅ حساب **GitHub** (لديك المستودع مرفوع بالفعل)
-- ✅ حساب **Vercel** (سجّل مجانًا على https://vercel.com)
-- ✅ حساب **Neon** (سجّل مجانًا على https://neon.tech)
-- ✅ رابط المستودع: `https://github.com/hussen200555ali-maker/thaqafatna_ZAI`
+- **Provider**: PostgreSQL
+- **Binary targets**: `rhel-openssl-3.0.x` (Vercel's Linux)
+- **Connection**: استخدم Neon `-pooler` endpoint
+- **Migration**: `npx prisma migrate deploy` (يُشغَّل يدويًا أو في build)
 
----
+## إعدادات NextAuth
 
-## 🗄️ الخطوة 1: إنشاء قاعدة بيانات PostgreSQL على Neon
+### GitHub OAuth App
 
-### 1.1 سجّل الدخول إلى Neon
-1. اذهب إلى: **https://neon.tech**
-2. اضغط **Sign Up** أو **Login** (يمكنك التسجيل بحساب GitHub)
-3. بعد الدخول، اضغط **New Project**
+| الحقل | القيمة |
+|---|---|
+| **Homepage URL** | `https://your-domain.vercel.app` |
+| **Authorization callback URL** | `https://your-domain.vercel.app/api/auth/callback/github` |
 
-### 1.2 إعدادات المشروع
-- **Project name**: `thaqafatna`
-- **Postgres version**: `17` (الأحدث)
-- **Region**: `Singapore (ap-southeast-1)` — مطابق لمنطقة Vercel
-- **Compute size**: `Shared` (مجاني)
-- **Branch**: `main`
+## مشاكل شائعة وحلولها
 
-### 1.3 الحصول على رابط الاتصال
-1. بعد إنشاء المشروع، انتقل إلى تبويب **Connection Details**
-2. اختر **Pooled connection** (للأداء الأفضل)
-3. انسخ الـ Connection string، سيكون شكله:
-   ```
-   postgresql://neondb_owner:npg_xxxxxxx@ep-xxxxx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
-   ```
-4. احفظ هذا الرابط — ستحتاجه في الخطوة 3
+| المشكلة | السبب | الحل |
+|---|---|---|
+| `Prisma Client not found` | لم يُشغَّل `prisma generate` | أضف `postinstall: prisma generate` في package.json |
+| `Connection pool exhausted` | Neon non-pooled | استخدم `-pooler` endpoint + `?pgbouncer=true` |
+| `Edge runtime error` | Prisma في Edge | أضف `export const runtime = 'nodejs'` في route handlers |
+| `NEXTAUTH_URL mismatch` | URL خاطئ | طابق `https://domain.com` بالضبط |
+| `TOTP decrypt failed` | مفتاح مختلف بين البيئات | نفس `TOTP_ENCRYPTION_KEY` في كل بيئة |
+| `Build timeout` | build بطيء | تأكد من `output: 'standalone'` في next.config |
+| `Cannot find module 'preact'` | NextAuth v5 dependency | `npm install preact` |
+| `lightningcss not found` | Windows binary مفقود | `npm install lightningcss-win32-x64-msvc` |
 
-> 💡 **ملاحظة**: تأكد أن الرابط ينتهي بـ `?sslmode=require` — هذا إلزامي لـ Vercel
+## خطوات النشر
 
----
-
-## 🚀 الخطوة 2: استيراد المستودع إلى Vercel
-
-### 2.1 ابدأ الاستيراد
-1. اذهب إلى: **https://vercel.com/new**
-2. سجّل دخولك بحساب GitHub
-3. في قسم **Import Git Repository**، ابحث عن `thaqafatna_ZAI`
-4. اضغط **Import**
-
-### 2.2 إعدادات المشروع
-- **Framework Preset**: Next.js (سيُكتشف تلقائيًا)
-- **Root Directory**: `./` (افتراضي)
-- **Build Command**: `npm run build:vercel` (موجود في `vercel.json`)
-- **Output Directory**: `.next` (افتراضي)
-- **Install Command**: `npm install`
-
-### 2.3 ⚠️ لا تنشر بعد!
-سنضيف متغيرات البيئة أولاً في الخطوة التالية. اضغط **Environment Variables** بدلاً من **Deploy**.
-
----
-
-## 🔐 الخطوة 3: إضافة متغيرات البيئة (مهم جدًا)
-
-في نفس صفحة الاستيراد، أضف المتغيرات التالية:
-
-### المتغيرات الإلزامية
-
-| Name | Value | Environment |
-|------|-------|-------------|
-| `DATABASE_URL` | (الصق رابط Neon من الخطوة 1.3) | Production, Preview, Development |
-
-### المتغيرات الاختيارية (موصى بها)
-
-| Name | Value | Environment |
-|------|-------|-------------|
-| `NEXT_PUBLIC_APP_NAME` | `ثقافتنا` | All |
-| `NEXT_TELEMETRY_DISABLED` | `1` | All |
-
-### كيفية الإضافة:
-1. في حقل **Name**: اكتب اسم المتغير
-2. في حقل **Value**: الصق القيمة
-3. اختر البيئات (Production + Preview + Development لـ DATABASE_URL)
-4. اضغط **Add**
-
-> 🔒 **الأمان**: استخدم خيار **Sensitive** لـ `DATABASE_URL` لإخفائه عن أعضاء الفريق
-
----
-
-## ⚙️ الخطوة 4: النشر الأول (Build + Deploy)
-
-1. بعد إضافة كل المتغيرات، اضغط **Deploy**
-2. سيبدأ Vercel بـ:
-   - تثبيت الحزم (`npm install`)
-   - توليد Prisma Client (`prisma generate`)
-   - بناء Next.js (`next build`)
-3. ستستغرق العملية **2-5 دقائق**
-
-> ⚠️ **قد يفشل النشر الأول** — هذا طبيعي لأن قاعدة البيانات فارغة. سنصلح ذلك في الخطوة التالية.
-
----
-
-## 🌱 الخطوة 5: تهيئة قاعدة البيانات (مهم جدًا)
-
-بعد فشل النشر الأول (أو نجاحه)، نحتاج لإنشاء الجداول وزرع البيانات.
-
-### الطريقة 1: عبر Vercel CLI (موصى بها)
-
-#### 5.1 تثبيت Vercel CLI محليًا
+### 1. إعداد Neon
 ```bash
-npm install -g vercel
-vercel login
+# إنشاء قاعدة بيانات على Neon (Singapore region)
+# نسخ Connection String (pooled)
 ```
 
-#### 5.2 ربط المشروع المحلي بـ Vercel
+### 2. إعداد GitHub OAuth
 ```bash
-cd thaqafatna_ZAI
-vercel link  # اتبع التعليمات لاختيار المشروع
+# github.com/settings/developers → New OAuth App
+# Homepage URL: https://your-domain.vercel.app
+# Callback URL: https://your-domain.vercel.app/api/auth/callback/github
 ```
 
-#### 5.3 سحب متغيرات البيئة
+### 3. إعداد Upstash Redis
 ```bash
-vercel env pull .env.local
-```
-سيُنشئ ملف `.env.local` يحتوي على `DATABASE_URL` الخاص بـ Neon.
-
-#### 5.4 إنشاء الجداول في PostgreSQL
-```bash
-npx prisma migrate dev --name init
-```
-سيقوم Prisma بإنشاء كل الجداول (23 نموذج) في قاعدة بيانات Neon.
-
-#### 5.5 زرع البيانات الأولية
-```bash
-npm run db:seed
-```
-سيُضيف:
-- 3 فصول + مراحل وألغاز
-- 8 تصنيفات كتب
-- 30 كتاب عربي + 68 فصل
-- 20 مهارة تكيّفية
-- بيانات تجريبية أخرى
-
-#### 5.6 إعادة النشر على Vercel
-```bash
-vercel --prod
+# console.upstash.com → Create Database (Singapore)
+# نسخ REST URL + REST Token
 ```
 
-### الطريقة 2: عبر Neon Console (بديلة)
-
-إذا لم تستطع استخدام Vercel CLI:
-1. اذهب إلى لوحة تحكم Neon
-2. افتح **SQL Editor**
-3. اذهب إلى تبويب **Migrations** في Vercel dashboard لمشاهدة سجل الـ SQL
-4. انسخ الـ SQL من `prisma/migrations/*/migration.sql` ونفّذه في Neon
-
----
-
-## ✅ الخطوة 6: التحقق من النشر
-
-1. اذهب إلى: https://thaqafatna.vercel.app (أو الرابط الذي أعطاك Vercel)
-2. تحقق من الصفحات التالية:
-
-| الصفحة | الرابط | يجب أن ترى |
-|--------|------|-------------|
-| الرئيسية | `/` | واجهة Onboarding |
-| المكتبة | `/library` | 30 كتاب عربي |
-| صفحة كتاب | `/library/1` | تفاصيل كتاب + كتب ذات صلة |
-| قارئ | `/library/reader/1/1` | محتوى الفصل |
-| لوحة المتصدرين | `/leaderboard` | قائمة فارغة (طبيعي) |
-
-3. اختبر الـ APIs:
-
+### 4. توليد المفاتيح
 ```bash
-# اختبر API الكتب
-curl https://thaqafatna.vercel.app/api/books
+# NEXTAUTH_SECRET
+openssl rand -base64 32
 
-# يجب أن يرجع JSON يحتوي على 30 كتاب
+# TOTP_ENCRYPTION_KEY
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
----
-
-## 🔄 الخطوة 7: النشر التلقائي (CI/CD)
-
-بمجرد ربط المستودع بـ Vercel، **كل push إلى `main` سيُطلق نشر تلقائي**.
-
-### لتطوير ميزة جديدة:
-
+### 5. إضافة متغيرات البيئة على Vercel
 ```bash
-# 1. أنشئ branch جديد
-git checkout -b feature/new-feature
-
-# 2. عدّل الكود
-# ...
-
-# 3. ادفع إلى GitHub
-git push origin feature/new-feature
-
-# 4. Vercel سينشر preview تلقائيًا
-# 5. بعد المراجعة، ادمج الـ PR
-# 6. سيُنشر على production تلقائيًا
+# Vercel → Project → Settings → Environment Variables
+# أضف كل الـ 10 متغيرات (Type: Secret، Environments: All)
 ```
 
----
-
-## 🆘 حل المشاكل الشائعة
-
-### مشكلة 1: `DATABASE_URL` غير مُعرّف
-**السبب**: نسيت إضافة متغير البيئة في Vercel
-**الحل**: اذهب إلى Project Settings → Environment Variables → أضف `DATABASE_URL`
-
-### مشكلة 2: `Prisma Client not generated`
-**السبب**: `postinstall` لم يُشغّل
-**الحل**: تأكد أن `package.json` يحتوي على:
-```json
-"postinstall": "prisma generate"
-```
-
-### مشكلة 3: `Relation does not exist`
-**السبب**: لم تُنشأ الجداول بعد
-**الحل**: نفّذ `npx prisma migrate dev --name init` محليًا (الخطوة 5.4)
-
-### مشكلة 4: صفحة فارغة بعد النشر
-**السبب**: قاعدة البيانات فارغة
-**الحل**: نفّذ `npm run db:seed` (الخطوة 5.5)
-
-### مشكلة 5: خطأ في الاتصال بـ Neon
-**السبب**: قد يكون رابط الاتصال خاطئًا
-**الحل**: تأكد أن الـ URL ينتهي بـ `?sslmode=require`
-
----
-
-## 📊 مراقبة الأداء
-
-### Vercel Analytics (مجاني)
-1. اذهب إلى Project Settings → Analytics
-2. فعّل **Web Analytics** (مجاني)
-3. ستحصل على إحصائيات المشاهدات والأداء
-
-### Neon Monitoring
-1. اذهب إلى لوحة تحكم Neon
-2. تبويب **Monitoring** لإحصائيات DB
-3. تبويب **Branches** لإدارة بيئات dev/prod
-
----
-
-## 🔒 الأمان
-
-### إعدادات Neon الموصى بها
-- ✅ فعّل **Point-in-time recovery**
-- ✅ فعّل **Logical replication** (إذا خطّطت لـ read replicas)
-- ✅ استخدم **Connection pooling** دائمًا
-
-### Vercel
-- ✅ استخدم **Preview deployments** لكل PR
-- ✅ فعّل **Vercel Authentication** للـ previews (إذا فريق)
-- ✅ راجع **Deployment Logs** بشكل دوري
-
----
-
-## 🎉 تهانينا!
-
-مشروع **ثقافتنا** متاح الآن على الإنترنت بنجاح! 🌍
-
-### روابط مفيدة:
-- 🏠 المستودع: https://github.com/hussen200555ali-maker/thaqafatna_ZAI
-- 🚀 Vercel: https://vercel.com/dashboard
-- 🗄️ Neon: https://console.neon.tech
-- 📚 Prisma Docs: https://pris.ly/d/prisma-schema
-
----
-
-### 💡 نصيحة أخيرة
-
-بعد النشر الناجح، **احذف الـ GitHub token** الذي أنشأته للرفع:
-1. اذهب إلى: https://github.com/settings/tokens
-2. ابحث عن `thaqafatna-deploy`
-3. اضغط **Delete**
-
-</div>
-
----
-
-## ⚠️ Sprint 1 Day 1 — التحقق الفعلي من Migration 0003
-
-### مهم: قبل أي شيء آخر في Sprint 1
-
-`0003_sprint0_security_metadata` **لم يُطبَّق بعد** على Neon. يجب تطبيقه + التحقق من الـ Trigger.
-
-### الخطوة 1: تطبيق الـ migration
-
+### 6. تطبيق Migration
 ```bash
-# على جهازك المحلي (بعد ربط Vercel):
-vercel env pull .env.local
+# على جهازك المحلي
 npx prisma migrate deploy
 ```
 
-**المخرجات المتوقعة:**
-```
-Applying migration `0003_sprint0_security_metadata`
-```
-
-### الخطوة 2: اختبار تكامل للـ Trigger
-
-```typescript
-// scripts/verify-trigger.ts
-import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
-
-async function main() {
-  // 1. إنشاء كتاب draft
-  const draft = await prisma.book.create({
-    data: { title: 'Test Draft', author: 'Test', status: 'draft', categoryId: 1 }
-  })
-  console.log('Draft isPublished:', draft.isPublished) // يجب أن يكون false
-
-  // 2. نشر الكتاب (تغيير status فقط)
-  await prisma.book.update({
-    where: { id: draft.id },
-    data: { status: 'published' }
-  })
-  const published = await prisma.book.findUnique({ where: { id: draft.id } })
-  console.log('Published isPublished:', published?.isPublished) // يجب أن يكون true (Trigger)
-
-  // 3. محاولة كتابة مباشرة (يجب أن يُتجاوزها الـ Trigger)
-  await prisma.book.update({
-    where: { id: draft.id },
-    data: { isPublished: false }
-  })
-  const stillPublished = await prisma.book.findUnique({ where: { id: draft.id } })
-  console.log('After direct write, isPublished:', stillPublished?.isPublished)
-  // يجب أن يكون true (الـ Trigger منع الكتابة المباشرة)
-
-  // 4. التنظيف
-  await prisma.book.delete({ where: { id: draft.id } })
-  console.log('✅ Trigger verification passed!')
-}
-
-main().catch(console.error).finally(() => prisma.$disconnect())
+### 7. ترحيل المستخدمين
+```bash
+npx tsx scripts/migrate-users-to-auth.ts
 ```
 
-### الخطوة 3: التحقق من باقي المكونات
-
-```sql
--- partial unique index
-SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'BookVersion';
--- يجب أن يظهر: WHERE (isActive = true)
-
--- المراجعات
-SELECT status, COUNT(*) FROM "BookReview" GROUP BY status;
--- يجب أن يظهر: pending فقط
-
--- الفصول
-SELECT COUNT(*) FROM "BookChapter" WHERE "order" IS NULL;
--- يجب أن يكون: 0
-
--- الـ Trigger
-SELECT tgname FROM pg_trigger WHERE tgrelid = '"Book"'::regclass;
--- يجب أن يظهر: trg_sync_book_is_published
+### 8. النشر
+```bash
+git push origin main
+# أو: vercel --prod
 ```
 
-### معايير القبول (Definition of Done — Sprint 1 Day 1)
-
-- [ ] `prisma migrate deploy` يُطبّق `0003` بنجاح
-- [ ] الـ Trigger يعمل (draft → false, published → true)
-- [ ] الكتابة المباشرة على `isPublished` يُتجاوزها الـ Trigger
-- [ ] Partial unique index موجود على `BookVersion`
-- [ ] كل المراجعات القديمة `pending`
-- [ ] كل الفصول لها `order` (لا NULL)
-- [ ] `verifyTOTP` الحقيقي مع `speakeasy` (Sprint 1 Day 2)
-
----
-
-## 🚚 ترحيل المستخدمين إلى NextAuth — Day 2
-
-### آلية تسليم كلمة المرور المؤقتة
-
-1. **شغّل السكربت على جهازك:**
-   ```bash
-   npx tsx scripts/migrate-users-to-auth.ts
-   ```
-
-2. **السكربت يطبع كلمات المرور المؤقتة في الـ terminal فقط:**
-   ```
-   🔑 كلمات المرور المؤقتة (احفظها بأمان ثم احذف هذا السجل):
-   ═══════════════════════════════════════════
-   hussen | hussen@thaqafatna.com | a3f8b2c9d1e7
-   ═══════════════════════════════════════════
-   ```
-
-3. **لا يتم إرسال بريد إلكتروني تلقائيًا.** الأدمن يجب أن:
-   - ينسخ كلمات المرور من الـ terminal
-   - يرسلها يدويًا لكل مستخدم (عبر بريد أو رسالة خاصة)
-   - يُطالب كل مستخدم بتغيير كلمة المرور عند أول دخول
-
-### Force Password Change (TODO Sprint 2)
-
-حاليًا لا يوجد `forceChangePassword` flag. **TODO Sprint 2:**
-- أضف `forcePasswordChange Boolean @default(false)` إلى User model
-- السكربت يضبط `forcePasswordChange = true` للمستخدمين المُرحّلين
-- في `authorize()`: لو `forcePasswordChange = true` → وجّه لـ `/admin/change-password`
-- بعد تغيير كلمة المرور: `forcePasswordChange = false`
-
-### المستخدمون بدون بريد إلكتروني
-
-السكربت يُنشئ بريدًا مؤقتًا بصيغة `{userId}@migration.thaqafatna.local`:
-- لا يُستخدم للإرسال — فقط لتفرد NextAuth
-- الأدمن يجب أن يحدّث البريد لاحقًا من `/admin/users`
-
-### إلغاء الجلسات القديمة
-
-بعد الترحيل، **كل الجلسات القديمة (userId-based) تُلغى تلقائيًا** لأن:
-- NextAuth يستخدم JWT cookies (ليس userId القديم)
-- المستخدمون يجب أن يسجّلوا دخولهم من جديد عبر `/admin/login`
+### 9. اختبار
+```bash
+# افتح /admin/login
+# جرّب تسجيل الدخول + 2FA
+```

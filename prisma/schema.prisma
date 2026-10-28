@@ -164,6 +164,8 @@ model User {
   uploadedVersions BookVersion[]
   // ===== Sprint 0: رسائل التواصل (الأدمن الذي يرد) =====
   contactMessages  ContactMessage[]
+  // ===== Sprint 5: رموز احتياطية للـ 2FA =====
+  backupCodes      BackupCode[]
 }
 
 // ===== نموذج تقدم اللاعب =====
@@ -801,4 +803,19 @@ model ContactMessage {
 
   @@index([status, createdAt])
   @@index([email])
+}
+
+// ===== 17. رموز احتياطية للـ 2FA (BackupCode) — Sprint 5 A.2 =====
+// 10 رموز لكل أدمن، تُستخدم عند فقدان الجهاز
+// مشفّرة بـ bcrypt، تُستهلك مرة واحدة
+model BackupCode {
+  id        Int       @id @default(autoincrement())
+  userId    String
+  codeHash  String    // bcrypt hash (وليس plaintext)
+  usedAt    DateTime? // null = غير مستخدم
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
