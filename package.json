@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build && node scripts/copy-standalone-assets.mjs",
-    "build:vercel": "prisma generate && prisma migrate deploy && next build",
+    "build:vercel": "prisma generate && next build",
+    "migrate:prod": "prisma migrate deploy",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "eslint .",
