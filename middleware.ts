@@ -1,14 +1,18 @@
 /**
- * Middleware — حماية /admin/* (Sprint 1)
+ * Middleware — حماية /admin/* (Sprint 1 + Sprint 5 fix)
  *
  * ⚠️ التحفظ #4: لا تستدعِ Prisma في middleware.ts (يعمل على Edge)
  *    استخدم auth() فقط (يقرأ cookie — لا DB)
+ *
+ * 🆕 Sprint 5 fix: استورد auth من auth.config.ts (Edge-safe)
+ *    وليس من auth.ts (الذي يسحب bcrypt + crypto + Prisma).
+ *    هذا يقلل حجم Edge Function من 1.04 MB إلى ~310 KB.
  *
  * matcher: ['/admin/:path*'] — لا تحمّله على كل المسارات
  */
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/auth.config' // ← Edge-safe version
 
 export async function middleware(request: NextRequest) {
   // auth() يقرأ JWT من cookie — لا يحتاج DB
