@@ -160,11 +160,11 @@ export default function AdminAuthorsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-center gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" title="عرض">
-                        <Eye className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8" title="عرض" aria-label="عرض المؤلف">
+                        <Eye className="h-4 w-4" aria-hidden="true" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" title="تعديل">
-                        <Edit className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8" title="تعديل" aria-label="تعديل المؤلف">
+                        <Edit className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </div>
                   </TableCell>
