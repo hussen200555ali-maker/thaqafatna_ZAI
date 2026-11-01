@@ -141,6 +141,15 @@ export async function PUT(
   }
 }
 
+// PATCH /api/books/[id] — تعديل جزئي لكتاب (للإدارة)
+// نفس وظيفة PUT لكنها تدعم التحديث الجزئي
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return PUT(request, { params });
+}
+
 // DELETE /api/books/[id] — حذف كتاب (للإدارة)
 export async function DELETE(
   request: NextRequest,
