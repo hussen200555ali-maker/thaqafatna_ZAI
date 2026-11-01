@@ -1,429 +1,568 @@
-"use client";
+'use client'
 
-import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { BookCover } from "@/components/library/book-cover";
-import { useGameStore } from "@/lib/game-store";
-import { LibraryHomeDark } from "@/components/library/library-home-dark";
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 
 /**
- * صفحة المكتبة الرئيسية — تصميم احترافي عالمي
- * مستوحى من: Google Books + Apple Books + Amazon Kindle
+ * 📚 صفحة المكتبة الرئيسية — تصميم Dark Elegant Noor Editorial
+ * مستوحى من: Noor Book + Apple Books
+ *
+ * المميزات:
+ * - Hero section مع search bar + suggestions
+ * - Stats grid (4 KPIs)
+ * - Featured books grid (6 books)
+ * - Categories grid (8 categories)
+ * - Most Downloaded ranking
+ * - Author CTA section
+ * - Footer
  */
 
 interface Book {
-  id: number;
-  title: string;
-  author: string;
-  description: string;
-  coverImage: string;
-  pdfUrl?: string;
-  contentType?: string;
-  difficulty: string;
-  readingTimeMin: number;
-  pages: number;
-  ratingAvg: number;
-  ratingCount: number;
-  views: number;
-  downloads: number;
-  isFeatured: boolean;
-  isPremium: boolean;
-  category: { id: number; name: string; icon: string; color: string };
-  _count: { chapters: number; reviews: number };
-  createdAt: string;
+  id: number
+  title: string
+  author: string
+  coverImage: string
+  pdfUrl?: string | null
+  contentType?: string
+  difficulty: string
+  readingTimeMin: number
+  pages: number
+  ratingAvg: number
+  ratingCount: number
+  views: number
+  downloads: number
+  isFeatured: boolean
+  isPremium: boolean
+  category: { id: number; name: string; icon: string; color: string }
+  _count: { chapters: number; reviews: number }
+  createdAt: string
 }
 
 interface Category {
-  id: number;
-  name: string;
-  icon: string;
-  color: string;
-  booksCount: number;
+  id: number
+  name: string
+  icon: string
+  color: string
+  booksCount: number
 }
 
-type SortOption = "newest" | "popular" | "rating" | "title" | "time";
-type ViewMode = "grid" | "list";
+function formatArabicNumber(n: number): string {
+  return n.toLocaleString('ar-EG')
+}
+
+function formatCount(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+  return n.toString()
+}
+
+const searchPlaceholders = [
+  'ابحث عن كتاب... أو مؤلف... أو موضوع...',
+  'مثلاً: «مقدمة ابن خلدون»',
+  'اكتب اسم مؤلفك المفضل...',
+  'جرّب: «الفلسفة»',
+  'ابحث في التصنيف: الأدب العربي',
+]
 
 export default function LibraryPage() {
-  const router = useRouter();
-  const { userId } = useGameStore();
-  const [loading, setLoading] = useState(true);
-  const [allBooks, setAllBooks] = useState<Book[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Book[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [recommendedBooks, setRecommendedBooks] = useState<Book[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
-  const [difficultyFilter, setDifficultyFilter] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true)
+  const [books, setBooks] = useState<Book[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchPlaceholder, setSearchPlaceholder] = useState(searchPlaceholders[0])
 
   useEffect(() => {
-    const promises = [
-      fetch("/api/books?limit=100").then((r) => r.json()),
-      fetch("/api/book-categories").then((r) => r.json()),
-    ];
-    if (userId) {
-      promises.push(fetch(`/api/books/recommend?userId=${userId}&limit=4`).then((r) => r.json()));
-    }
-    Promise.all(promises)
-      .then((results) => {
-        setAllBooks(results[0].books || []);
-        setCategories(results[1].categories || []);
-        if (results[2]) setRecommendedBooks(results[2].books || []);
+    Promise.all([
+      fetch('/api/books?limit=100').then(r => r.json()),
+      fetch('/api/book-categories').then(r => r.json()),
+    ])
+      .then(([booksRes, catsRes]) => {
+        setBooks(booksRes.books || [])
+        setCategories(catsRes.categories || [])
       })
       .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [userId]);
+      .finally(() => setLoading(false))
+  }, [])
 
-  // البحث
+  // Rotating placeholder
   useEffect(() => {
-    if (searchQuery.trim().length < 2) {
-      setIsSearching(false);
-      setSearchResults([]);
-      return;
-    }
-    setIsSearching(true);
-    const timer = setTimeout(() => {
-      fetch(`/api/books/search?q=${encodeURIComponent(searchQuery.trim())}`)
-        .then((r) => r.json())
-        .then((data) => setSearchResults(data.books || []))
-        .catch(console.error);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+    const timer = setInterval(() => {
+      setSearchPlaceholder(prev => {
+        const idx = searchPlaceholders.indexOf(prev)
+        return searchPlaceholders[(idx + 1) % searchPlaceholders.length]
+      })
+    }, 3000)
+    return () => clearInterval(timer)
+  }, [])
 
-  // فلترة + ترتيب
-  const displayedBooks = useMemo(() => {
-    let books = isSearching ? searchResults : allBooks;
-    if (activeCategory) books = books.filter((b) => b.category.id === activeCategory);
-    if (difficultyFilter) books = books.filter((b) => b.difficulty === difficultyFilter);
-    switch (sortBy) {
-      case "popular": books = [...books].sort((a, b) => b.views - a.views); break;
-      case "rating": books = [...books].sort((a, b) => b.ratingAvg - a.ratingAvg); break;
-      case "title": books = [...books].sort((a, b) => a.title.localeCompare(b.title, "ar")); break;
-      case "time": books = [...books].sort((a, b) => a.readingTimeMin - b.readingTimeMin); break;
-      default: books = [...books].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }
-    return books;
-  }, [allBooks, searchResults, isSearching, activeCategory, difficultyFilter, sortBy]);
-
-  const featuredBooks = allBooks.filter((b) => b.isFeatured).slice(0, 4);
+  const featuredBooks = books.filter(b => b.isFeatured).slice(0, 6)
+  const displayBooks = featuredBooks.length >= 4 ? featuredBooks : books.slice(0, 6)
+  const mostDownloaded = [...books].sort((a, b) => b.downloads - a.downloads).slice(0, 5)
+  const totalBooks = books.length
+  const totalDownloads = books.reduce((s, b) => s + b.downloads, 0)
+  const totalAuthors = new Set(books.map(b => b.author)).size
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-stone-950 via-stone-900 to-stone-950">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-6">
-            <div className="h-12 bg-stone-800 rounded-xl w-full max-w-md" />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="aspect-[3/4] bg-stone-800 rounded-lg" />
-                  <div className="h-4 bg-stone-800 rounded w-3/4" />
-                  <div className="h-3 bg-stone-800 rounded w-1/2" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div style={{
+        fontFamily: "'Tajawal', 'Cairo', sans-serif",
+        background: 'linear-gradient(135deg, #0c0a09 0%, #1c1917 50%, #0c0a09 100%)',
+        color: '#f5f5f4', minHeight: '100vh',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px',
+      }}>
+        ⏳ جاري تحميل المكتبة...
       </div>
-    );
+    )
   }
 
-  // 🎨 التصميم الجديد Dark Elegant
-  // إذا لم تكن هناك فلاتر نشطة، اعرض الصفحة الرئيسية الاحترافية الجديدة
-  const hasActiveFilter = isSearching || (activeCategory ?? 0) !== 0 || difficultyFilter !== "";
-  if (!hasActiveFilter) {
-    return <LibraryHomeDark books={allBooks} categories={categories} />;
-  }
-
-  // صفحة نتائج البحث/الفلترة - تصميم Dark أيضاً
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-950 via-stone-900 to-stone-950 text-stone-100">
-      {/* خلفية متوهّجة */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px]" />
+    <div style={{
+      fontFamily: "'Tajawal', 'Cairo', sans-serif",
+      background: 'linear-gradient(135deg, #0c0a09 0%, #1c1917 50%, #0c0a09 100%)',
+      color: '#f5f5f4',
+      minHeight: '100vh', overflowX: 'hidden',
+    }}>
+      {/* Background Orbs */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '480px', height: '480px', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.2, background: '#9333ea' }} />
+        <div style={{ position: 'absolute', top: '40%', left: '-10%', width: '480px', height: '480px', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.2, background: '#2563eb' }} />
+        <div style={{ position: 'absolute', bottom: '-10%', right: '30%', width: '380px', height: '380px', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.1, background: '#059669' }} />
       </div>
 
       {/* Header */}
-      <header className="relative z-10 bg-stone-950/50 backdrop-blur-xl border-b border-stone-800/50 sticky top-0">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          <button
-            onClick={() => router.push("/library")}
-            className="flex items-center gap-2 text-stone-300 hover:text-white"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            <span className="text-sm">الرئيسية</span>
-          </button>
-
-          <div className="flex-1 max-w-2xl">
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="🔍 ابحث عن كتاب أو مؤلف..."
-              className="bg-stone-900/80 border-stone-700 text-white placeholder-stone-500 focus:border-purple-500"
-            />
-          </div>
-
-          <Link
-            href="/admin/library"
-            className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white text-sm font-medium shadow-lg"
-          >
-            📚 إدارة
+      <header style={{
+        position: 'sticky', top: 0, zIndex: 50,
+        background: 'rgba(12, 10, 9, 0.7)', backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(41, 37, 36, 0.6)',
+      }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px',
+              background: 'linear-gradient(135deg, #9333ea, #2563eb)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 8px 24px -8px rgba(147, 51, 234, 0.5)',
+              fontSize: '20px',
+            }}>📚</div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{
+                fontSize: '18px', fontWeight: 800,
+                background: 'linear-gradient(135deg, #c084fc, #60a5fa)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}>ثقافتنا</div>
+              <div style={{ fontSize: '10px', color: '#78716c', marginTop: '-2px' }}>المكتبة الذكية</div>
+            </div>
           </Link>
+
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Link href="/library" style={navItemStyle(true)}>الرئيسية</Link>
+            <Link href="/library/categories" style={navItemStyle(false)}>التصنيفات</Link>
+            <Link href="/library/authors" style={navItemStyle(false)}>المؤلفون</Link>
+            <Link href="/library/my-library" style={navItemStyle(false)}>⭐ مكتبتي</Link>
+          </nav>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button style={iconBtnStyle} title="بحث">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+            </button>
+            <button style={iconBtnStyle} title="إشعارات">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+            </button>
+            <Link href="/admin/login" style={{
+              width: '40px', height: '40px', borderRadius: '10px',
+              background: 'linear-gradient(135deg, #9333ea, #2563eb)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontWeight: 700, fontSize: '14px', textDecoration: 'none',
+            }}>ح</Link>
+          </div>
         </div>
       </header>
 
-      {/* المحتوى */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-6">
-        {/* شريط الفلاتر */}
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
-          <select
-            value={activeCategory ?? 0}
-            onChange={(e) => setActiveCategory(Number(e.target.value))}
-            className="px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-stone-200 text-sm"
-          >
-            <option value={0}>📂 كل التصنيفات ({allBooks.length})</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.icon} {c.name}
-              </option>
-            ))}
-          </select>
+      {/* Main */}
+      <main style={{ position: 'relative', zIndex: 1, maxWidth: '1400px', margin: '0 auto', padding: '40px 24px 80px' }}>
+        {/* Hero */}
+        <section style={{ textAlign: 'center', marginBottom: '64px' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            padding: '6px 16px', borderRadius: '100px',
+            background: 'rgba(147, 51, 234, 0.1)', border: '1px solid rgba(147, 51, 234, 0.3)',
+            color: '#c084fc', fontSize: '12px', fontWeight: 500, marginBottom: '24px',
+          }}>
+            <span style={{
+              width: '8px', height: '8px', borderRadius: '50%',
+              background: '#c084fc', animation: 'pulse 2s infinite',
+              display: 'inline-block',
+            }}></span>
+            <span>مكتبة عربية ذكية · {formatArabicNumber(totalBooks)} كتاب</span>
+          </div>
 
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-stone-200 text-sm"
-          >
-            <option value="recent">🆕 الأحدث</option>
-            <option value="popular">🔥 الأشهر</option>
-            <option value="rating">⭐ الأعلى تقييماً</option>
-            <option value="title">📚 أبجدياً</option>
-            <option value="time">⏱️ الأقصر</option>
-          </select>
+          <h1 style={{
+            fontFamily: "'Cairo', sans-serif",
+            fontSize: '56px', fontWeight: 800, lineHeight: 1.1,
+            marginBottom: '16px', letterSpacing: '-0.02em',
+          }}>
+            اكتشف عالم
+            <br />
+            <span style={{
+              background: 'linear-gradient(135deg, #c084fc, #ec4899, #fbbf24)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>الكتب العربية</span>
+          </h1>
 
-          {(isSearching || activeCategory !== 0 || difficultyFilter !== "") && (
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setActiveCategory(0);
-                setDifficultyFilter("");
-                setIsSearching(false);
-              }}
-              className="px-3 py-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 text-sm transition-colors"
-            >
-              ✕ مسح الفلاتر
-            </button>
-          )}
-        </div>
-
-        {/* عدد النتائج */}
-        <div className="mb-4">
-          <p className="text-sm text-stone-400">
-            {isSearching && searchQuery ? (
-              <>نتائج البحث عن "<span className="text-purple-300">{searchQuery}</span>"</>
-            ) : (
-              <>عرض كل الكتب</>
-            )}{" "}
-            ({displayedBooks.length} كتاب)
+          <p style={{ fontSize: '18px', color: '#a8a29e', maxWidth: '640px', margin: '0 auto 40px', lineHeight: 1.6 }}>
+            آلاف الكتب العربية في مختلف التصنيفات · اقرأ وحمّل مجاناً · مدعوم بالذكاء الاصطناعي
           </p>
-        </div>
 
-        {/* شبكة الكتب */}
-        {displayedBooks.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {displayedBooks.map((book, idx) => (
-              <motion.div
-                key={book.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: Math.min(idx * 0.03, 0.5) }}
-              >
-                <Link href={`/library/${book.id}`} className="block group">
-                  <BookCover
-                    title={book.title}
-                    author={book.author}
-                    categoryName={book.category.name}
-                    difficulty={book.difficulty}
-                    size="md"
-                    coverImageUrl={book.coverImage}
-                    showPdfBadge={!!book.pdfUrl}
-                    className="group-hover:scale-105 transition-transform"
-                  />
-                  <div className="mt-2 px-1">
-                    <h3 className="text-sm font-bold text-stone-200 truncate group-hover:text-purple-300 transition-colors">
-                      {book.title}
-                    </h3>
-                    <p className="text-xs text-stone-500 truncate">{book.author}</p>
-                    <div className="flex items-center gap-2 mt-1 text-xs">
-                      <span className="text-amber-400">⭐ {book.ratingAvg || "—"}</span>
-                      <span className="text-stone-600">·</span>
-                      <span className="text-stone-500">👁️ {book.views}</span>
-                      {book.pdfUrl && (
-                        <>
-                          <span className="text-stone-600">·</span>
-                          <span className="text-blue-400">📄</span>
-                        </>
+          {/* Search Bar */}
+          <div style={{ maxWidth: '720px', margin: '0 auto 16px', position: 'relative' }}>
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.3), rgba(37, 99, 235, 0.3))',
+              borderRadius: '16px', filter: 'blur(20px)', opacity: 0.5,
+            }} />
+            <div style={{
+              position: 'relative',
+              display: 'flex', alignItems: 'center', gap: '12px', padding: '8px',
+              background: 'rgba(28, 25, 23, 0.8)', backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(68, 64, 60, 0.6)', borderRadius: '16px',
+              boxShadow: '0 20px 40px -10px rgba(0,0,0,0.4)',
+            }}>
+              <div style={{ padding: '0 16px 0 8px', color: '#78716c' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder={searchPlaceholder}
+                style={{
+                  flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                  color: 'white', fontSize: '16px', fontFamily: 'inherit', padding: '12px 0',
+                }}
+              />
+              <button style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #9333ea, #2563eb)',
+                color: 'white', fontWeight: 600, fontSize: '14px',
+                border: 'none', borderRadius: '12px', cursor: 'pointer',
+                boxShadow: '0 8px 16px -4px rgba(147, 51, 234, 0.4)',
+                transition: 'all 0.2s', fontFamily: 'inherit',
+              }}>بحث</button>
+            </div>
+          </div>
+
+          {/* Suggestions */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '16px' }}>
+            <span style={{ fontSize: '12px', color: '#78716c' }}>جرّب:</span>
+            {['الليبرالية', 'ابن خلدون', 'التراث', 'تطوير الذات', 'الفلسفة'].map(s => (
+              <button key={s} style={{
+                padding: '6px 14px', borderRadius: '100px',
+                background: 'rgba(41, 37, 36, 0.5)',
+                color: '#d6d3d1', fontSize: '12px', cursor: 'pointer',
+                transition: 'all 0.2s', border: '1px solid transparent',
+                fontFamily: 'inherit',
+              }}>{s}</button>
+            ))}
+          </div>
+        </section>
+
+        {/* Stats */}
+        <section style={{ marginBottom: '64px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+            {[
+              { icon: '📚', value: formatArabicNumber(totalBooks), label: 'كتاب عربي', color: '#9333ea' },
+              { icon: '📂', value: formatArabicNumber(categories.length), label: 'تصنيف', color: '#2563eb' },
+              { icon: '✍️', value: formatArabicNumber(totalAuthors), label: 'مؤلف', color: '#059669' },
+              { icon: '📥', value: formatArabicNumber(totalDownloads), label: 'تنزيل', color: '#f59e0b' },
+            ].map((stat, i) => (
+              <div key={i} style={{
+                position: 'relative', padding: '24px',
+                background: 'rgba(28, 25, 23, 0.5)',
+                border: '1px solid rgba(41, 37, 36, 0.6)',
+                borderRadius: '18px', overflow: 'hidden', transition: 'all 0.3s',
+              }}>
+                <div style={{
+                  position: 'absolute', top: '-16px', right: '-16px',
+                  width: '64px', height: '64px', borderRadius: '50%',
+                  background: stat.color, filter: 'blur(32px)', opacity: 0.2,
+                }} />
+                <div style={{ fontSize: '24px', marginBottom: '8px' }}>{stat.icon}</div>
+                <div style={{ fontSize: '32px', fontWeight: 800, color: 'white', fontFamily: "'Cairo', sans-serif" }}>
+                  {stat.value}
+                </div>
+                <div style={{ fontSize: '12px', color: '#a8a29e', marginTop: '4px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Featured Books */}
+        <section style={{ marginBottom: '64px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <div>
+              <h2 style={{ fontFamily: "'Cairo', sans-serif", fontSize: '28px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span>⭐</span>
+                <span>الكتب المميزة</span>
+              </h2>
+              <p style={{ fontSize: '14px', color: '#78716c', marginTop: '4px' }}>مختارات فريق التحرير</p>
+            </div>
+            <Link href="/library/categories" style={{ fontSize: '14px', color: '#c084fc', textDecoration: 'none', cursor: 'pointer' }}>
+              عرض الكل ←
+            </Link>
+          </div>
+
+          {displayBooks.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#78716c' }}>
+              <div style={{ fontSize: '48px', marginBottom: '12px' }}>📭</div>
+              لا توجد كتب مضافة بعد
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '20px' }}>
+              {displayBooks.map(book => (
+                <Link key={book.id} href={`/library/${book.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div style={{ cursor: 'pointer', transition: 'transform 0.3s' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseOut={e => e.currentTarget.style.transform = ''}>
+                    <div style={{
+                      position: 'relative', aspectRatio: '2/3',
+                      borderRadius: '8px', overflow: 'hidden',
+                      boxShadow: '0 8px 24px -8px rgba(0,0,0,0.5)', marginBottom: '12px',
+                      background: 'linear-gradient(135deg, #1e3a8a, #6366f1)',
+                    }}>
+                      {book.coverImage ? (
+                        <img src={book.coverImage} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '48px' }}>📚</div>
                       )}
+                      {book.pdfUrl && (
+                        <div style={{
+                          position: 'absolute', top: '8px', right: '8px',
+                          background: 'rgba(239, 68, 68, 0.9)', color: 'white',
+                          fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px',
+                          backdropFilter: 'blur(4px)',
+                        }}>PDF</div>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#e7e5e4', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {book.title}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#78716c', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {book.author}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '11px' }}>
+                      <span style={{ color: '#fbbf24' }}>⭐ {book.ratingAvg.toFixed(1)}</span>
+                      <span style={{ color: '#78716c' }}>· 👁️ {formatCount(book.views)}</span>
                     </div>
                   </div>
                 </Link>
-              </motion.div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Categories */}
+        <section style={{ marginBottom: '64px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <div>
+              <h2 style={{ fontFamily: "'Cairo', sans-serif", fontSize: '28px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span>📂</span>
+                <span>تصفّح حسب التصنيف</span>
+              </h2>
+              <p style={{ fontSize: '14px', color: '#78716c', marginTop: '4px' }}>اختر تصنيفك المفضل واكتشف كتباً جديدة</p>
+            </div>
+            <Link href="/library/categories" style={{ fontSize: '14px', color: '#c084fc', textDecoration: 'none' }}>
+              عرض الكل ←
+            </Link>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+            {(categories.length > 0 ? categories : [
+              { id: 1, name: 'الأدب العربي', icon: '📖', color: 'linear-gradient(135deg, #3b82f6, #1e3a8a)', booksCount: 0 },
+              { id: 2, name: 'الكتب الدينية', icon: '🕌', color: 'linear-gradient(135deg, #10b981, #047857)', booksCount: 0 },
+              { id: 3, name: 'التاريخ والتراث', icon: '📜', color: 'linear-gradient(135deg, #f59e0b, #b45309)', booksCount: 0 },
+              { id: 4, name: 'العلوم والمعرفة', icon: '🔬', color: 'linear-gradient(135deg, #8b5cf6, #5b21b6)', booksCount: 0 },
+              { id: 5, name: 'الجغرافيا والرحلات', icon: '🌍', color: 'linear-gradient(135deg, #06b6d4, #0e7490)', booksCount: 0 },
+              { id: 6, name: 'الفنون والآداب', icon: '🎨', color: 'linear-gradient(135deg, #ec4899, #9f1239)', booksCount: 0 },
+              { id: 7, name: 'أدب الأطفال', icon: '🧸', color: 'linear-gradient(135deg, #f97316, #9a3412)', booksCount: 0 },
+              { id: 8, name: 'التنمية البشرية', icon: '🌱', color: 'linear-gradient(135deg, #14b8a6, #115e59)', booksCount: 0 },
+            ]).map(cat => (
+              <Link key={cat.id} href={`/library/categories?cat=${cat.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{
+                  position: 'relative', padding: '24px',
+                  borderRadius: '16px', overflow: 'hidden', cursor: 'pointer',
+                  transition: 'all 0.3s', color: 'white', minHeight: '120px',
+                  display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                  background: cat.color || 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = ''}>
+                  <div style={{ fontSize: '32px', marginBottom: '12px', position: 'relative' }}>{cat.icon}</div>
+                  <div style={{ position: 'relative' }}>
+                    <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>{cat.name}</div>
+                    <div style={{ fontSize: '11px', opacity: 0.8 }}>{formatArabicNumber(cat.booksCount)} كتاب</div>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
-        ) : (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">📚</div>
-            <h3 className="text-xl font-bold text-stone-300 mb-2">لا توجد كتب مطابقة</h3>
-            <p className="text-stone-500 mb-6">جرّب كلمات بحث أو فلاتر مختلفة</p>
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setActiveCategory(0);
-                setDifficultyFilter("");
-                setIsSearching(false);
-              }}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium"
-            >
-              عرض كل الكتب
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+        </section>
 
-// ============================================================
-// شبكة الكتب
-// ============================================================
-function BookGrid({ books, viewMode }: { books: Book[]; viewMode: ViewMode }) {
-  return (
-    <div className={cn(
-      "gap-4",
-      viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5" : "flex flex-col"
-    )}>
-      {books.map((book, idx) => (
-        <BookCard key={book.id} book={book} index={idx} viewMode={viewMode} />
-      ))}
-    </div>
-  );
-}
-
-// ============================================================
-// بطاقة كتاب
-// ============================================================
-function BookCard({ book, index, viewMode }: { book: Book; index: number; viewMode: ViewMode }) {
-  if (viewMode === "list") {
-    return (
-      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: Math.min(index * 0.03, 0.5) }}>
-        <Link href={`/library/${book.id}`}>
-          <Card className="flex gap-4 p-3 hover:shadow-lg transition-all cursor-pointer group border-stone-200 hover:border-indigo-300">
-            <BookCover title={book.title} author={book.author} categoryName={book.category.name} difficulty={book.difficulty} size="sm" coverImageUrl={book.coverImage} showPdfBadge={!!book.pdfUrl} />
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-stone-900 truncate group-hover:text-indigo-600 transition-colors">{book.title}</h3>
-              <p className="text-sm text-stone-500 mb-2">{book.author}</p>
-              <p className="text-xs text-stone-600 line-clamp-2 mb-2">{book.description}</p>
-              <div className="flex items-center gap-3 text-xs text-stone-400">
-                <span>⭐ {book.ratingAvg || "—"}</span>
-                <span>📑 {book._count.chapters} فصول</span>
-                <span>⏱️ {book.readingTimeMin}د</span>
-                <span>👁️ {book.views}</span>
+        {/* Most Downloaded */}
+        {mostDownloaded.length > 0 && (
+          <section style={{ marginBottom: '64px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div>
+                <h2 style={{ fontFamily: "'Cairo', sans-serif", fontSize: '28px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span>🔥</span>
+                  <span>الأكثر تنزيلاً</span>
+                </h2>
+                <p style={{ fontSize: '14px', color: '#78716c', marginTop: '4px' }}>الكتب الأكثر شعبية هذا الأسبوع</p>
               </div>
             </div>
-          </Card>
-        </Link>
-      </motion.div>
-    );
-  }
 
-  return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: Math.min(index * 0.03, 0.5) }}>
-      <Link href={`/library/${book.id}`}>
-        <Card className="overflow-hidden cursor-pointer hover:shadow-xl transition-all group h-full p-3 border-stone-200 hover:border-indigo-300">
-          <div className="relative mb-3 flex justify-center">
-            <div className="transition-transform group-hover:scale-105 group-hover:-rotate-1">
-              <BookCover title={book.title} author={book.author} categoryName={book.category.name} difficulty={book.difficulty} size="sm" coverImageUrl={book.coverImage} showPdfBadge={!!book.pdfUrl} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {mostDownloaded.map((book, i) => (
+                <Link key={book.id} href={`/library/${book.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '16px',
+                    padding: '16px', borderRadius: '14px',
+                    background: 'rgba(28, 25, 23, 0.5)',
+                    border: '1px solid rgba(41, 37, 36, 0.6)',
+                    cursor: 'pointer', transition: 'all 0.2s',
+                  }} onMouseOver={e => e.currentTarget.style.borderColor = 'rgba(147, 51, 234, 0.3)'} onMouseOut={e => e.currentTarget.style.borderColor = 'rgba(41, 37, 36, 0.6)'}>
+                    <div style={{ fontSize: '28px', fontWeight: 800, color: '#44403c', width: '40px', textAlign: 'center', fontFamily: "'Cairo', sans-serif" }}>
+                      {i + 1}
+                    </div>
+                    <div style={{
+                      width: '50px', height: '70px', borderRadius: '4px',
+                      overflow: 'hidden', flexShrink: 0,
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+                      background: 'linear-gradient(135deg, #1e3a8a, #6366f1)',
+                    }}>
+                      {book.coverImage ? (
+                        <img src={book.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>📚</div>
+                      )}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#e7e5e4', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {book.title}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#78716c', marginBottom: '8px' }}>{book.author}</div>
+                      <div style={{ display: 'flex', gap: '12px', fontSize: '11px' }}>
+                        <span style={{ color: '#34d399', fontWeight: 600 }}>📥 {formatCount(book.downloads)} تنزيل</span>
+                        <span style={{ color: '#fbbf24' }}>⭐ {book.ratingAvg.toFixed(1)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
-            {book.isFeatured && (
-              <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center text-xs shadow-md z-10">⭐</span>
-            )}
-            {book.isPremium && (
-              <span className="absolute -top-1 -left-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[8px] font-bold shadow-md z-10">PRO</span>
-            )}
-          </div>
-          <h3 className="font-bold text-sm text-stone-900 truncate group-hover:text-indigo-600 transition-colors">{book.title}</h3>
-          <p className="text-xs text-stone-500 truncate mb-2">{book.author}</p>
-          <div className="flex items-center justify-between text-[10px] text-stone-400 border-t border-stone-100 pt-2">
-            <span className="flex items-center gap-1">
-              <span className="text-amber-500">⭐</span>
-              <span className="font-medium">{book.ratingAvg || "—"}</span>
-            </span>
-            <span>📑 {book._count.chapters}</span>
-            <span>⏱️ {book.readingTimeMin}د</span>
-            <span>👁️ {book.views > 999 ? `${(book.views / 1000).toFixed(1)}K` : book.views}</span>
-          </div>
-        </Card>
-      </Link>
-    </motion.div>
-  );
-}
+          </section>
+        )}
 
-// ============================================================
-// بطاقة كتاب مميز (أكبر)
-// ============================================================
-function FeaturedCard({ book, index }: { book: Book; index: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, type: "spring", stiffness: 100 }}
-    >
-      <Link href={`/library/${book.id}`}>
-        <Card className="overflow-hidden cursor-pointer hover:shadow-2xl transition-all group h-full border-2 border-amber-200 hover:border-amber-400 bg-gradient-to-b from-amber-50/50 to-white">
-          <div className="relative p-4 flex justify-center bg-gradient-to-b from-amber-50 to-transparent">
-            <div className="transition-transform group-hover:scale-110 group-hover:-rotate-2">
-              <BookCover title={book.title} author={book.author} categoryName={book.category.name} difficulty={book.difficulty} size="md" coverImageUrl={book.coverImage} showPdfBadge={!!book.pdfUrl} />
+        {/* CTA Section */}
+        <section>
+          <div style={{
+            position: 'relative', padding: '48px',
+            background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.15), rgba(37, 99, 235, 0.15))',
+            border: '1px solid rgba(147, 51, 234, 0.3)',
+            borderRadius: '24px', overflow: 'hidden', textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '64px', marginBottom: '16px' }}>✍️</div>
+            <h2 style={{ fontFamily: "'Cairo', sans-serif", fontSize: '32px', fontWeight: 800, marginBottom: '12px' }}>
+              هل أنت مؤلف؟
+            </h2>
+            <p style={{ fontSize: '16px', color: '#d6d3d1', maxWidth: '480px', margin: '0 auto 24px', lineHeight: 1.7 }}>
+              ارفع كتابك وانشره لآلاف القراء العرب مجاناً. انضم لمجتمع المؤلفين العرب.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <Link href="/contact" style={{
+                padding: '14px 28px', background: 'white', color: '#0c0a09',
+                fontWeight: 700, fontSize: '14px', border: 'none',
+                borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit',
+                textDecoration: 'none', transition: 'all 0.2s',
+              }}>📤 ارفع كتابك</Link>
+              <Link href="/library/authors" style={{
+                padding: '14px 28px', background: 'rgba(41, 37, 36, 0.5)', color: 'white',
+                border: '1px solid rgba(68, 64, 60, 0.5)',
+                fontWeight: 600, fontSize: '14px', borderRadius: '12px', cursor: 'pointer',
+                fontFamily: 'inherit', textDecoration: 'none', transition: 'all 0.2s',
+              }}>تعرّف على المؤلفين</Link>
             </div>
-            <span className="absolute top-2 right-2 px-2 py-1 rounded-full bg-amber-400 text-white text-[10px] font-bold shadow-md">⭐ مميز</span>
           </div>
-          <div className="p-4 pt-2">
-            <h3 className="font-bold text-stone-900 truncate group-hover:text-amber-600 transition-colors">{book.title}</h3>
-            <p className="text-sm text-stone-500 mb-2">{book.author}</p>
-            <p className="text-xs text-stone-600 line-clamp-2 mb-3">{book.description}</p>
-            <div className="flex items-center justify-between text-[10px] text-stone-400 border-t border-stone-100 pt-2">
-              <span className="flex items-center gap-1"><span className="text-amber-500">⭐</span><span className="font-bold text-stone-700">{book.ratingAvg || "—"}</span></span>
-              <span>📑 {book._count.chapters} فصول</span>
-              <span>⏱️ {Math.floor(book.readingTimeMin / 60) > 0 ? `${Math.floor(book.readingTimeMin / 60)} ساعة` : `${book.readingTimeMin} دقيقة`}</span>
-            </div>
-          </div>
-        </Card>
-      </Link>
-    </motion.div>
-  );
-}
+        </section>
+      </main>
 
-// ============================================================
-// حالة فارغة
-// ============================================================
-function EmptyState({ icon, title, message }: { icon: string; title: string; message: string }) {
-  return (
-    <div className="text-center py-16">
-      <div className="text-6xl mb-4 opacity-50">{icon}</div>
-      <h3 className="text-lg font-bold text-stone-700 mb-1">{title}</h3>
-      <p className="text-stone-400 text-sm">{message}</p>
+      {/* Footer */}
+      <footer style={{
+        position: 'relative', zIndex: 1,
+        borderTop: '1px solid rgba(41, 37, 36, 0.6)',
+        padding: '48px 24px 32px',
+        background: 'rgba(12, 10, 9, 0.5)', backdropFilter: 'blur(20px)',
+      }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '48px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #9333ea, #2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>📚</div>
+              <strong style={{ color: 'white' }}>ثقافتنا</strong>
+            </div>
+            <p style={{ fontSize: '12px', color: '#78716c', lineHeight: 1.7 }}>
+              منصة عربية تعليمية ترفيهية تجمع بين الألغاز التكيّفية والمكتبة الذكية.
+            </p>
+          </div>
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#d6d3d1', marginBottom: '12px' }}>المكتبة</div>
+            <Link href="/library" style={{ display: 'block', fontSize: '13px', color: '#78716c', padding: '4px 0', textDecoration: 'none' }}>كل الكتب</Link>
+            <Link href="/library/categories" style={{ display: 'block', fontSize: '13px', color: '#78716c', padding: '4px 0', textDecoration: 'none' }}>التصنيفات</Link>
+            <Link href="/library/authors" style={{ display: 'block', fontSize: '13px', color: '#78716c', padding: '4px 0', textDecoration: 'none' }}>المؤلفون</Link>
+            <Link href="/library/my-library" style={{ display: 'block', fontSize: '13px', color: '#78716c', padding: '4px 0', textDecoration: 'none' }}>مكتبتي</Link>
+          </div>
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#d6d3d1', marginBottom: '12px' }}>المساعدة</div>
+            <Link href="/contact" style={{ display: 'block', fontSize: '13px', color: '#78716c', padding: '4px 0', textDecoration: 'none' }}>تواصل معنا</Link>
+            <Link href="/admin/login" style={{ display: 'block', fontSize: '13px', color: '#78716c', padding: '4px 0', textDecoration: 'none' }}>دخول الأدمن</Link>
+          </div>
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#d6d3d1', marginBottom: '12px' }}>عن المكتبة</div>
+            <Link href="/contact" style={{ display: 'block', fontSize: '13px', color: '#78716c', padding: '4px 0', textDecoration: 'none' }}>عن ثقافتنا</Link>
+            <Link href="/contact" style={{ display: 'block', fontSize: '13px', color: '#78716c', padding: '4px 0', textDecoration: 'none' }}>سياسة الخصوصية</Link>
+            <Link href="/contact" style={{ display: 'block', fontSize: '13px', color: '#78716c', padding: '4px 0', textDecoration: 'none' }}>شروط الاستخدام</Link>
+          </div>
+        </div>
+        <div style={{ maxWidth: '1400px', margin: '32px auto 0', paddingTop: '24px', borderTop: '1px solid rgba(41, 37, 36, 0.6)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#57534e' }}>
+          <span>© 2026 ثقافتنا · جميع الحقوق محفوظة</span>
+          <span>صُنع بـ ❤️ للغة وثقافة الأمة العربية</span>
+        </div>
+      </footer>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        @media (max-width: 1024px) {
+          main { grid-template-columns: 1fr !important; }
+          footer > div:first-child { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 768px) {
+          nav { display: none !important; }
+        }
+      `}</style>
     </div>
-  );
+  )
+}
+
+function navItemStyle(active: boolean): React.CSSProperties {
+  return {
+    padding: '8px 16px', borderRadius: '10px',
+    color: active ? '#fff' : '#d6d3d1', fontSize: '14px', cursor: 'pointer',
+    transition: 'all 0.2s', textDecoration: 'none',
+    background: active ? 'rgba(68, 64, 60, 0.5)' : 'transparent',
+  }
+}
+
+const iconBtnStyle: React.CSSProperties = {
+  width: '40px', height: '40px', borderRadius: '10px',
+  background: 'rgba(41, 37, 36, 0.5)', border: '1px solid rgba(68, 64, 60, 0.4)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  color: '#a8a29e', cursor: 'pointer', transition: 'all 0.2s',
 }

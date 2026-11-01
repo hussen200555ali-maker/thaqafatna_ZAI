@@ -1,727 +1,601 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useGameStore } from "@/lib/game-store";
-import { CertificateDisplay } from "@/components/library/certificate-display";
-import { BookCover } from "@/components/library/book-cover";
-import { PDFViewer } from "@/components/library/pdf-viewer";
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { BookCover } from '@/components/library/book-cover'
 
 /**
- * صفحة الكتاب التفصيلية
- * تعرض: معلومات الكتاب + الفصول + التقييمات + أزرار القراءة
+ * 📖 صفحة الكتاب — تصميم Dark Elegant Noor Editorial
+ *
+ * المميزات:
+ * - Adaptive Cover (يظهر في الـ Header عند التمرير)
+ * - Sidebar معاينة الغلاف + CTA + TOC + Reading Progress
+ * - Content: quote section + book title + description + info grid + keywords + reviews
+ * - Mobile: Sticky CTA أسفل الشاشة
+ * - Background orbs (purple + blue + emerald)
  */
 
 interface Chapter {
-  id: number;
-  number: number;
-  title: string;
-  readingTimeMin: number;
-  isFree: boolean;
-  relatedLevelId: number | null;
+  id: number
+  order: number
+  title: string
+  estimatedMinutes: number
+  isFree: boolean
+}
+
+interface Review {
+  id: number
+  rating: number
+  content: string
+  createdAt: string
+  user: { id: string; name: string | null }
 }
 
 interface BookDetail {
-  id: number;
-  title: string;
-  author: string;
-  description: string;
-  coverImage: string;
-  contentType: string;
-  pdfUrl: string;
-  pdfFileName: string;
-  pdfSize: number;
-  pdfPageCount: number;
-  coverImageFileName: string;
-  coverImageSize: number;
-  uploadedAt: string | null;
-  difficulty: string;
-  readingTimeMin: number;
-  pages: number;
-  language: string;
-  keywords: string[];
-  relatedLevels: number[];
-  views: number;
-  downloads: number;
-  ratingAvg: number;
-  ratingCount: number;
-  isFeatured: boolean;
-  isPremium: boolean;
-  category: { id: number; name: string; icon: string; color: string };
-  chapters: Chapter[];
-  reviews: any[];
-  _count: { reviews: number; bookmarks: number };
+  id: number
+  title: string
+  author: string
+  description: string
+  coverImage: string
+  contentType: string
+  pdfUrl: string
+  pdfFileName: string
+  pdfSize: number
+  pdfPageCount: number
+  difficulty: string
+  readingTimeMin: number
+  pages: number
+  language: string
+  keywords: string[]
+  views: number
+  downloads: number
+  ratingAvg: number
+  ratingCount: number
+  isFeatured: boolean
+  isPremium: boolean
+  category: { id: number; name: string; icon: string; color: string }
+  chapters: Chapter[]
+  reviews: Review[]
+  _count: { reviews: number; bookmarks: number }
 }
 
 function formatBytes(bytes: number): string {
-  if (!bytes || bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+  if (!bytes || bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`
+}
+
+function formatNumber(n: number): string {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+  return n.toString()
+}
+
+const difficultyLabels: Record<string, string> = {
+  easy: 'سهل', medium: 'متوسط', hard: 'صعب',
 }
 
 export default function BookDetailPage({ params }: { params: Promise<{ bookId: string }> }) {
-  const router = useRouter();
-  const { userId } = useGameStore();
-  const [bookId, setBookId] = useState<number | null>(null);
-  const [book, setBook] = useState<BookDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [readingProgress, setReadingProgress] = useState<any>(null);
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [userRating, setUserRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [bookId, setBookId] = useState<number | null>(null)
+  const [book, setBook] = useState<BookDetail | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [scrolled, setScrolled] = useState(false)
+  const [activeChapter, setActiveChapter] = useState<number | null>(null)
 
   useEffect(() => {
-    params.then((p) => setBookId(parseInt(p.bookId)));
-  }, [params]);
+    params.then((p) => setBookId(parseInt(p.bookId)))
+  }, [params])
 
   useEffect(() => {
-    if (!bookId) return;
-    const url = userId
-      ? `/api/books/${bookId}?userId=${userId}`
-      : `/api/books/${bookId}`;
-    fetch(url)
+    if (!bookId) return
+    fetch(`/api/books/${bookId}`)
       .then((r) => r.json())
-      .then((data) => {
-        setBook(data.book);
-        setReadingProgress(data.readingProgress);
-        setIsBookmarked(data.isBookmarked);
-      })
+      .then((data) => setBook(data.book))
       .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [bookId, userId]);
+      .finally(() => setLoading(false))
+  }, [bookId])
 
-  const handleBookmark = async () => {
-    if (!userId || !bookId) return;
-    try {
-      const response = await fetch(`/api/books/${bookId}/progress`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, currentChapter: readingProgress?.currentChapter || 1 }),
-      });
-      if (response.ok) {
-        setIsBookmarked(!isBookmarked);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const submitRating = async (rating: number) => {
-    if (!userId || !bookId) return;
-    setUserRating(rating);
-    try {
-      const response = await fetch(`/api/books/${bookId}/review`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, rating }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        // تحديث الكتاب بالتقييم الجديد
-        if (book) {
-          setBook({
-            ...book,
-            ratingAvg: data.avgRating,
-            ratingCount: data.ratingCount,
-          });
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 200)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-          className="w-16 h-16 rounded-full border-4 border-indigo-400 border-t-transparent"
-        />
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0c0a09, #1c1917, #0c0a09)', color: '#a8a29e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>
+        ⏳ جاري التحميل...
       </div>
-    );
+    )
   }
 
   if (!book) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
-        <Card className="p-8 text-center">
-          <p className="text-stone-600 mb-4">الكتاب غير موجود</p>
-          <Button onClick={() => router.push("/library")}>العودة للمكتبة</Button>
-        </Card>
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0c0a09, #1c1917, #0c0a09)', color: '#a8a29e', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+        <div style={{ fontSize: '64px', marginBottom: '16px' }}>📭</div>
+        <h1 style={{ color: '#f5f5f4', fontSize: '24px', marginBottom: '8px' }}>الكتاب غير موجود</h1>
+        <Link href="/library" style={{ color: '#c084fc', fontSize: '14px' }}>العودة للمكتبة ←</Link>
       </div>
-    );
+    )
   }
 
-  const difficultyInfo: Record<string, { label: string; color: string; icon: string }> = {
-    easy: { label: "مبتدئ", color: "text-green-600 bg-green-100", icon: "🟢" },
-    medium: { label: "متوسط", color: "text-amber-600 bg-amber-100", icon: "🟡" },
-    hard: { label: "متقدم", color: "text-red-600 bg-red-100", icon: "🔴" },
-  };
-  const diff = difficultyInfo[book.difficulty] || difficultyInfo.medium;
-  const completedChapters = readingProgress?.completedChapters || [];
-  const completionRate = book.chapters.length > 0
-    ? Math.round((completedChapters.length / book.chapters.length) * 100)
-    : 0;
-  const nextChapter = readingProgress?.currentChapter || 1;
+  const b = book
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-950 via-stone-900 to-stone-950 text-stone-100">
-      {/* خلفية متوهّجة */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px]" />
+    <div style={{
+      fontFamily: "'Tajawal', 'Cairo', sans-serif",
+      background: 'linear-gradient(135deg, #0c0a09 0%, #1c1917 50%, #0c0a09 100%)',
+      color: '#f5f5f4',
+      minHeight: '100vh',
+      overflowX: 'hidden',
+    }}>
+      {/* Background Orbs */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '480px', height: '480px', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.2, background: '#9333ea' }} />
+        <div style={{ position: 'absolute', top: '50%', left: '-10%', width: '480px', height: '480px', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.2, background: '#2563eb' }} />
+        <div style={{ position: 'absolute', bottom: '-10%', right: '30%', width: '380px', height: '380px', borderRadius: '50%', filter: 'blur(120px)', opacity: 0.1, background: '#059669' }} />
       </div>
 
-      {/* الرأس */}
-      <header className="relative z-10 bg-stone-950/50 backdrop-blur-xl border-b border-stone-800/50 sticky top-0">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <button
-            onClick={() => router.push("/library")}
-            className="flex items-center gap-2 text-stone-300 hover:text-white"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-            <span className="text-sm">المكتبة</span>
-          </button>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleBookmark}
-              className={cn(
-                "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
-                isBookmarked ? "bg-amber-500/20 text-amber-400" : "bg-stone-800/50 text-stone-400 hover:bg-stone-800"
+      {/* Header */}
+      <header style={{
+        position: 'sticky', top: 0, zIndex: 50,
+        background: 'rgba(12, 10, 9, 0.7)',
+        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(41, 37, 36, 0.6)',
+        transition: 'all 0.3s ease',
+      }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Link href="/library" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#d6d3d1', fontSize: '14px', textDecoration: 'none', transition: 'color 0.2s' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+              <span>المكتبة</span>
+            </Link>
+
+            {/* Adaptive Cover (appears on scroll) */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '12px',
+              opacity: scrolled ? 1 : 0,
+              transform: scrolled ? 'translateX(0)' : 'translateX(20px)',
+              transition: 'all 0.4s ease',
+            }}>
+              {b.coverImage && (
+                <img src={b.coverImage} alt={b.title} style={{ width: '32px', height: '44px', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', objectFit: 'cover' }} />
               )}
-              title="إشارة مرجعية"
-            >
-              {isBookmarked ? "🔖" : "📑"}
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f4', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {b.title}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button title="إشارة مرجعية" style={{
+              width: '40px', height: '40px', borderRadius: '10px',
+              background: 'rgba(41, 37, 36, 0.5)', border: '1px solid rgba(68, 64, 60, 0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#a8a29e', cursor: 'pointer', transition: 'all 0.2s',
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5v16l7-5 7 5V5z" /></svg>
             </button>
-            <button
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({ title: book.title, url: window.location.href }).catch(() => {});
-                } else {
-                  navigator.clipboard.writeText(window.location.href);
-                  alert("📋 تم نسخ الرابط");
-                }
-              }}
-              className="w-9 h-9 rounded-lg bg-stone-800/50 hover:bg-stone-800 text-stone-400 flex items-center justify-center transition-colors"
-              title="مشاركة"
-            >
-              🔗
+            <button title="مشاركة" style={{
+              width: '40px', height: '40px', borderRadius: '10px',
+              background: 'rgba(41, 37, 36, 0.5)', border: '1px solid rgba(68, 64, 60, 0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#a8a29e', cursor: 'pointer', transition: 'all 0.2s',
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="relative z-10 max-w-5xl mx-auto px-4 py-8 space-y-8">
-        {/* ===== معلومات الكتاب - تخطيط احترافي ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row gap-8"
-        >
-          {/* الغلاف + شارة PDF */}
-          <div className="flex-shrink-0 mx-auto md:mx-0 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-blue-500/30 rounded-2xl blur-2xl" />
-            <div className="relative">
-              <BookCover
-                title={book.title}
-                author={book.author}
-                categoryName={book.category.name}
-                difficulty={book.difficulty}
-                size="lg"
-                coverImageUrl={book.coverImage}
-                showPdfBadge={!!book.pdfUrl}
-              />
-            </div>
-            {/* أزرار سريعة تحت الغلاف */}
-            <div className="mt-4 flex flex-col gap-2">
-              {book.pdfUrl && (
-                <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
-                  <span>📄</span>
-                  <span>متاح كـ PDF</span>
-                </div>
-              )}
-              {book.isFeatured && (
-                <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
-                  <span>⭐</span>
-                  <span>كتاب مميز</span>
-                </div>
-              )}
-            </div>
-          </div>
+      {/* Main Layout */}
+      <main style={{
+        position: 'relative', zIndex: 1,
+        maxWidth: '1400px', margin: '0 auto',
+        padding: '32px 24px 100px',
+        display: 'grid', gridTemplateColumns: '1fr 280px', gap: '48px',
+      }}>
+        {/* Content Side */}
+        <div style={{ minWidth: 0 }}>
+          {/* Quote Section */}
+          <section style={{ textAlign: 'center', margin: '0 0 56px', padding: '32px 0', position: 'relative' }}>
+            <div style={{ width: '60px', height: '1px', background: 'linear-gradient(90deg, transparent, #57534e, transparent)', margin: '0 auto 32px' }} />
+            <p style={{
+              fontFamily: "'Cairo', serif",
+              fontSize: '22px', fontWeight: 400, lineHeight: 1.8,
+              color: '#e7e5e4', maxWidth: '640px', margin: '0 auto', fontStyle: 'italic',
+            }}>
+              «{b.description ? b.description.substring(0, 140) + (b.description.length > 140 ? '...' : '') : 'الكتاب الصالح رفيق لا يخون، وصديق لا يغدر، ومعلم لا يَكلّ'}»
+            </p>
+            <p style={{ marginTop: '16px', fontSize: '13px', color: '#78716c' }}>
+              — من كتاب: {b.title}
+            </p>
+            <div style={{ width: '60px', height: '1px', background: 'linear-gradient(90deg, transparent, #57534e, transparent)', margin: '32px auto 0' }} />
+          </section>
 
-          {/* المعلومات الأساسية */}
-          <div className="flex-1 min-w-0">
-            {/* التصنيف */}
-            <div className="flex items-center gap-2 mb-3">
-              <Link
-                href={`/library?category=${book.category.id}`}
-                className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-medium hover:bg-purple-500/20 transition-colors"
-              >
-                {book.category.icon} {book.category.name}
-              </Link>
-              {book.isPremium && (
-                <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
-                  💎 Premium
-                </span>
-              )}
+          {/* Book Title Section */}
+          <section style={{ marginBottom: '48px' }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              padding: '6px 14px', borderRadius: '100px',
+              background: 'rgba(147, 51, 234, 0.1)', border: '1px solid rgba(147, 51, 234, 0.3)',
+              color: '#c084fc', fontSize: '12px', fontWeight: 500, marginBottom: '16px',
+            }}>
+              <span>{b.category.icon}</span>
+              <span>{b.category.name}</span>
             </div>
 
-            {/* العنوان */}
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3 leading-tight">
-              {book.title}
+            <h1 style={{
+              fontFamily: "'Cairo', sans-serif",
+              fontSize: '42px', fontWeight: 800, lineHeight: 1.2,
+              color: '#fff', marginBottom: '12px', letterSpacing: '-0.02em',
+            }}>
+              {b.title}
             </h1>
 
-            {/* المؤلف */}
-            <Link
-              href={`/library/authors/${encodeURIComponent(book.author)}`}
-              className="inline-flex items-center gap-2 text-stone-400 hover:text-purple-300 transition-colors mb-4"
-            >
-              <span className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
-                {book.author.charAt(0)}
-              </span>
-              <span className="text-base font-medium">{book.author}</span>
-              <span className="text-xs text-stone-600">·</span>
-              <span className="text-xs text-stone-500">صفحة المؤلف ←</span>
-            </Link>
+            <p style={{ fontSize: '18px', color: '#a8a29e', marginBottom: '24px' }}>
+              <Link href={`/library/authors/${encodeURIComponent(b.author)}`} style={{ color: '#c084fc', textDecoration: 'none' }}>
+                {b.author}
+              </Link>
+              <span style={{ color: '#44403c', margin: '0 8px' }}>·</span>
+              <span style={{ fontSize: '13px' }}>صفحة المؤلف ←</span>
+            </p>
 
-            {/* التقييم + الإحصائيات */}
-            <div className="flex items-center gap-6 mb-6 flex-wrap">
-              <div className="flex items-center gap-2">
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg
-                      key={star}
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill={star <= Math.round(book.ratingAvg) ? "#fbbf24" : "none"}
-                      stroke={star <= Math.round(book.ratingAvg) ? "#fbbf24" : "#52525b"}
-                      strokeWidth="2"
-                    >
+            {/* Stats */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', fontSize: '14px', color: '#a8a29e' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ display: 'flex', gap: '2px', color: '#fbbf24' }}>
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill={i <= Math.round(b.ratingAvg) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
                       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                     </svg>
                   ))}
                 </div>
-                <div className="text-sm">
-                  <span className="font-bold text-amber-400">{book.ratingAvg || "—"}</span>
-                  <span className="text-stone-500"> ({book.ratingCount} تقييم)</span>
-                </div>
+                <span style={{ fontWeight: 700, color: '#fbbf24' }}>{b.ratingAvg.toFixed(1)}</span>
+                <span style={{ color: '#78716c' }}>({formatNumber(b.ratingCount)} تقييم)</span>
               </div>
-              <div className="flex items-center gap-4 text-xs text-stone-400">
-                <span className="flex items-center gap-1">👁️ {book.views} قارئ</span>
-                {book.downloads > 0 && <span className="flex items-center gap-1">📥 {book.downloads} تنزيل</span>}
-                {book._count?.reviews > 0 && <span className="flex items-center gap-1">💬 {book._count.reviews} مراجعة</span>}
-              </div>
+              <span style={{ color: '#44403c' }}>·</span>
+              <span>👁️ {formatNumber(b.views)} قارئ</span>
+              <span style={{ color: '#44403c' }}>·</span>
+              <span>📥 {formatNumber(b.downloads)} تنزيل</span>
             </div>
+          </section>
 
-            {/* معلومات إضافية أنيقة */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          {/* Divider */}
+          <div style={{ width: '100%', height: '1px', margin: '0 0 32px', background: 'linear-gradient(90deg, transparent, #292524 20%, #292524 80%, transparent)' }} />
+
+          {/* Description */}
+          <section style={{ marginBottom: '56px' }}>
+            <h2 style={{ fontFamily: "'Cairo', sans-serif", fontSize: '24px', fontWeight: 700, color: '#fff', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '20px' }}>📖</span>
+              <span>عن الكتاب</span>
+            </h2>
+            <p style={{ fontSize: '17px', lineHeight: 1.9, color: '#d6d3d1', maxWidth: '720px' }}>
+              {b.description || 'لا يوجد وصف متاح لهذا الكتاب بعد.'}
+            </p>
+          </section>
+
+          <div style={{ width: '100%', height: '1px', margin: '0 0 32px', background: 'linear-gradient(90deg, transparent, #292524 20%, #292524 80%, transparent)' }} />
+
+          {/* Info Grid */}
+          <section style={{ marginBottom: '56px' }}>
+            <h2 style={{ fontFamily: "'Cairo', sans-serif", fontSize: '24px', fontWeight: 700, color: '#fff', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '20px' }}>📊</span>
+              <span>التفاصيل</span>
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
               {[
-                { label: "الصعوبة", value: diff.label, icon: diff.icon, color: "text-purple-400" },
-                { label: "وقت القراءة", value: `${book.readingTimeMin} د`, icon: "⏱️", color: "text-blue-400" },
-                { label: "عدد الصفحات", value: book.pages || "—", icon: "📄", color: "text-emerald-400" },
-                { label: "اللغة", value: book.language === "ar" ? "عربي" : book.language, icon: "🌐", color: "text-amber-400" },
+                { label: '📚 الفئة', value: b.category.name, color: '#c084fc' },
+                { label: '🌐 اللغة', value: b.language === 'ar' ? 'العربية' : b.language === 'en' ? 'الإنجليزية' : b.language, color: '#60a5fa' },
+                { label: '📄 الصفحات', value: `${b.pages} صفحة`, color: '#34d399' },
+                { label: '⏱️ وقت القراءة', value: `${b.readingTimeMin} دقيقة`, color: '#fbbf24' },
+                { label: '📊 الصعوبة', value: difficultyLabels[b.difficulty] || b.difficulty, color: '#c084fc' },
+                { label: '📖 عدد الفصول', value: `${b.chapters.length} فصل`, color: '#34d399' },
+                { label: '💾 حجم الملف', value: b.pdfSize ? formatBytes(b.pdfSize) : '—', color: '#fbbf24' },
+                { label: '⭐ مميز', value: b.isFeatured ? 'نعم' : 'لا', color: '#60a5fa' },
               ].map((info, i) => (
-                <div key={i} className="p-3 rounded-xl bg-stone-900/50 border border-stone-800">
-                  <div className="text-xs text-stone-500 mb-1">{info.icon} {info.label}</div>
-                  <div className={cn("text-sm font-bold", info.color)}>{info.value}</div>
+                <div key={i} style={{
+                  padding: '16px', borderRadius: '14px',
+                  background: 'rgba(28, 25, 23, 0.5)',
+                  border: '1px solid rgba(41, 37, 36, 0.6)',
+                  transition: 'all 0.2s',
+                }}>
+                  <div style={{ fontSize: '11px', color: '#78716c', marginBottom: '6px' }}>{info.label}</div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: info.color }}>{info.value}</div>
                 </div>
               ))}
             </div>
+          </section>
 
-            {/* أزرار الإجراء الرئيسية */}
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <Button
-                  className="flex-1 h-14 bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 hover:from-purple-600 hover:via-pink-600 hover:to-amber-600 text-white font-bold text-base rounded-2xl shadow-xl shadow-purple-500/30 transition-all hover:scale-[1.02]"
-                  onClick={() => {
-                    if (book.pdfUrl) {
-                      setShowPdfPreview(true);
-                    } else {
-                      router.push(`/library/reader/${book.id}/${nextChapter}`);
-                    }
-                  }}
-                >
-                  {book.pdfUrl ? (
-                    <span className="flex items-center gap-2">
-                      <span className="text-xl">📄</span>
-                      <span>{readingProgress ? "📖 متابعة القراءة" : "📖 اقرأ الآن"}</span>
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <span className="text-xl">📖</span>
-                      <span>{readingProgress ? "متابعة القراءة" : "ابدأ القراءة"}</span>
-                    </span>
-                  )}
-                </Button>
+          <div style={{ width: '100%', height: '1px', margin: '0 0 32px', background: 'linear-gradient(90deg, transparent, #292524 20%, #292524 80%, transparent)' }} />
 
-                {book.pdfUrl && (
-                  <Button
-                    variant="outline"
-                    className="h-14 px-6 border-2 border-emerald-500 text-emerald-400 hover:bg-emerald-500/10 font-bold rounded-2xl bg-transparent"
-                    onClick={async () => {
-                      if (!userId) {
-                        alert('⚠️ يجب تسجيل الدخول لتنزيل الكتاب\n\nسجّل دخولك من الصفحة الرئيسية للحصول على معرّف مستخدم.');
-                        return;
-                      }
-                      window.location.href = `/api/books/${book.id}/download?userId=${encodeURIComponent(userId)}`;
-                    }}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="text-xl">⬇️</span>
-                      <span>تنزيل</span>
+          {/* Keywords */}
+          {b.keywords && b.keywords.length > 0 && (
+            <>
+              <section style={{ marginBottom: '56px' }}>
+                <h2 style={{ fontFamily: "'Cairo', sans-serif", fontSize: '24px', fontWeight: 700, color: '#fff', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '20px' }}>🏷️</span>
+                  <span>الكلمات المفتاحية</span>
+                </h2>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {b.keywords.map((kw, i) => (
+                    <span key={i} style={{
+                      padding: '6px 14px', borderRadius: '8px',
+                      background: 'rgba(28, 25, 23, 0.5)',
+                      border: '1px solid rgba(68, 64, 60, 0.4)',
+                      color: '#d6d3d1', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s',
+                    }}>
+                      #{kw}
                     </span>
-                  </Button>
+                  ))}
+                </div>
+              </section>
+              <div style={{ width: '100%', height: '1px', margin: '0 0 32px', background: 'linear-gradient(90deg, transparent, #292524 20%, #292524 80%, transparent)' }} />
+            </>
+          )}
+
+          {/* Reviews */}
+          {b.reviews && b.reviews.length > 0 && (
+            <section style={{ marginBottom: '56px' }}>
+              <h2 style={{ fontFamily: "'Cairo', sans-serif", fontSize: '24px', fontWeight: 700, color: '#fff', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '20px' }}>💬</span>
+                <span>مراجعات القرّاء</span>
+                <span style={{ fontSize: '14px', color: '#78716c', fontWeight: 400 }}>({b._count.reviews} مراجعات)</span>
+              </h2>
+
+              {b.reviews.slice(0, 3).map((review) => (
+                <div key={review.id} style={{
+                  padding: '20px', borderRadius: '14px',
+                  background: 'rgba(28, 25, 23, 0.4)',
+                  border: '1px solid rgba(41, 37, 36, 0.6)',
+                  marginBottom: '12px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{
+                        width: '36px', height: '36px', borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #9333ea, #2563eb)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: 'white', fontWeight: 700, fontSize: '14px',
+                      }}>
+                        {(review.user?.name || '?').charAt(0)}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#e7e5e4' }}>{review.user?.name || 'مجهول'}</div>
+                        <div style={{ fontSize: '12px', color: '#78716c' }}>{new Date(review.createdAt).toLocaleDateString('ar-EG')}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '2px', color: '#fbbf24', marginBottom: '8px' }}>
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill={i <= review.rating ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                    ))}
+                  </div>
+                  <p style={{ fontSize: '14px', lineHeight: 1.7, color: '#a8a29e' }}>{review.content}</p>
+                </div>
+              ))}
+            </section>
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <aside style={{
+          position: 'sticky', top: '96px', alignSelf: 'start',
+          maxHeight: 'calc(100vh - 120px)', overflowY: 'auto',
+          paddingLeft: '8px',
+        }}>
+          {/* Cover + CTA Card */}
+          <div style={{
+            background: 'rgba(28, 25, 23, 0.5)',
+            border: '1px solid rgba(41, 37, 36, 0.6)',
+            borderRadius: '18px', overflow: 'hidden', marginBottom: '16px',
+          }}>
+            {/* Cover */}
+            <div style={{
+              position: 'relative', padding: '24px', textAlign: 'center',
+              background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(37, 99, 235, 0.1))',
+            }}>
+              <div style={{
+                width: '140px', height: '200px', margin: '0 auto 16px',
+                borderRadius: '8px', overflow: 'hidden',
+                boxShadow: '0 20px 40px -10px rgba(0,0,0,0.6), 0 8px 16px -4px rgba(147, 51, 234, 0.3)',
+                position: 'relative', transition: 'transform 0.3s ease',
+              }}>
+                {b.coverImage ? (
+                  <img src={b.coverImage} alt={b.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1e3a8a, #6366f1)', fontSize: '48px' }}>📚</div>
                 )}
               </div>
-
-              {book.pdfUrl && !showPdfPreview && (
-                <Button
-                  variant="ghost"
-                  className="w-full text-stone-400 hover:text-purple-300 hover:bg-purple-500/10 text-sm"
-                  onClick={() => setShowPdfPreview(true)}
-                >
-                  👁️ معاينة الكتاب داخل الصفحة
-                </Button>
-              )}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ===== شريط التقدّم ===== */}
-        {readingProgress && (
-          <Card className="p-5 bg-gradient-to-r from-purple-900/30 to-blue-900/30 border-purple-500/30 backdrop-blur">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-bold text-purple-300 flex items-center gap-2">
-                <span>📊</span>
-                <span>تقدّمك في القراءة</span>
-              </span>
-              <span className="text-lg font-bold text-purple-300">{completionRate}%</span>
-            </div>
-            <div className="h-2.5 bg-stone-800 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${completionRate}%` }}
-                className="h-full bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 rounded-full shadow-lg shadow-purple-500/50"
-              />
-            </div>
-            <p className="text-xs text-stone-400 mt-2">
-              {completedChapters.length} من {book.chapters.length} فصل مكتمل · {Math.round((Date.now() - new Date(readingProgress.lastReadAt).getTime()) / (1000 * 60 * 60 * 24))} يوم منذ آخر قراءة
-            </p>
-          </Card>
-        )}
-
-        {/* ===== الوصف ===== */}
-        <div>
-          <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
-            <span className="text-purple-400">📝</span>
-            <span>عن الكتاب</span>
-          </h2>
-          <div className="p-5 rounded-2xl bg-stone-900/50 border border-stone-800">
-            <p className="text-stone-300 leading-relaxed">{book.description}</p>
-          </div>
-        </div>
-
-        {/* ===== معاينة PDF داخلية ===== */}
-        {showPdfPreview && book.pdfUrl && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="space-y-3"
-          >
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <span className="text-blue-400">📖</span>
-                <span>معاينة الكتاب</span>
-              </h2>
-              <button
-                onClick={() => setShowPdfPreview(false)}
-                className="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 text-sm font-medium transition-colors"
-              >
-                ✕ إغلاق المعاينة
-              </button>
-            </div>
-            <PDFViewer
-              pdfUrl={book.pdfUrl}
-              pdfFileName={book.pdfFileName || 'كتاب PDF'}
-              pdfSize={book.pdfSize || 0}
-              pageCount={book.pdfPageCount || 0}
-              title={book.title}
-              isDarkMode={true}
-            />
-          </motion.div>
-        )}
-
-        {/* ===== بطاقة معلومات الملف ===== */}
-        {book.pdfUrl && (
-          <Card className="p-5 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border-blue-500/30">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-red-500/30">
-                  PDF
-                </div>
-                <div>
-                  <div className="font-bold text-white text-sm mb-1">
-                    {book.pdfFileName || 'ملف PDF'}
-                  </div>
-                  <div className="text-xs text-stone-400 flex gap-3 flex-wrap">
-                    {book.pdfSize > 0 && <span>💾 {formatBytes(book.pdfSize)}</span>}
-                    {book.pdfPageCount > 0 && <span>📑 {book.pdfPageCount} صفحة</span>}
-                    {book.downloads > 0 && <span>📥 {book.downloads} تنزيل</span>}
-                    {book.uploadedAt && <span>📅 {new Date(book.uploadedAt).toLocaleDateString('ar-EG')}</span>}
-                  </div>
-                </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                {b.pdfUrl && (
+                  <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                    📄 PDF
+                  </span>
+                )}
+                {b.isFeatured && (
+                  <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                    ⭐ مميز
+                  </span>
+                )}
               </div>
-              <a
-                href={book.pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors border border-white/20"
+            </div>
+
+            {/* CTA Section */}
+            <div style={{ padding: '0 16px 16px' }}>
+              <Link
+                href={b.chapters[0] ? `/library/reader/${b.id}/${b.chapters[0].id}` : '#'}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                  width: '100%', padding: '16px',
+                  background: 'linear-gradient(135deg, #9333ea, #ec4899, #f59e0b)',
+                  backgroundSize: '200% 200%',
+                  color: 'white', fontSize: '15px', fontWeight: 700,
+                  border: 'none', borderRadius: '14px', cursor: 'pointer',
+                  boxShadow: '0 8px 24px -8px rgba(147, 51, 234, 0.5)',
+                  transition: 'all 0.3s ease', marginBottom: '10px', textDecoration: 'none',
+                }}
               >
-                🔗 فتح في نافذة
-              </a>
-            </div>
-          </Card>
-        )}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+                <span>ابدأ القراءة</span>
+              </Link>
 
-        {/* ===== الكلمات المفتاحية ===== */}
-        {book.keywords.length > 0 && (
-          <div>
-            <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-              <span>🏷️</span>
-              <span>الكلمات المفتاحية</span>
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {book.keywords.map((kw, i) => (
-                <Link
-                  key={i}
-                  href={`/library?search=${encodeURIComponent(kw)}`}
-                  className="px-3 py-1.5 rounded-lg bg-stone-800/50 hover:bg-purple-500/20 border border-stone-700 hover:border-purple-500/50 text-stone-300 hover:text-purple-300 text-xs transition-colors"
-                >
-                  #{kw}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ===== الفصول ===== */}
-        {book.chapters.length > 0 && (
-          <div>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <span className="text-emerald-400">📑</span>
-              <span>فهرس الكتاب</span>
-              <span className="text-sm text-stone-500 font-normal">({book.chapters.length} فصل)</span>
-            </h2>
-            <div className="space-y-2">
-              {book.chapters.map((chapter, idx) => {
-                const isCompleted = completedChapters.includes(chapter.number);
-                const isCurrent = readingProgress?.currentChapter === chapter.number;
-                return (
-                  <motion.div
-                    key={chapter.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: idx * 0.05 }}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                {b.pdfUrl && (
+                  <a
+                    href={b.pdfUrl}
+                    download={b.pdfFileName || `${b.title}.pdf`}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                      padding: '12px', fontSize: '13px', fontWeight: 600,
+                      borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s',
+                      border: '1px solid', textDecoration: 'none',
+                      background: 'rgba(16, 185, 129, 0.1)', color: '#34d399',
+                      borderColor: 'rgba(16, 185, 129, 0.3)',
+                    }}
                   >
-                    <Link
-                      href={`/library/reader/${book.id}/${chapter.number}`}
-                      className={cn(
-                        "flex items-center gap-4 p-4 rounded-xl border transition-all group",
-                        isCurrent
-                          ? "bg-purple-500/10 border-purple-500/30"
-                          : isCompleted
-                          ? "bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10"
-                          : "bg-stone-900/50 border-stone-800 hover:bg-stone-800/50"
-                      )}
-                    >
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0",
-                        isCurrent ? "bg-purple-500 text-white" : isCompleted ? "bg-emerald-500/20 text-emerald-400" : "bg-stone-800 text-stone-400"
-                      )}>
-                        {isCompleted ? "✓" : chapter.number}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className={cn(
-                          "font-bold text-sm truncate",
-                          isCurrent ? "text-purple-300" : isCompleted ? "text-emerald-300" : "text-stone-200"
-                        )}>
-                          {chapter.title}
-                        </h3>
-                        <p className="text-xs text-stone-500 mt-0.5">
-                          ⏱️ {chapter.readingTimeMin} دقيقة
-                          {chapter.isFree === false && " · 🔒 Premium"}
-                        </p>
-                      </div>
-                      <div className="text-stone-600 group-hover:text-purple-400 transition-colors">
-                        ←
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ===== التقييم ===== */}
-        <div>
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <span className="text-amber-400">⭐</span>
-            <span>قيّم هذا الكتاب</span>
-          </h2>
-          <div className="p-5 rounded-2xl bg-stone-900/50 border border-stone-800 text-center">
-            <div className="flex justify-center gap-2 mb-3">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => submitRating(star)}
-                  onMouseEnter={() => setHoverRating(star)}
-                  onMouseLeave={() => setHoverRating(0)}
-                  className="transition-transform hover:scale-125"
-                >
-                  <svg
-                    width="36"
-                    height="36"
-                    viewBox="0 0 24 24"
-                    fill={star <= (hoverRating || userRating) ? "#fbbf24" : "none"}
-                    stroke={star <= (hoverRating || userRating) ? "#fbbf24" : "#52525b"}
-                    strokeWidth="2"
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span>تنزيل</span>
+                  </a>
+                )}
+                <button style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  padding: '12px', fontSize: '13px', fontWeight: 600,
+                  borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s',
+                  border: '1px solid',
+                  background: 'rgba(68, 64, 60, 0.3)', color: '#d6d3d1',
+                  borderColor: 'rgba(68, 64, 60, 0.5)',
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                   </svg>
+                  <span>مشاركة</span>
                 </button>
-              ))}
-            </div>
-            <p className="text-sm text-stone-400">
-              {userRating > 0 ? `شكراً! تقييمك: ${userRating} نجوم` : "اضغط على النجوم للتقييم"}
-            </p>
-          </div>
-        </div>
-
-        {/* ===== المراجعات ===== */}
-        {book.reviews && book.reviews.length > 0 && (
-          <div>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <span className="text-blue-400">💬</span>
-              <span>مراجعات القرّاء</span>
-              <span className="text-sm text-stone-500 font-normal">({book._count.reviews})</span>
-            </h2>
-            <div className="space-y-3">
-              {book.reviews.slice(0, 5).map((review: any, i: number) => (
-                <motion.div
-                  key={review.id || i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="p-4 rounded-xl bg-stone-900/50 border border-stone-800"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                      {review.user?.name?.charAt(0) || "م"}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-bold text-stone-200 text-sm">{review.user?.name || "قارئ"}</h4>
-                        <span className="text-xs text-stone-500">
-                          {new Date(review.createdAt).toLocaleDateString('ar-EG')}
-                        </span>
-                      </div>
-                      <div className="flex mb-2">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill={s <= review.rating ? "#fbbf24" : "none"} stroke={s <= review.rating ? "#fbbf24" : "#52525b"} strokeWidth="2">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                          </svg>
-                        ))}
-                      </div>
-                      {review.comment && (
-                        <p className="text-sm text-stone-400 leading-relaxed">{review.comment}</p>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+              </div>
             </div>
           </div>
-        )}
 
-        {/* ===== كتب ذات صلة ===== */}
-        <RelatedBooks bookId={book.id} categoryId={book.category.id} />
+          {/* Reading Progress Card (mockup) */}
+          <div style={{
+            background: 'rgba(28, 25, 23, 0.5)',
+            border: '1px solid rgba(41, 37, 36, 0.6)',
+            borderRadius: '18px', padding: '16px', marginBottom: '16px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <span style={{ fontSize: '12px', color: '#a8a29e' }}>📊 تقدّمك في القراءة</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: '#c084fc' }}>0%</span>
+            </div>
+            <div style={{ height: '6px', background: 'rgba(41, 37, 36, 0.6)', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
+              <div style={{ height: '100%', width: '0%', borderRadius: '3px', background: 'linear-gradient(90deg, #9333ea, #ec4899, #f59e0b)', boxShadow: '0 0 12px rgba(147, 51, 234, 0.5)' }} />
+            </div>
+            <p style={{ fontSize: '11px', color: '#78716c' }}>0 من {b.chapters.length} فصل مكتمل · ابدأ القراءة الآن</p>
+          </div>
+
+          {/* Sticky TOC */}
+          {b.chapters.length > 0 && (
+            <div style={{
+              background: 'rgba(28, 25, 23, 0.5)',
+              border: '1px solid rgba(41, 37, 36, 0.6)',
+              borderRadius: '18px', padding: '20px',
+            }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#a8a29e', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>📑 الفهرس</span>
+                <span style={{ color: '#78716c', fontSize: '11px', fontWeight: 400 }}>{b.chapters.length} فصل</span>
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {b.chapters.map((ch, i) => (
+                  <li
+                    key={ch.id}
+                    onClick={() => setActiveChapter(i)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      padding: '9px 10px', borderRadius: '8px', cursor: 'pointer',
+                      transition: 'all 0.2s', fontSize: '13px',
+                      background: activeChapter === i ? 'rgba(147, 51, 234, 0.15)' : 'transparent',
+                      color: activeChapter === i ? '#c084fc' : '#d6d3d1',
+                      marginBottom: '2px',
+                    }}
+                  >
+                    <div style={{
+                      width: '22px', height: '22px', borderRadius: '5px',
+                      background: activeChapter === i ? '#9333ea' : 'rgba(68, 64, 60, 0.5)',
+                      color: activeChapter === i ? 'white' : '#a8a29e',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '11px', fontWeight: 700, flexShrink: 0,
+                    }}>
+                      {i + 1}
+                    </div>
+                    <div style={{ flex: 1, color: activeChapter === i ? '#c084fc' : '#d6d3d1', fontWeight: activeChapter === i ? 600 : 400 }}>
+                      {ch.title}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#78716c' }}>{ch.estimatedMinutes}د</div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </aside>
       </main>
-    </div>
-  );
-}
 
-
-// ============================================================
-// كتب ذات صلة (من نفس التصنيف)
-// ============================================================
-function RelatedBooks({ bookId, categoryId }: { bookId: number; categoryId: number }) {
-  const [related, setRelated] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(`/api/books?categoryId=${categoryId}&limit=6`)
-      .then(r => r.json())
-      .then(data => {
-        // استبعاد الكتاب الحالي
-        setRelated((data.books || []).filter((b: any) => b.id !== bookId).slice(0, 4));
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [bookId, categoryId]);
-
-  if (loading || related.length === 0) return null;
-
-  return (
-    <div>
-      <h2 className="text-lg font-bold text-stone-700 mb-3 flex items-center gap-2">
-        📚 كتب ذات صلة
-      </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {related.map((book, idx) => (
-          <motion.div
-            key={book.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: idx * 0.05 }}
+      {/* Mobile Sticky CTA */}
+      <div style={{
+        display: 'flex', gap: '8px', position: 'fixed', bottom: 0, left: 0, right: 0,
+        padding: '12px 16px', zIndex: 50,
+        background: 'rgba(12, 10, 9, 0.95)', backdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(41, 37, 36, 0.6)',
+      }}>
+        <Link
+          href={b.chapters[0] ? `/library/reader/${b.id}/${b.chapters[0].id}` : '#'}
+          style={{
+            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+            padding: '12px', background: 'linear-gradient(135deg, #9333ea, #ec4899, #f59e0b)',
+            color: 'white', fontSize: '14px', fontWeight: 700, border: 'none',
+            borderRadius: '12px', cursor: 'pointer', textDecoration: 'none',
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg>
+          <span>اقرأ الآن</span>
+        </Link>
+        {b.pdfUrl && (
+          <a
+            href={b.pdfUrl}
+            download
+            style={{
+              padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(16, 185, 129, 0.1)', color: '#34d399',
+              border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '12px',
+              textDecoration: 'none',
+            }}
           >
-            <Link href={`/library/${book.id}`}>
-              <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-all group p-3 border-stone-200 hover:border-indigo-300 h-full">
-                <div className="flex justify-center mb-2">
-                  <BookCover
-                    title={book.title}
-                    author={book.author}
-                    categoryName={book.category?.name}
-                    difficulty={book.difficulty}
-                    size="sm"
-                  />
-                </div>
-                <h3 className="font-bold text-xs text-stone-800 truncate group-hover:text-indigo-600 transition-colors">{book.title}</h3>
-                <p className="text-[10px] text-stone-500 truncate">{book.author}</p>
-                <div className="flex items-center justify-between text-[9px] text-stone-400 mt-1 border-t border-stone-100 pt-1">
-                  <span>⭐ {book.ratingAvg || "—"}</span>
-                  <span>⏱️ {book.readingTimeMin}د</span>
-                </div>
-              </Card>
-            </Link>
-          </motion.div>
-        ))}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </a>
+        )}
       </div>
+
+      {/* Spacer for mobile CTA */}
+      <div style={{ height: '80px' }} />
     </div>
-  );
+  )
 }
