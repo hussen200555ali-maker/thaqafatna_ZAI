@@ -93,24 +93,46 @@ const init = (NextAuth as any)({
             return null // 2FA مطلوب
           }
 
-          // فك تشفير السر + التحقق من الرمز
+          const token = credentials.twoFactorToken as string
+
+          // 1. محاولة TOTP أولاً (الرمز العادي من 6 أرقام)
           const { decryptSecret } = await import('@/lib/crypto')
           const speakeasy = (await import('speakeasy')).default
 
+          let isTOTPValid = false
           try {
             const totpSecret = decryptSecret(user.twoFactorSecret!)
-            const isValidToken = speakeasy.totp.verify({
+            isTOTPValid = speakeasy.totp.verify({
               secret: totpSecret,
               encoding: 'base32',
-              token: credentials.twoFactorToken as string,
+              token,
               window: 1,
             })
-
-            if (!isValidToken) {
-              return null
-            }
           } catch {
-            return null
+            // خطأ في فك التشفير — سنحاول Backup Code
+          }
+
+          if (isTOTPValid) {
+            // TOTP صحيح → متابعة الدخول
+          } else {
+            // 2. TOTP خاطئ → محاولة Backup Code (8 chars بصيغة XXXX-XXXX)
+            // اكتشاف Backup Code: يحتوي على "-" وطوله 9 أحرف
+            const isBackupCodeFormat = token.includes('-') && token.length === 9
+
+            if (!isBackupCodeFormat) {
+              return null // صيغة غير صحيحة لـ TOTP ولا Backup Code
+            }
+
+            // تحقق من Backup Code (يستهلكه عند النجاح)
+            const { verifyBackupCode } = await import('@/lib/backup-codes')
+            const isBackupValid = await verifyBackupCode(user.id, token.toUpperCase())
+
+            if (!isBackupValid) {
+              return null // Backup Code خاطئ أيضًا
+            }
+
+            // Backup Code صحيح → متابعة الدخول (مع تسجيل critical في verifyBackupCode)
+            console.warn(`⚠️ Admin ${user.id} used a backup code — 2FA bypassed`)
           }
         }
 

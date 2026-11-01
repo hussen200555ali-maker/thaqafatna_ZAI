@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { Save, Database, Shield, Bell, Plug, AlertTriangle, Trash2 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/admin-layout'
 import { SectionCard } from '@/components/admin/admin-primitives'
+import { BackupCodesSection } from '@/components/admin/backup-codes-section'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -95,19 +96,23 @@ export default function AdminSettingsPage() {
 
       {/* Security */}
       {tab === 'security' && (
-        <SectionCard title="🛡️ إعدادات الأمان">
-          <div className="space-y-4">
-            <SettingRow label="2FA إلزامي للأدمن" description="يجب تفعيل التحقق الثنائي لكل حساب إداري">
-              <Switch defaultChecked />
-            </SettingRow>
-            <SettingRow label="حد تسجيل الدخول الإداري" description="عدد المحاولات قبل القفل">
-              <Input type="number" defaultValue={3} className="w-20" />
-            </SettingRow>
-            <SettingRow label="مدة القفل (دقيقة)" description="بعد تجاوز المحاولات">
-              <Input type="number" defaultValue={15} className="w-20" />
-            </SettingRow>
-          </div>
-        </SectionCard>
+        <div className="space-y-4">
+          <SectionCard title="🛡️ إعدادات الأمان">
+            <div className="space-y-4">
+              <SettingRow label="2FA إلزامي للأدمن" description="يجب تفعيل التحقق الثنائي لكل حساب إداري">
+                <Switch defaultChecked />
+              </SettingRow>
+              <SettingRow label="حد تسجيل الدخول الإداري" description="عدد المحاولات قبل القفل">
+                <Input type="number" defaultValue={3} className="w-20" />
+              </SettingRow>
+              <SettingRow label="مدة القفل (دقيقة)" description="بعد تجاوز المحاولات">
+                <Input type="number" defaultValue={15} className="w-20" />
+              </SettingRow>
+            </div>
+          </SectionCard>
+
+          <BackupCodesSection />
+        </div>
       )}
 
       {/* Policies */}
