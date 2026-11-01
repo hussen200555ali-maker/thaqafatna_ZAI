@@ -53,8 +53,13 @@ interface RateLimitResult {
 
 /**
  * الحصول على معرّف المستخدم/IP (التحفظ #6)
+ *
+ * منطق الأولوية:
+ * 1. x-forwarded-for (Vercel — أول IP = client الحقيقي)
+ * 2. x-real-ip (fallback)
+ * 3. unknown (للـ dev بدون proxy)
  */
-function getIdentifier(request: NextRequest): string {
+export function getIdentifier(request: NextRequest | Request): string {
   // 1. x-forwarded-for (Vercel — أول IP = client الحقيقي)
   const forwarded = request.headers.get('x-forwarded-for')
   if (forwarded) {
