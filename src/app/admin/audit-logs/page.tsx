@@ -173,7 +173,7 @@ export default function AdminAuditLogsPage() {
                     </code>
                   </TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="icon" className="mx-auto h-8 w-8">
+                    <Button variant="ghost" size="icon" className="mx-auto h-8 w-8" aria-label="عرض التفاصيل">
                       <Eye className="h-4 w-4" />
                     </Button>
                   </TableCell>

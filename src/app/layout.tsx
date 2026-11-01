@@ -57,7 +57,13 @@ export default function RootLayout({
       <body
         className={`${cairo.variable} ${tajawal.variable} antialiased bg-background text-foreground font-sans`}
       >
-        {children}
+        {/* 🦿 Skip to content — WCAG AA accessibility (يظهر عند الضغط على Tab) */}
+        <a href="#main-content" className="skip-to-content">
+          تخطّي إلى المحتوى الرئيسي
+        </a>
+        <div id="main-content" tabIndex={-1}>
+          {children}
+        </div>
         <Toaster />
       </body>
     </html>

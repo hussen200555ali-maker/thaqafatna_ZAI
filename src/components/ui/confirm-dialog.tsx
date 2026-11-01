@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface ConfirmDialogProps {
   open: boolean
@@ -23,6 +23,36 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const confirmBtnRef = useRef<HTMLButtonElement>(null)
+
+  // 🦿 WCAG AA: إغلاق بزر Esc + focus management
+  useEffect(() => {
+    if (!open) return
+
+    // Focus على زر التأكيد عند الفتح
+    const focusTimer = setTimeout(() => {
+      confirmBtnRef.current?.focus()
+    }, 50)
+
+    // إغلاق بزر Esc
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onCancel()
+      }
+    }
+    document.addEventListener('keydown', handleEsc)
+
+    // منع scroll الخلفية
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      clearTimeout(focusTimer)
+      document.removeEventListener('keydown', handleEsc)
+      document.body.style.overflow = ''
+    }
+  }, [open, onCancel])
+
   if (!open) return null
 
   const variantColors = {
@@ -35,6 +65,10 @@ export function ConfirmDialog({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-dialog-title"
+      aria-describedby="confirm-dialog-message"
       style={{
         position: 'fixed',
         inset: 0,
@@ -71,10 +105,12 @@ export function ConfirmDialog({
             justifyContent: 'center',
             fontSize: '28px',
           }}
+          aria-hidden="true"
         >
           {c.icon}
         </div>
         <h2
+          id="confirm-dialog-title"
           style={{
             textAlign: 'center',
             fontSize: '17px',
@@ -86,6 +122,7 @@ export function ConfirmDialog({
           {title}
         </h2>
         <p
+          id="confirm-dialog-message"
           style={{
             textAlign: 'center',
             fontSize: '13px',
@@ -115,6 +152,7 @@ export function ConfirmDialog({
             {cancelLabel}
           </button>
           <button
+            ref={confirmBtnRef}
             onClick={onConfirm}
             style={{
               flex: 1,

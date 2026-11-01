@@ -142,7 +142,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
 export function LoadingState({ message = 'جاري التحميل...' }: { message?: string }) {
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center gap-3 text-slate-500">
-      <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+      <RefreshCw className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
       <p className="text-sm">{message}</p>
     </div>
   )
@@ -159,13 +159,13 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-500">
-        <AlertCircle className="h-8 w-8" />
+        <AlertCircle className="h-8 w-8" aria-hidden="true" />
       </div>
       <p className="text-sm font-medium text-slate-900">حدث خطأ</p>
       <p className="max-w-md text-center text-sm text-slate-500">{message}</p>
       {onRetry && (
         <Button variant="outline" onClick={onRetry} className="mt-2 gap-2">
-          <RefreshCw className="h-4 w-4" />
+          <RefreshCw className="h-4 w-4" aria-hidden="true" />
           إعادة المحاولة
         </Button>
       )}
@@ -220,7 +220,7 @@ export function Toolbar({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
           <Input
             type="search"
             value={searchValue}
