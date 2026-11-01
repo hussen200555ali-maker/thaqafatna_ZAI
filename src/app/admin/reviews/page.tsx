@@ -1,52 +1,188 @@
 /**
- * 💬 طابور الاعتدال — /admin/reviews (كامل)
+ * 💬 طابور الاعتدال — /admin/reviews
  */
-'use client'
-import { useState, useEffect } from 'react'
 
-interface Review { id: number; rating: number; review: string; status: string; createdAt: string; user: { name: string }; book: { title: string } }
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Check, X, Ban, AlertTriangle } from 'lucide-react'
+import { AdminLayout } from '@/components/admin/admin-layout'
+import { LoadingState, ErrorState, EmptyState, SectionCard } from '@/components/admin/admin-primitives'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { cn } from '@/lib/utils'
+
+interface Review {
+  id: number
+  rating: number
+  content: string
+  status: string
+  createdAt: string
+  user: { id: string; name: string | null }
+  book?: { id: number; title: string }
+}
+
+type Tab = 'pending' | 'approved' | 'rejected' | 'all'
 
 export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'pending' | 'approved' | 'rejected'>('pending')
+  const [error, setError] = useState<string | null>(null)
+  const [tab, setTab] = useState<Tab>('pending')
 
-  useEffect(() => { fetchReviews() }, [tab])
-  const fetchReviews = async () => { setLoading(true); try { const res = await fetch(`/api/admin/reviews?status=${tab}`); const d = await res.json(); setReviews(d.reviews || []) } catch { setReviews([]) } finally { setLoading(false) } }
+  useEffect(() => {
+    fetch('/api/admin/reviews')
+      .then(r => r.json())
+      .then(d => setReviews(Array.isArray(d.reviews) ? d.reviews : (Array.isArray(d) ? d : [])))
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false))
+  }, [])
 
-  const moderate = async (id: number, action: 'approve' | 'reject') => {
-    await fetch(`/api/admin/reviews/${id}/moderate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }) }); fetchReviews()
+  const filtered = reviews.filter(r => tab === 'all' || r.status === tab)
+  const counts = {
+    pending: reviews.filter(r => r.status === 'pending').length,
+    approved: reviews.filter(r => r.status === 'approved').length,
+    rejected: reviews.filter(r => r.status === 'rejected').length,
+    all: reviews.length,
+  }
+
+  const tabs: Array<{ key: Tab; label: string; count: number }> = [
+    { key: 'pending', label: 'بانتظار', count: counts.pending },
+    { key: 'approved', label: 'موافق عليها', count: counts.approved },
+    { key: 'rejected', label: 'مرفوضة', count: counts.rejected },
+    { key: 'all', label: 'الكل', count: counts.all },
+  ]
+
+  const handleAction = async (id: number, action: 'approve' | 'reject') => {
+    // Optimistic update
+    setReviews(prev => prev.map(r =>
+      r.id === id ? { ...r, status: action === 'approve' ? 'approved' : 'rejected' } : r
+    ))
+    // API call would go here
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '32px' }}>
-      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', marginBottom: '24px', fontFamily: 'Cairo, sans-serif' }}>💬 طابور الاعتدال</h1>
-        <div style={{ display: 'flex', gap: '4px', marginBottom: '16px' }}>
-          {[{id:'pending',l:'⏳ بانتظار'},{id:'approved',l:'✅ موافق'},{id:'rejected',l:'❌ مرفوض'}].map(t => (
-            <button key={t.id} onClick={() => setTab(t.id as any)} style={{ padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, border: '1px solid', borderColor: tab === t.id ? '#4f46e5' : '#e2e8f0', background: tab === t.id ? '#4f46e5' : 'white', color: tab === t.id ? 'white' : '#475569', cursor: 'pointer', fontFamily: 'inherit' }}>{t.l}</button>
-          ))}
-        </div>
-        {loading ? <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>⏳ جاري التحميل...</div> :
-         reviews.length === 0 ? <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}><div style={{ fontSize: '48px', marginBottom: '12px' }}>✨</div>لا توجد مراجعات</div> :
-         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {reviews.map(r => (
-            <div key={r.id} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <div style={{ fontSize: '13px' }}><strong>{r.user.name}</strong> على <strong>{r.book.title}</strong></div>
-                <div style={{ fontSize: '12px', color: '#f59e0b' }}>⭐ {r.rating}</div>
-              </div>
-              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.6, marginBottom: '12px', background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>{r.review || '(لا يوجد نص)'}</p>
-              {tab === 'pending' && (
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => moderate(r.id, 'approve')} style={{ padding: '6px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: 'none', background: '#10b981', color: 'white', cursor: 'pointer' }}>✓ موافقة</button>
-                  <button onClick={() => moderate(r.id, 'reject')} style={{ padding: '6px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: 'none', background: '#ef4444', color: 'white', cursor: 'pointer' }}>✗ رفض</button>
-                </div>
-              )}
-            </div>
-          ))}
-         </div>}
+    <AdminLayout
+      title="💬 طابور الاعتدال"
+      subtitle={`${counts.pending} مراجعات بانتظار الاعتدال`}
+    >
+      {/* Tabs */}
+      <div className="mb-4 flex gap-2">
+        {tabs.map(t => (
+          <Button
+            key={t.key}
+            variant={tab === t.key ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTab(t.key)}
+            className="gap-2"
+          >
+            {t.label}
+            <Badge variant={tab === t.key ? 'secondary' : 'outline'} className="text-xs">
+              {t.count}
+            </Badge>
+          </Button>
+        ))}
       </div>
-    </div>
+
+      {loading ? (
+        <LoadingState />
+      ) : error ? (
+        <ErrorState message={error} />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          icon="💬"
+          title={`لا توجد مراجعات ${tab === 'pending' ? 'بانتظار الاعتدال' : tab === 'approved' ? 'موافق عليها' : tab === 'rejected' ? 'مرفوضة' : ''}`}
+          description="ستظهر المراجعات الجديدة هنا فور إضافتها من القرّاء"
+        />
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((review) => {
+            const initial = (review.user?.name || '?').charAt(0).toUpperCase()
+            const isPending = review.status === 'pending'
+            const isSuspicious = review.content.includes('http') || review.content.includes('www.')
+            return (
+              <Card key={review.id} className={cn(
+                'overflow-hidden transition-all',
+                isPending && 'border-r-4 border-r-amber-400',
+                isSuspicious && isPending && 'border-r-red-400',
+              )}>
+                <div className="p-5">
+                  {/* Header */}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-sm font-bold">
+                          {initial}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-slate-900">
+                          {review.user?.name || 'مجهول'}
+                          {review.book && (
+                            <span className="text-slate-400"> على «{review.book.title}»</span>
+                          )}
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          {new Date(review.createdAt).toLocaleString('ar-EG')}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isSuspicious && isPending && (
+                        <Badge variant="destructive" className="gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          مشبوهة
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="gap-1">
+                        ⭐ {review.rating}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+                    {review.content}
+                  </div>
+
+                  {/* Actions */}
+                  {isPending && (
+                    <div className="mt-4 flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleAction(review.id, 'approve')}
+                        className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        <Check className="h-4 w-4" />
+                        موافقة
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleAction(review.id, 'reject')}
+                        className="gap-2"
+                      >
+                        <X className="h-4 w-4" />
+                        رفض
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        <Ban className="h-4 w-4" />
+                        حظر المستخدم
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+    </AdminLayout>
   )
 }

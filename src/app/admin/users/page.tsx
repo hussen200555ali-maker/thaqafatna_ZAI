@@ -1,43 +1,243 @@
-'use client'
-import { useState, useEffect } from 'react'
+/**
+ * 👥 إدارة المستخدمون — /admin/users
+ */
 
-interface User { id: string; name: string | null; email: string | null; twoFactorEnabled: boolean; lastLoginAt: string | null; createdAt: string; userRoles: { role: { name: string } }[] }
+'use client'
+
+import { useState, useEffect } from 'react'
+import { UserPlus, FileDown, MoreHorizontal, Edit, Shield, Trash2, Search } from 'lucide-react'
+import { AdminLayout } from '@/components/admin/admin-layout'
+import { Toolbar, LoadingState, ErrorState, StatusBadge, EmptyState } from '@/components/admin/admin-primitives'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Input } from '@/components/ui/input'
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+
+interface User {
+  id: string
+  email: string | null
+  name: string | null
+  image: string | null
+  userRoles: Array<{ role: { name: string; displayName: string } }>
+  lastLoginAt: string | null
+  createdAt: string
+}
+
+const roleColors: Record<string, string> = {
+  admin: 'bg-red-100 text-red-700 hover:bg-red-100',
+  librarian: 'bg-indigo-100 text-indigo-700 hover:bg-indigo-100',
+  assistant: 'bg-sky-100 text-sky-700 hover:bg-sky-100',
+  reader: 'bg-slate-100 text-slate-600 hover:bg-slate-100',
+}
+
+const roleLabels: Record<string, string> = {
+  admin: 'مدير',
+  librarian: 'أمين مكتبة',
+  assistant: 'مساعد',
+  reader: 'قارئ',
+}
+
+function avatarColor(name: string) {
+  const colors = [
+    'from-red-500 to-pink-500',
+    'from-indigo-500 to-purple-600',
+    'from-emerald-500 to-teal-500',
+    'from-amber-500 to-orange-500',
+    'from-sky-500 to-cyan-500',
+  ]
+  const idx = name.charCodeAt(0) % colors.length
+  return colors[idx]
+}
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState('all')
 
-  useEffect(() => { fetchUsers() }, [search])
-  const fetchUsers = async () => { setLoading(true); try { const res = await fetch(`/api/admin/users?search=${encodeURIComponent(search)}`); const d = await res.json(); setUsers(d.users || []) } catch {} finally { setLoading(false) } }
-  const changeRole = async (userId: string, roleName: string) => { await fetch(`/api/admin/users/${userId}/role`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ roleName }) }); fetchUsers() }
-  const rc: Record<string, {bg:string;text:string}> = { admin:{bg:'#fef2f2',text:'#dc2626'}, librarian:{bg:'#eef2ff',text:'#4f46e5'}, assistant:{bg:'#f0f9ff',text:'#0ea5e9'}, reader:{bg:'#f1f5f9',text:'#64748b'} }
-  const getRole = (u: User) => u.userRoles.length ? u.userRoles[0].role.name : 'reader'
+  const loadUsers = () => {
+    setLoading(true)
+    fetch('/api/admin/users')
+      .then(r => r.json())
+      .then(d => setUsers(Array.isArray(d.users) ? d.users : (Array.isArray(d) ? d : [])))
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { loadUsers() }, [])
+
+  const filtered = users.filter(u => {
+    const q = search.toLowerCase()
+    const matchesSearch = !q ||
+      (u.email || '').toLowerCase().includes(q) ||
+      (u.name || '').toLowerCase().includes(q)
+    const matchesRole = roleFilter === 'all' ||
+      u.userRoles.some(ur => ur.role.name === roleFilter)
+    return matchesSearch && matchesRole
+  })
+
+  // Stats
+  const stats = {
+    total: users.length,
+    admins: users.filter(u => u.userRoles.some(ur => ur.role.name === 'admin')).length,
+    librarians: users.filter(u => u.userRoles.some(ur => ur.role.name === 'librarian')).length,
+    readers: users.filter(u => u.userRoles.every(ur => ur.role.name === 'reader')).length,
+  }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '32px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', marginBottom: '24px', fontFamily: 'Cairo, sans-serif' }}>👥 إدارة المستخدمين</h1>
-        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 ابحث..." style={{ width: '100%', padding: '10px 14px', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '14px', marginBottom: '16px', fontFamily: 'inherit', outline: 'none' }} />
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead><tr>{['المستخدم','البريد','الدور','2FA','آخر دخول','التسجيل'].map(h => <th key={h} style={{ textAlign: 'right', padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>{h}</th>)}</tr></thead>
-            <tbody>
-              {loading ? <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>⏳</td></tr> :
-               users.map(u => { const role = getRole(u); const c = rc[role] || rc.reader; return (
-                <tr key={u.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600 }}>{u.name || u.id.substring(0,8)}</td>
-                  <td style={{ padding: '12px 16px', fontSize: '12px', color: '#64748b' }}>{u.email}</td>
-                  <td style={{ padding: '12px 16px' }}><select value={role} onChange={e => changeRole(u.id, e.target.value)} style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, border: 'none', cursor: 'pointer', background: c.bg, color: c.text, fontFamily: 'inherit', outline: 'none' }}><option value="reader">قارئ</option><option value="assistant">مساعد</option><option value="librarian">أمين مكتبة</option><option value="admin">مدير</option></select></td>
-                  <td style={{ padding: '12px 16px', fontSize: '11px' }}>{u.twoFactorEnabled ? <span style={{ color: '#10b981', fontWeight: 600 }}>✓ مفعّل</span> : <span style={{ color: '#cbd5e1' }}>— غير مطلوب</span>}</td>
-                  <td style={{ padding: '12px 16px', fontSize: '11px', color: '#94a3b8' }}>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('ar-EG') : '—'}</td>
-                  <td style={{ padding: '12px 16px', fontSize: '11px', color: '#94a3b8' }}>{new Date(u.createdAt).toLocaleDateString('ar-EG')}</td>
-                </tr>
-              )})}
-            </tbody>
-          </table>
+    <AdminLayout
+      title="👥 المستخدمون"
+      subtitle={`${stats.total} مستخدم · ${stats.admins} مدير · ${stats.librarians} أمين · ${stats.readers} قارئ`}
+      actions={
+        <>
+          <Button variant="outline" className="gap-2">
+            <FileDown className="h-4 w-4" />
+            استيراد CSV
+          </Button>
+          <Button className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            مستخدم جديد
+          </Button>
+        </>
+      }
+    >
+      <Card className="overflow-hidden">
+        <div className="border-b p-4">
+          <Toolbar
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="🔍 ابحث بالاسم أو البريد..."
+            filters={
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="كل الأدوار" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">كل الأدوار</SelectItem>
+                  <SelectItem value="admin">مدير</SelectItem>
+                  <SelectItem value="librarian">أمين مكتبة</SelectItem>
+                  <SelectItem value="assistant">مساعد</SelectItem>
+                  <SelectItem value="reader">قارئ</SelectItem>
+                </SelectContent>
+              </Select>
+            }
+          />
         </div>
-      </div>
-    </div>
+
+        {loading ? (
+          <LoadingState />
+        ) : error ? (
+          <ErrorState message={error} onRetry={loadUsers} />
+        ) : filtered.length === 0 ? (
+          <div className="p-6">
+            <EmptyState icon="📭" title="لا يوجد مستخدمون مطابقون" />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50 hover:bg-slate-50">
+                <TableHead>المستخدم</TableHead>
+                <TableHead>البريد</TableHead>
+                <TableHead>الدور</TableHead>
+                <TableHead>الحالة</TableHead>
+                <TableHead>آخر دخول</TableHead>
+                <TableHead>تاريخ التسجيل</TableHead>
+                <TableHead className="text-center">إجراءات</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((user) => {
+                const role = user.userRoles[0]?.role.name || 'reader'
+                const initial = (user.name || user.email || '?').charAt(0).toUpperCase()
+                return (
+                  <TableRow key={user.id} className="hover:bg-slate-50">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarFallback className={`bg-gradient-to-br ${avatarColor(user.name || user.email || 'U')} text-white text-xs font-bold`}>
+                            {initial}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium text-slate-900">
+                            {user.name || 'بدون اسم'}
+                          </div>
+                          <div className="text-xs text-slate-400">ID: {user.id.slice(0, 8)}</div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-slate-600 text-sm">{user.email || '—'}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className={roleColors[role]}>
+                        {roleLabels[role]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status="active" />
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-500">
+                      {user.lastLoginAt
+                        ? new Date(user.lastLoginAt).toLocaleDateString('ar-EG')
+                        : 'لم يسجّل بعد'}
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-400">
+                      {new Date(user.createdAt).toLocaleDateString('ar-EG')}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="w-44">
+                            <DropdownMenuLabel>إجراءات</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="cursor-pointer">
+                              <Edit className="h-4 w-4 ml-2" />
+                              تعديل
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-pointer">
+                              <Shield className="h-4 w-4 ml-2" />
+                              تغيير الدور
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="cursor-pointer text-red-600">
+                              <Trash2 className="h-4 w-4 ml-2" />
+                              حذف
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        )}
+
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-between border-t bg-slate-50 px-4 py-3 text-sm">
+            <p className="text-slate-500">
+              عرض {filtered.length} من {users.length} مستخدم
+            </p>
+          </div>
+        )}
+      </Card>
+    </AdminLayout>
   )
 }

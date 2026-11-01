@@ -1,38 +1,134 @@
-'use client'
-import { useState, useEffect } from 'react'
+/**
+ * 📂 التصنيفات — /admin/categories
+ */
 
-interface Category { id: number; name: string; icon: string; color: string; slug: string; isPublished: boolean }
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Plus, Edit, Trash2, MoreHorizontal } from 'lucide-react'
+import { AdminLayout } from '@/components/admin/admin-layout'
+import { LoadingState, ErrorState, EmptyState, StatusBadge } from '@/components/admin/admin-primitives'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+
+interface Category {
+  id: number
+  name: string
+  icon: string
+  color: string
+  slug: string
+  isPublished: boolean
+  _count?: { books: number }
+}
 
 export default function AdminCategoriesPage() {
   const [cats, setCats] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => { fetch('/api/book-categories').then(r => r.json()).then(d => { setCats(d.categories || []); setLoading(false) }).catch(() => setLoading(false)) }, [])
+  const load = () => {
+    setLoading(true)
+    fetch('/api/book-categories')
+      .then(r => r.json())
+      .then(d => setCats(d.categories || []))
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [])
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '32px' }}>
-      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', marginBottom: '24px', fontFamily: 'Cairo, sans-serif' }}>📂 التصنيفات</h1>
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead><tr>{['#','الأيقونة','الاسم','Slug','اللون','الحالة','إجراءات'].map(h => <th key={h} style={{ textAlign: 'right', padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>{h}</th>)}</tr></thead>
-            <tbody>
-              {loading ? <tr><td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>⏳</td></tr> :
-               cats.map((c, i) => (
-                <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 16px', fontSize: '12px', color: '#94a3b8' }}>{i + 1}</td>
-                  <td style={{ padding: '12px 16px', fontSize: '20px' }}>{c.icon}</td>
-                  <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600 }}>{c.name}</td>
-                  <td style={{ padding: '12px 16px' }}><code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>{c.slug}</code></td>
-                  <td style={{ padding: '12px 16px' }}><div style={{ width: '24px', height: '24px', borderRadius: '4px', background: c.color }} /></td>
-                  <td style={{ padding: '12px 16px' }}><span style={{ padding: '3px 10px', borderRadius: '100px', fontSize: '10px', fontWeight: 700, background: c.isPublished ? '#ecfdf5' : '#f1f5f9', color: c.isPublished ? '#065f46' : '#64748b' }}>{c.isPublished ? 'منشور' : 'مخفي'}</span></td>
-                  <td style={{ padding: '12px 16px' }}><button style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer' }}>✏️</button></td>
-                </tr>
+    <AdminLayout
+      title="📂 التصنيفات"
+      subtitle={`${cats.length} تصنيفات`}
+      actions={
+        <Button className="gap-2">
+          <Plus className="h-4 w-4" />
+          تصنيف جديد
+        </Button>
+      }
+    >
+      <Card className="overflow-hidden">
+        {loading ? (
+          <LoadingState />
+        ) : error ? (
+          <ErrorState message={error} onRetry={load} />
+        ) : cats.length === 0 ? (
+          <div className="p-6">
+            <EmptyState icon="📂" title="لا توجد تصنيفات بعد" />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50 hover:bg-slate-50">
+                <TableHead className="w-16 text-center">الترتيب</TableHead>
+                <TableHead className="w-16 text-center">الأيقونة</TableHead>
+                <TableHead>الاسم</TableHead>
+                <TableHead>الـ Slug</TableHead>
+                <TableHead>اللون</TableHead>
+                <TableHead className="text-center">عدد الكتب</TableHead>
+                <TableHead>الحالة</TableHead>
+                <TableHead className="text-center">إجراءات</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {cats.map((c, i) => (
+                <TableRow key={c.id} className="hover:bg-slate-50">
+                  <TableCell className="text-center text-slate-400">{i + 1}</TableCell>
+                  <TableCell className="text-center text-2xl">{c.icon}</TableCell>
+                  <TableCell className="font-medium text-slate-900">{c.name}</TableCell>
+                  <TableCell>
+                    <code className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                      {c.slug}
+                    </code>
+                  </TableCell>
+                  <TableCell>
+                    <div
+                      className="h-6 w-6 rounded"
+                      style={{ background: c.color || '#6366f1' }}
+                    />
+                  </TableCell>
+                  <TableCell className="text-center text-slate-600">
+                    {c._count?.books ?? 0}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={c.isPublished ? 'published' : 'archived'} />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          <DropdownMenuItem className="cursor-pointer">
+                            <Edit className="h-4 w-4 ml-2" />
+                            تعديل
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="cursor-pointer text-red-600">
+                            <Trash2 className="h-4 w-4 ml-2" />
+                            حذف
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+            </TableBody>
+          </Table>
+        )}
+      </Card>
+    </AdminLayout>
   )
 }

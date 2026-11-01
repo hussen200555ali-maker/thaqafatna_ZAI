@@ -1,50 +1,194 @@
+/**
+ * 📜 سجل التدقيق — /admin/audit-logs
+ */
+
 'use client'
+
 import { useState, useEffect } from 'react'
+import { FileDown, Package, Eye } from 'lucide-react'
+import { AdminLayout } from '@/components/admin/admin-layout'
+import { Toolbar, LoadingState, ErrorState, EmptyState, StatusBadge } from '@/components/admin/admin-primitives'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 
-interface Log { id: number; action: string; entityType: string; entityId: string | null; severity: string; ipAddress: string | null; createdAt: string; user: { name: string | null } | null }
+interface AuditLog {
+  id: string
+  action: string
+  entityType: string
+  entityId: string | null
+  severity: 'info' | 'warning' | 'critical'
+  userName: string | null
+  ip: string | null
+  createdAt: string
+  metadata: any
+}
 
-export default function AuditLogsPage() {
-  const [logs, setLogs] = useState<Log[]>([])
+const actionLabels: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  LOGIN: { label: 'LOGIN', variant: 'outline' },
+  LOGIN_FAILED: { label: 'LOGIN_FAILED', variant: 'destructive' },
+  LOGOUT: { label: 'LOGOUT', variant: 'secondary' },
+  CREATE: { label: 'CREATE', variant: 'default' },
+  UPDATE: { label: 'UPDATE', variant: 'outline' },
+  DELETE: { label: 'DELETE', variant: 'destructive' },
+  DOWNLOAD: { label: 'DOWNLOAD', variant: 'secondary' },
+  ROLE_CHANGE: { label: 'ROLE_CHANGE', variant: 'outline' },
+  UPLOAD: { label: 'UPLOAD', variant: 'default' },
+}
+
+export default function AdminAuditLogsPage() {
+  const [logs, setLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState({ action: '', severity: '' })
+  const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [actionFilter, setActionFilter] = useState('all')
+  const [severityFilter, setSeverityFilter] = useState('all')
 
-  useEffect(() => { fetchLogs() }, [filter])
-  const fetchLogs = async () => { setLoading(true); try { const p = new URLSearchParams(); if (filter.action) p.set('action', filter.action); if (filter.severity) p.set('severity', filter.severity); const res = await fetch(`/api/admin/audit-logs?${p}`); const d = await res.json(); setLogs(d.logs || []) } catch {} finally { setLoading(false) } }
+  useEffect(() => {
+    fetch('/api/admin/audit-logs?limit=100')
+      .then(r => r.json())
+      .then(d => setLogs(Array.isArray(d.logs) ? d.logs : (Array.isArray(d) ? d : [])))
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false))
+  }, [])
 
-  const sc: Record<string, {bg:string;text:string}> = { info:{bg:'#f1f5f9',text:'#64748b'}, warning:{bg:'#fffbeb',text:'#92400e'}, critical:{bg:'#fef2f2',text:'#dc2626'} }
+  const filtered = logs.filter(l => {
+    const q = search.toLowerCase()
+    const matchesSearch = !q ||
+      (l.userName || '').toLowerCase().includes(q) ||
+      (l.action || '').toLowerCase().includes(q) ||
+      (l.entityType || '').toLowerCase().includes(q)
+    const matchesAction = actionFilter === 'all' || l.action === actionFilter
+    const matchesSeverity = severityFilter === 'all' || l.severity === severityFilter
+    return matchesSearch && matchesAction && matchesSeverity
+  })
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '32px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', marginBottom: '24px', fontFamily: 'Cairo, sans-serif' }}>📜 سجل التدقيق</h1>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-          <select value={filter.action} onChange={e => setFilter({...filter, action: e.target.value})} style={{ padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '13px', background: 'white' }}>
-            <option value="">كل العمليات</option><option value="CREATE">CREATE</option><option value="UPDATE">UPDATE</option><option value="DELETE">DELETE</option><option value="LOGIN">LOGIN</option><option value="LOGIN_FAILED">LOGIN_FAILED</option>
-          </select>
-          <select value={filter.severity} onChange={e => setFilter({...filter, severity: e.target.value})} style={{ padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '13px', background: 'white' }}>
-            <option value="">كل الخطورة</option><option value="info">info</option><option value="warning">warning</option><option value="critical">critical</option>
-          </select>
+    <AdminLayout
+      title="📜 سجل التدقيق"
+      subtitle={`آخر 90 يومًا · ${logs.length} سجل · الاحتفاظ: info=90 يوم، critical=1 سنة`}
+      actions={
+        <>
+          <Button variant="outline" className="gap-2">
+            <FileDown className="h-4 w-4" />
+            تصدير CSV
+          </Button>
+          <Button variant="outline" className="gap-2">
+            <Package className="h-4 w-4" />
+            أرشيف
+          </Button>
+        </>
+      }
+    >
+      <Card className="overflow-hidden">
+        <div className="border-b p-4">
+          <Toolbar
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="🔍 ابحث في السجلات..."
+            filters={
+              <>
+                <Select value={actionFilter} onValueChange={setActionFilter}>
+                  <SelectTrigger className="w-36">
+                    <SelectValue placeholder="كل العمليات" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل العمليات</SelectItem>
+                    <SelectItem value="LOGIN">LOGIN</SelectItem>
+                    <SelectItem value="LOGIN_FAILED">LOGIN_FAILED</SelectItem>
+                    <SelectItem value="CREATE">CREATE</SelectItem>
+                    <SelectItem value="UPDATE">UPDATE</SelectItem>
+                    <SelectItem value="DELETE">DELETE</SelectItem>
+                    <SelectItem value="DOWNLOAD">DOWNLOAD</SelectItem>
+                    <SelectItem value="ROLE_CHANGE">ROLE_CHANGE</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={severityFilter} onValueChange={setSeverityFilter}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="كل الخطورة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل الخطورة</SelectItem>
+                    <SelectItem value="info">info</SelectItem>
+                    <SelectItem value="warning">warning</SelectItem>
+                    <SelectItem value="critical">critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </>
+            }
+          />
         </div>
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead><tr>{['الوقت','المستخدم','العملية','الكيان','الخطورة','IP'].map(h => <th key={h} style={{ textAlign: 'right', padding: '12px 16px', fontSize: '11px', fontWeight: 700, color: '#64748b', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>{h}</th>)}</tr></thead>
-            <tbody>
-              {loading ? <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>⏳</td></tr> :
-               logs.length === 0 ? <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>لا توجد سجلات</td></tr> :
-               logs.map(l => { const c = sc[l.severity] || sc.info; return (
-                <tr key={l.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '10px 16px', fontSize: '11px', fontFamily: 'monospace', color: '#64748b' }}>{new Date(l.createdAt).toLocaleString('ar-EG')}</td>
-                  <td style={{ padding: '10px 16px', fontSize: '12px', fontWeight: 600 }}>{l.user?.name || 'النظام'}</td>
-                  <td style={{ padding: '10px 16px' }}><span style={{ padding: '2px 8px', borderRadius: '100px', fontSize: '10px', fontWeight: 700, background: '#eef2ff', color: '#3730a3' }}>{l.action}</span></td>
-                  <td style={{ padding: '10px 16px', fontSize: '12px', color: '#475569' }}>{l.entityType}{l.entityId ? ` #${l.entityId.substring(0,8)}` : ''}</td>
-                  <td style={{ padding: '10px 16px' }}><span style={{ padding: '2px 8px', borderRadius: '100px', fontSize: '10px', fontWeight: 700, background: c.bg, color: c.text }}>{l.severity}</span></td>
-                  <td style={{ padding: '10px 16px', fontSize: '11px', fontFamily: 'monospace', color: '#94a3b8' }}>{l.ipAddress || '—'}</td>
-                </tr>
-              )})}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+
+        {loading ? (
+          <LoadingState />
+        ) : error ? (
+          <ErrorState message={error} />
+        ) : filtered.length === 0 ? (
+          <div className="p-6">
+            <EmptyState icon="📜" title="لا توجد سجلات مطابقة" />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50 hover:bg-slate-50">
+                <TableHead>الوقت</TableHead>
+                <TableHead>المستخدم</TableHead>
+                <TableHead>العملية</TableHead>
+                <TableHead>الكيان</TableHead>
+                <TableHead>الخطورة</TableHead>
+                <TableHead>IP</TableHead>
+                <TableHead className="text-center">تفاصيل</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((log) => (
+                <TableRow key={log.id} className="hover:bg-slate-50">
+                  <TableCell className="text-xs text-slate-500 font-mono">
+                    {new Date(log.createdAt).toLocaleString('ar-EG')}
+                  </TableCell>
+                  <TableCell className="font-medium text-slate-900">
+                    {log.userName || 'مجهول'}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={(actionLabels[log.action]?.variant) || 'secondary'}>
+                      {actionLabels[log.action]?.label || log.action}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-slate-600">
+                    {log.entityType}
+                    {log.entityId && <span className="text-slate-400"> #{log.entityId.slice(0, 8)}</span>}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={log.severity as any} />
+                  </TableCell>
+                  <TableCell>
+                    <code className="text-xs text-slate-500">
+                      {log.ip || '—'}
+                    </code>
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" className="mx-auto h-8 w-8">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+
+        {filtered.length > 0 && (
+          <div className="border-t bg-slate-50 px-4 py-3 text-sm text-slate-500">
+            عرض {filtered.length} من {logs.length} سجل
+          </div>
+        )}
+      </Card>
+    </AdminLayout>
   )
 }

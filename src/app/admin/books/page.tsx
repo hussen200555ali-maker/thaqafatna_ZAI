@@ -1,55 +1,66 @@
 /**
- * 📚 إدارة الكتب — /admin/books
- * قائمة بكل الكتب مع إجراءات سريعة
+ * 📚 إدارة الكتب — /admin
+ * قائمة الكتب مع بحث + تصفية + إجراءات
  */
+
 'use client'
+
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { Plus, FileDown, Edit, Copy, Package, Trash2, Eye } from 'lucide-react'
+import { AdminLayout } from '@/components/admin/admin-layout'
+import { Toolbar, LoadingState, ErrorState, StatusBadge, EmptyState, TableRowEmpty } from '@/components/admin/admin-primitives'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { MoreHorizontal } from 'lucide-react'
 
 interface Book {
-  id: string
+  id: number
   title: string
   author: string
   status: string
   isPublished: boolean
   createdAt: string
   pdfUrl?: string | null
+  category?: { name: string; icon: string }
   _count?: { chapters: number; reviews: number }
 }
 
-interface ApiResponse {
-  books?: Book[]
-  error?: string
-}
+type StatusType = 'draft' | 'in_review' | 'published' | 'archived' | 'all'
 
 export default function AdminBooksPage() {
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusType>('all')
 
-  useEffect(() => {
+  const loadBooks = () => {
+    setLoading(true)
+    setError(null)
     fetch('/api/admin/books')
-      .then(r => r.json() as Promise<ApiResponse>)
+      .then(r => r.json())
       .then(d => {
-        if (d.error) {
-          setError(d.error)
-        } else if (Array.isArray(d.books)) {
-          setBooks(d.books)
-        } else if (Array.isArray(d as unknown as Book[])) {
-          // احتياطي لو الـ API يرجّع array مباشرة
-          setBooks(d as unknown as Book[])
-        }
-        setLoading(false)
+        if (d.error) throw new Error(d.error)
+        setBooks(Array.isArray(d.books) ? d.books : (Array.isArray(d) ? d : []))
       })
-      .catch(e => {
-        setError(e.message)
-        setLoading(false)
-      })
-  }, [])
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false))
+  }
 
-  // تصفية
+  useEffect(() => { loadBooks() }, [])
+
   const filtered = books.filter(b => {
     const matchesSearch = !search ||
       b.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -58,167 +69,179 @@ export default function AdminBooksPage() {
     return matchesSearch && matchesStatus
   })
 
-  if (loading) {
-    return (
-      <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#64748b' }}>
-        ⏳ جاري تحميل الكتب...
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '32px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '20px', borderRadius: '12px' }}>
-            <h2 style={{ fontSize: '18px', marginBottom: '8px' }}>❌ خطأ في تحميل الكتب</h2>
-            <p style={{ fontSize: '14px' }}>{error}</p>
-            <p style={{ fontSize: '12px', marginTop: '12px', color: '#64748b' }}>
-              تأكد أن `/api/admin/books` يعمل ويرجّع array من الكتب.
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '32px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <div>
-            <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', marginBottom: '4px', fontFamily: 'Cairo, sans-serif' }}>📚 إدارة الكتب</h1>
-            <p style={{ fontSize: '14px', color: '#64748b' }}>{books.length} كتاب في المكتبة</p>
-          </div>
-          <Link
-            href="/admin/books/new"
-            style={{
-              background: '#4f46e5', color: 'white', padding: '10px 20px', borderRadius: '8px',
-              textDecoration: 'none', fontSize: '14px', fontWeight: 600,
-            }}
-          >
-            ➕ كتاب جديد
-          </Link>
-        </div>
-
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-          <input
-            type="text"
-            placeholder="🔍 ابحث بالعنوان أو المؤلف..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{
-              flex: 1, padding: '10px 16px', borderRadius: '8px',
-              border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none',
-            }}
-          />
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            style={{
-              padding: '10px 16px', borderRadius: '8px',
-              border: '1px solid #e2e8f0', fontSize: '14px', background: 'white',
-            }}
-          >
-            <option value="all">كل الحالات</option>
-            <option value="draft">مسودة</option>
-            <option value="in_review">قيد المراجعة</option>
-            <option value="published">منشور</option>
-            <option value="archived">مؤرشف</option>
-          </select>
-        </div>
-
-        {/* Books Table */}
-        {filtered.length === 0 ? (
-          <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '60px', textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>📭</div>
-            <p style={{ color: '#64748b', fontSize: '16px' }}>لا توجد كتب مطابقة</p>
-            <Link href="/admin/books/new" style={{ color: '#4f46e5', fontSize: '14px', textDecoration: 'none', marginTop: '12px', display: 'inline-block' }}>
-              ➕ أضف كتابًا جديدًا
+    <AdminLayout
+      title="📚 إدارة الكتب"
+      subtitle={`${books.length} كتاب في المكتبة`}
+      actions={
+        <>
+          <Button variant="outline" className="gap-2">
+            <FileDown className="h-4 w-4" />
+            تصدير CSV
+          </Button>
+          <Button asChild className="gap-2">
+            <Link href="/admin/books/new">
+              <Plus className="h-4 w-4" />
+              كتاب جديد
             </Link>
+          </Button>
+        </>
+      }
+    >
+      <Card className="overflow-hidden">
+        {/* Toolbar */}
+        <div className="border-b p-4">
+          <Toolbar
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="🔍 ابحث بالعنوان أو المؤلف..."
+            filters={
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusType)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="كل الحالات" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">كل الحالات</SelectItem>
+                  <SelectItem value="draft">مسودة</SelectItem>
+                  <SelectItem value="in_review">قيد المراجعة</SelectItem>
+                  <SelectItem value="published">منشور</SelectItem>
+                  <SelectItem value="archived">مؤرشف</SelectItem>
+                </SelectContent>
+              </Select>
+            }
+          />
+        </div>
+
+        {/* Table */}
+        {loading ? (
+          <LoadingState />
+        ) : error ? (
+          <ErrorState message={error} onRetry={loadBooks} />
+        ) : filtered.length === 0 ? (
+          <div className="p-6">
+            <EmptyState
+              icon="📭"
+              title="لا توجد كتب مطابقة"
+              description={search || statusFilter !== 'all'
+                ? 'جرّب تعديل معايير البحث أو التصفية'
+                : 'ابدأ بإضافة أول كتاب إلى المكتبة'}
+              action={
+                <Button asChild className="gap-2">
+                  <Link href="/admin/books/new">
+                    <Plus className="h-4 w-4" />
+                    أضف كتابًا
+                  </Link>
+                </Button>
+              }
+            />
           </div>
         ) : (
-          <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <tr>
-                  <th style={thStyle}>#</th>
-                  <th style={thStyle}>العنوان</th>
-                  <th style={thStyle}>المؤلف</th>
-                  <th style={thStyle}>الحالة</th>
-                  <th style={thStyle}>الفصول</th>
-                  <th style={thStyle}>تاريخ الإضافة</th>
-                  <th style={thStyle}>إجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((book, i) => (
-                  <tr key={book.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={tdStyle}>{i + 1}</td>
-                    <td style={{ ...tdStyle, fontWeight: 600, color: '#0f172a' }}>
-                      {book.title}
-                      {book.pdfUrl && <span style={{ marginRight: '8px', fontSize: '11px' }}>📄 PDF</span>}
-                    </td>
-                    <td style={tdStyle}>{book.author}</td>
-                    <td style={tdStyle}>
-                      <StatusBadge status={book.status} isPublished={book.isPublished} />
-                    </td>
-                    <td style={tdStyle}>{book._count?.chapters ?? 0}</td>
-                    <td style={{ ...tdStyle, fontSize: '12px', color: '#94a3b8' }}>
-                      {new Date(book.createdAt).toLocaleDateString('ar-EG')}
-                    </td>
-                    <td style={tdStyle}>
-                      <Link
-                        href={`/admin/books/${book.id}/versions`}
-                        style={{ color: '#4f46e5', fontSize: '12px', textDecoration: 'none', marginRight: '8px' }}
-                      >
-                        الإصدارات →
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50 hover:bg-slate-50">
+                <TableHead className="w-12">#</TableHead>
+                <TableHead>الكتاب</TableHead>
+                <TableHead>المؤلف</TableHead>
+                <TableHead>التصنيف</TableHead>
+                <TableHead>الحالة</TableHead>
+                <TableHead className="text-center">الفصول</TableHead>
+                <TableHead>تاريخ الإضافة</TableHead>
+                <TableHead className="text-center">إجراءات</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((book, i) => (
+                <TableRow key={book.id} className="hover:bg-slate-50">
+                  <TableCell className="text-slate-400">{i + 1}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div>
+                        <div className="font-medium text-slate-900">{book.title}</div>
+                        {book.pdfUrl && (
+                          <Badge variant="outline" className="mt-1 text-xs">PDF</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-slate-600">{book.author}</TableCell>
+                  <TableCell>
+                    {book.category ? (
+                      <span className="text-sm text-slate-600">
+                        {book.category.icon} {book.category.name}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={book.status as any} />
+                  </TableCell>
+                  <TableCell className="text-center text-slate-600">
+                    {book._count?.chapters ?? 0}
+                  </TableCell>
+                  <TableCell className="text-xs text-slate-400">
+                    {new Date(book.createdAt).toLocaleDateString('ar-EG')}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-44">
+                          <DropdownMenuLabel>إجراءات</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild>
+                            <Link href={`/library/${book.id}`} className="cursor-pointer">
+                              <Eye className="h-4 w-4 ml-2" />
+                              عرض
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/books/${book.id}/versions`} className="cursor-pointer">
+                              <Package className="h-4 w-4 ml-2" />
+                              الإصدارات
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="cursor-pointer">
+                            <Edit className="h-4 w-4 ml-2" />
+                            تعديل
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="cursor-pointer">
+                            <Copy className="h-4 w-4 ml-2" />
+                            نسخ
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="cursor-pointer text-red-600">
+                            <Trash2 className="h-4 w-4 ml-2" />
+                            حذف
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
 
-        {/* Back link */}
-        <div style={{ marginTop: '24px' }}>
-          <Link href="/admin" style={{ color: '#64748b', fontSize: '14px', textDecoration: 'none' }}>
-            ← العودة للوحة التحكم
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const thStyle: React.CSSProperties = {
-  padding: '12px 16px', textAlign: 'right', fontSize: '12px',
-  fontWeight: 600, color: '#64748b', textTransform: 'uppercase' as const,
-  letterSpacing: '0.5px',
-}
-
-const tdStyle: React.CSSProperties = {
-  padding: '14px 16px', fontSize: '14px', color: '#475569',
-}
-
-function StatusBadge({ status, isPublished }: { status: string; isPublished: boolean }) {
-  const colors: Record<string, { bg: string; color: string; label: string }> = {
-    draft: { bg: '#f1f5f9', color: '#64748b', label: 'مسودة' },
-    in_review: { bg: '#fffbeb', color: '#f59e0b', label: 'قيد المراجعة' },
-    published: { bg: '#ecfdf5', color: '#10b981', label: 'منشور' },
-    archived: { bg: '#fef2f2', color: '#dc2626', label: 'مؤرشف' },
-  }
-  const c = colors[status] || colors.draft
-  return (
-    <span style={{
-      background: c.bg, color: c.color, padding: '4px 10px',
-      borderRadius: '12px', fontSize: '11px', fontWeight: 600,
-    }}>
-      {c.label}{isPublished && status === 'published' && ' ✓'}
-    </span>
+        {/* Pagination (mock) */}
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-between border-t bg-slate-50 px-4 py-3 text-sm">
+            <p className="text-slate-500">
+              عرض {filtered.length} من {books.length} كتاب
+            </p>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" disabled>السابق</Button>
+              <Button variant="outline" size="sm" className="bg-primary text-primary-foreground">1</Button>
+              <Button variant="outline" size="sm" disabled>التالي</Button>
+            </div>
+          </div>
+        )}
+      </Card>
+    </AdminLayout>
   )
 }

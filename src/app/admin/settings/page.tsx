@@ -1,43 +1,214 @@
+/**
+ * ⚙️ الإعدادات — /admin/settings
+ */
+
 'use client'
+
 import { useState } from 'react'
+import { Save, Database, Shield, Bell, Plug, AlertTriangle, Trash2 } from 'lucide-react'
+import { AdminLayout } from '@/components/admin/admin-layout'
+import { SectionCard } from '@/components/admin/admin-primitives'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
+
+type Tab = 'general' | 'security' | 'policies' | 'integrations' | 'danger'
+
+const tabs: Array<{ key: Tab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+  { key: 'general', label: 'عام', icon: Database },
+  { key: 'security', label: 'الأمان', icon: Shield },
+  { key: 'policies', label: 'السياسات', icon: Bell },
+  { key: 'integrations', label: 'التكاملات', icon: Plug },
+  { key: 'danger', label: 'منطقة الخطر', icon: AlertTriangle },
+]
 
 export default function AdminSettingsPage() {
-  const [section, setSection] = useState('general')
-  const sections = [{id:'general',l:'🌐 عام'},{id:'security',l:'🛡️ الأمان'},{id:'integrations',l:'🔌 التكاملات'},{id:'danger',l:'⚠️ منطقة الخطر'}]
-  const inputStyle: React.CSSProperties = { padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '13px' }
+  const [tab, setTab] = useState<Tab>('general')
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = () => {
+    setSaving(true)
+    setTimeout(() => setSaving(false), 1000)
+  }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '32px' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', marginBottom: '24px', fontFamily: 'Cairo, sans-serif' }}>⚙️ الإعدادات</h1>
-        <div style={{ display: 'flex', gap: '4px', marginBottom: '16px' }}>
-          {sections.map(s => <button key={s.id} onClick={() => setSection(s.id)} style={{ padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, border: '1px solid', borderColor: section === s.id ? '#4f46e5' : '#e2e8f0', background: section === s.id ? '#4f46e5' : 'white', color: section === s.id ? 'white' : '#475569', cursor: 'pointer', fontFamily: 'inherit' }}>{s.l}</button>)}
-        </div>
-        {section === 'general' && <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px' }}>🌐 إعدادات عامة</h2>
-          {[{l:'اسم الموقع',v:'ثقافتنا'},{l:'الوصف',v:'منصة عربية تعليمية'}].map((i,idx) => (
-            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}><span style={{ fontWeight: 600, fontSize: '14px' }}>{i.l}</span><input defaultValue={i.v} style={inputStyle} /></div>
-          ))}
-        </div>}
-        {section === 'security' && <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px' }}>🛡️ الأمان</h2>
-          {[{l:'2FA إلزامي للأدمن',d:'يجب تفعيله لكل إداري'},{l:'حد المحاولات',d:'3 قبل القفل'},{l:'مدة القفل (دقيقة)',d:'15 دقيقة'}].map((i,idx) => (
-            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}><div><div style={{ fontWeight: 600, fontSize: '14px' }}>{i.l}</div><div style={{ fontSize: '12px', color: '#64748b' }}>{i.d}</div></div><div style={{ width: '44px', height: '24px', background: '#10b981', borderRadius: '12px', position: 'relative' }}><div style={{ position: 'absolute', top: '2px', left: '2px', width: '20px', height: '20px', background: 'white', borderRadius: '50%' }} /></div></div>
-          ))}
-        </div>}
-        {section === 'integrations' && <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px' }}>🔌 التكاملات</h2>
-          {[{l:'Vercel Blob',s:'مفعّل',i:'1 GB',ok:true},{l:'Upstash Redis',s:'مفعّل',i:'4,231 طلب',ok:true},{l:'Neon PostgreSQL',s:'مفعّل',i:'156 MB',ok:true},{l:'Sentry',s:'غير مفعّل',i:'إعداد مطلوب',ok:false}].map((i,idx) => (
-            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}><div><div style={{ fontWeight: 600, fontSize: '14px' }}>{i.l}</div><div style={{ fontSize: '12px', color: '#64748b' }}>{i.i}</div></div><span style={{ padding: '3px 10px', borderRadius: '100px', fontSize: '11px', fontWeight: 700, background: i.ok ? '#ecfdf5' : '#fef2f2', color: i.ok ? '#065f46' : '#dc2626' }}>{i.s}</span></div>
-          ))}
-        </div>}
-        {section === 'danger' && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '20px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#dc2626', marginBottom: '16px' }}>⚠️ منطقة الخطر</h2>
-          {[{l:'تصدير كل البيانات',d:'تنزيل نسخة كاملة',b:'📥 تصدير',c:'#4f46e5'},{l:'حذف المستخدمين غير النشطين',d:'حسابات لم تدخل منذ 90 يومًا',b:'حذف (87)',c:'#ef4444'},{l:'حذف المكتبة نهائيًا',d:'⚠️ لا يمكن التراجع',b:'حذف نهائي',c:'#dc2626'}].map((i,idx) => (
-            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #fecaca' }}><div><div style={{ fontWeight: 600, fontSize: '14px', color: i.c === '#dc2626' ? '#dc2626' : '#0f172a' }}>{i.l}</div><div style={{ fontSize: '12px', color: '#991b1b' }}>{i.d}</div></div><button style={{ padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: 'none', background: i.c, color: 'white', cursor: 'pointer' }}>{i.b}</button></div>
-          ))}
-        </div>}
+    <AdminLayout
+      title="⚙️ الإعدادات"
+      subtitle="إعدادات الموقع والسياسات والتكاملات"
+      actions={
+        <Button onClick={handleSave} disabled={saving} className="gap-2">
+          <Save className="h-4 w-4" />
+          {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+        </Button>
+      }
+    >
+      {/* Tabs */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        {tabs.map(t => {
+          const Icon = t.icon
+          return (
+            <Button
+              key={t.key}
+              variant={tab === t.key ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTab(t.key)}
+              className={cn(
+                'gap-2',
+                t.key === 'danger' && tab !== t.key && 'text-red-600 hover:text-red-700',
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {t.label}
+            </Button>
+          )
+        })}
       </div>
+
+      {/* General */}
+      {tab === 'general' && (
+        <div className="space-y-4">
+          <SectionCard title="🌐 إعدادات عامة">
+            <div className="space-y-4">
+              <SettingRow label="اسم الموقع" description="يظهر في الـ Header وفي المتصفح">
+                <Input defaultValue="ثقافتنا" className="w-72" />
+              </SettingRow>
+              <SettingRow label="الوصف المختصر" description="يظهر في محركات البحث">
+                <Input defaultValue="منصة عربية تعليمية ترفيهية" className="w-96" />
+              </SettingRow>
+              <SettingRow label="اللغة الافتراضية" description="لغة الواجهة الرئيسية">
+                <select className="w-48 rounded-md border border-slate-200 px-3 py-2 text-sm">
+                  <option>العربية</option>
+                  <option>الإنجليزية</option>
+                </select>
+              </SettingRow>
+              <SettingRow label="السماح بتسجيل مستخدمين جدد" description="عند الإيقاف، لا يمكن لأحد إنشاء حساب">
+                <Switch defaultChecked />
+              </SettingRow>
+            </div>
+          </SectionCard>
+        </div>
+      )}
+
+      {/* Security */}
+      {tab === 'security' && (
+        <SectionCard title="🛡️ إعدادات الأمان">
+          <div className="space-y-4">
+            <SettingRow label="2FA إلزامي للأدمن" description="يجب تفعيل التحقق الثنائي لكل حساب إداري">
+              <Switch defaultChecked />
+            </SettingRow>
+            <SettingRow label="حد تسجيل الدخول الإداري" description="عدد المحاولات قبل القفل">
+              <Input type="number" defaultValue={3} className="w-20" />
+            </SettingRow>
+            <SettingRow label="مدة القفل (دقيقة)" description="بعد تجاوز المحاولات">
+              <Input type="number" defaultValue={15} className="w-20" />
+            </SettingRow>
+          </div>
+        </SectionCard>
+      )}
+
+      {/* Policies */}
+      {tab === 'policies' && (
+        <SectionCard title="📜 السياسات">
+          <div className="space-y-4">
+            <SettingRow label="اعتدال المراجعات تلقائيًا" description="المراجعات الجديدة تنتظر موافقة الأدمن">
+              <Switch defaultChecked />
+            </SettingRow>
+            <SettingRow label="حد تنزيل PDF (لكل مستخدم/ساعة)" description="منع الإفراط في التنزيل">
+              <Input type="number" defaultValue={10} className="w-20" />
+            </SettingRow>
+          </div>
+        </SectionCard>
+      )}
+
+      {/* Integrations */}
+      {tab === 'integrations' && (
+        <SectionCard title="🔌 التكاملات">
+          <div className="space-y-3">
+            <IntegrationRow name="Vercel Blob" description="تخزين الملفات · ✓ متصل · 1 GB مستخدم من 10 GB" status="active" />
+            <IntegrationRow name="Upstash Redis" description="Rate Limiting · ✓ متصل · 4,231 طلب اليوم" status="active" />
+            <IntegrationRow name="Neon PostgreSQL" description="قاعدة البيانات · ✓ متصل · 156 MB مستخدم" status="active" />
+            <IntegrationRow name="Sentry" description="مراقبة الأخطاء · غير مفعّل" status="inactive" />
+          </div>
+        </SectionCard>
+      )}
+
+      {/* Danger Zone */}
+      {tab === 'danger' && (
+        <Card className="border-red-200">
+          <div className="border-b border-red-200 bg-red-50 p-4">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-red-700">
+              <AlertTriangle className="h-5 w-5" />
+              منطقة الخطر
+            </h3>
+          </div>
+          <div className="divide-y divide-slate-100">
+            <SettingRow label="تصدير كل البيانات" description="تنزيل نسخة كاملة من قاعدة البيانات">
+              <Button variant="outline" className="gap-2">
+                <Database className="h-4 w-4" />
+                تصدير
+              </Button>
+            </SettingRow>
+            <SettingRow label="حذف كل المستخدمين غير النشطين" description="حسابات لم تسجّل دخول منذ 90 يومًا">
+              <Button variant="destructive" className="gap-2">
+                <Trash2 className="h-4 w-4" />
+                حذف (87)
+              </Button>
+            </SettingRow>
+            <SettingRow label="حذف المكتبة نهائيًا" description="⚠️ لا يمكن التراجع — سيُحذف كل شيء">
+              <Button variant="destructive" className="gap-2">
+                <Trash2 className="h-4 w-4" />
+                حذف نهائي
+              </Button>
+            </SettingRow>
+          </div>
+        </Card>
+      )}
+    </AdminLayout>
+  )
+}
+
+// ============== Helper Components ==============
+
+function SettingRow({ label, description, children }: {
+  label: string
+  description?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-3">
+      <div className="flex-1">
+        <Label className="text-sm font-medium text-slate-900">{label}</Label>
+        {description && (
+          <p className="mt-0.5 text-xs text-slate-500">{description}</p>
+        )}
+      </div>
+      <div className="flex-shrink-0">{children}</div>
+    </div>
+  )
+}
+
+function IntegrationRow({ name, description, status }: {
+  name: string
+  description: string
+  status: 'active' | 'inactive'
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-3 border-b border-slate-100 last:border-0">
+      <div className="flex-1">
+        <div className="text-sm font-medium text-slate-900">{name}</div>
+        <div className="mt-0.5 text-xs text-slate-500">{description}</div>
+      </div>
+      {status === 'active' ? (
+        <Badge variant="default" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+          مفعّل
+        </Badge>
+      ) : (
+        <Button variant="outline" size="sm">إعداد</Button>
+      )}
     </div>
   )
 }
