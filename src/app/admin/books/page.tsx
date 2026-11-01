@@ -63,8 +63,8 @@ export default function AdminBooksPage() {
 
   const filtered = books.filter(b => {
     const matchesSearch = !search ||
-      b.title.toLowerCase().includes(search.toLowerCase()) ||
-      b.author.toLowerCase().includes(search.toLowerCase())
+      (b.title || '').toLowerCase().includes(search.toLowerCase()) ||
+      (b.author || '').toLowerCase().includes(search.toLowerCase())
     const matchesStatus = statusFilter === 'all' || b.status === statusFilter
     return matchesSearch && matchesStatus
   })

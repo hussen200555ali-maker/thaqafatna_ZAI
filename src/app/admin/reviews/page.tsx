@@ -101,7 +101,9 @@ export default function AdminReviewsPage() {
           {filtered.map((review) => {
             const initial = (review.user?.name || '?').charAt(0).toUpperCase()
             const isPending = review.status === 'pending'
-            const isSuspicious = review.content.includes('http') || review.content.includes('www.')
+            // حماية من undefined/null — بعض المراجعات قد لا تحتوي على محتوى
+            const content = review.content || ''
+            const isSuspicious = content.includes('http') || content.includes('www.')
             return (
               <Card key={review.id} className={cn(
                 'overflow-hidden transition-all',
@@ -144,7 +146,7 @@ export default function AdminReviewsPage() {
 
                   {/* Content */}
                   <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
-                    {review.content}
+                    {content || <span className="text-slate-400 italic">(لا يوجد محتوى)</span>}
                   </div>
 
                   {/* Actions */}
