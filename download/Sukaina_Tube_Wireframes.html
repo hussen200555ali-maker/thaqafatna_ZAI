@@ -1,0 +1,2992 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Sukaina Tube - نماذج أولية للواجهات</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Cairo:wght@400;600;700;900&family=Roboto:wght@400;500;700;900&family=Roboto+Flex:opsz,wght@8..144,400;8..144,700;8..144,900&display=swap" rel="stylesheet">
+<style>
+/* ============ PAGE SETUP ============ */
+@page {
+  size: 1240px 1754px;
+  margin: 0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 1240px;
+  background: #0F0F0F;
+  font-family: 'Tajawal', 'Roboto', sans-serif;
+  color: #FFFFFF;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  width: 1240px;
+  height: 1754px;
+  background: #0F0F0F;
+  position: relative;
+  overflow: hidden;
+  page-break-after: always;
+  break-after: page;
+}
+.page:last-child { page-break-after: auto; }
+
+/* ============ TYPOGRAPHY ============ */
+.tajawal { font-family: 'Tajawal', sans-serif; }
+.cairo { font-family: 'Cairo', sans-serif; }
+.roboto { font-family: 'Roboto', sans-serif; }
+
+/* ============ COVER PAGE ============ */
+.cover-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 75% 25%, rgba(255,0,0,0.18) 0%, transparent 45%),
+    radial-gradient(circle at 25% 80%, rgba(62,166,255,0.10) 0%, transparent 50%),
+    #0F0F0F;
+}
+.cover-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.cover-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 80px;
+}
+.youtube-logo-big {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 50px;
+}
+.yt-icon-big {
+  width: 110px;
+  height: 78px;
+  background: #FF0000;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.yt-icon-big::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 32px solid #FFFFFF;
+  border-top: 20px solid transparent;
+  border-bottom: 20px solid transparent;
+  margin-left: 8px;
+}
+.yt-text-big {
+  font-family: 'Roboto', sans-serif;
+  font-size: 78px;
+  font-weight: 900;
+  letter-spacing: -3px;
+  color: #FFFFFF;
+}
+.cover-subtitle {
+  font-family: 'Cairo', sans-serif;
+  font-size: 38px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.cover-tagline {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: #AAAAAA;
+  text-align: center;
+  margin-bottom: 60px;
+  line-height: 1.6;
+}
+.cover-badges {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 80px;
+}
+.cover-badge {
+  padding: 12px 24px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 50px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cover-badge.red { border-color: #FF0000; color: #FF0000; }
+.cover-badge.blue { border-color: #3EA6FF; color: #3EA6FF; }
+.cover-meta {
+  position: absolute;
+  bottom: 70px;
+  left: 80px;
+  right: 80px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  padding-top: 30px;
+}
+.cover-meta-block {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 16px;
+  color: #AAAAAA;
+  line-height: 1.7;
+}
+.cover-meta-block strong { color: #FFFFFF; font-weight: 700; }
+.cover-version {
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  color: #FF0000;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+/* ============ STANDARD PAGE HEADER ============ */
+.page-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  padding: 0 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: #0F0F0F;
+  z-index: 10;
+}
+.page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.page-num {
+  width: 44px;
+  height: 44px;
+  background: #FF0000;
+  color: #FFFFFF;
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.page-title {
+  font-family: 'Cairo', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+.page-subtitle {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  color: #AAAAAA;
+  margin-top: 2px;
+}
+.page-header-right {
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  color: #AAAAAA;
+  letter-spacing: 1px;
+}
+
+/* ============ OVERVIEW PAGE ============ */
+.overview-body {
+  position: absolute;
+  top: 110px;
+  left: 60px;
+  right: 60px;
+  bottom: 60px;
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-top: 30px;
+}
+.overview-card {
+  background: #1F1F1F;
+  border-radius: 16px;
+  padding: 26px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.overview-card h3 {
+  font-family: 'Cairo', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.overview-card h3::before {
+  content: '';
+  width: 6px;
+  height: 24px;
+  background: #FF0000;
+  border-radius: 3px;
+}
+.overview-card p, .overview-card li {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 16px;
+  color: #CCCCCC;
+  line-height: 1.8;
+}
+.overview-card ul { padding-right: 20px; }
+.overview-card li { margin-bottom: 8px; }
+.section-intro {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 18px;
+  color: #CCCCCC;
+  line-height: 1.8;
+  background: #1A1A1A;
+  padding: 24px 30px;
+  border-radius: 14px;
+  border-right: 4px solid #FF0000;
+}
+
+.screens-table {
+  width: 100%;
+  margin-top: 30px;
+  border-collapse: collapse;
+  background: #1A1A1A;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.screens-table th, .screens-table td {
+  padding: 16px 18px;
+  text-align: right;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 15px;
+}
+.screens-table th {
+  background: #2A2A2A;
+  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 14px;
+}
+.screens-table td { color: #CCCCCC; }
+.screens-table tr:last-child td { border-bottom: none; }
+.screens-table .screen-num {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  background: #FF0000;
+  color: #FFFFFF;
+  text-align: center;
+  line-height: 26px;
+  border-radius: 6px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  margin-left: 8px;
+}
+.screens-table .screen-name { color: #FFFFFF; font-weight: 700; }
+
+/* ============ PHONE MOCKUP CONTAINER ============ */
+.mockup-page {
+  display: flex;
+  height: 100%;
+  padding-top: 90px;
+  padding-bottom: 40px;
+  padding-left: 50px;
+  padding-right: 50px;
+  gap: 40px;
+}
+.annotations-col {
+  width: 480px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+.phone-col {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============ PIXEL PHONE FRAME ============ */
+.pixel-phone {
+  width: 380px;
+  height: 800px;
+  background: #1A1A1A;
+  border-radius: 44px;
+  padding: 12px;
+  border: 2px solid #2A2A2A;
+  box-shadow:
+    0 0 0 2px #0A0A0A,
+    0 30px 60px rgba(0,0,0,0.6),
+    inset 0 0 0 1px rgba(255,255,255,0.04);
+  position: relative;
+}
+.pixel-phone::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 28px;
+  background: #0A0A0A;
+  border-radius: 20px;
+  z-index: 100;
+}
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  background: #0F0F0F;
+  border-radius: 32px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.status-bar {
+  height: 38px;
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0F0F0F;
+  color: #FFFFFF;
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+  z-index: 5;
+}
+.status-bar .sb-time { font-weight: 700; }
+.status-bar .sb-icons { display: flex; gap: 6px; align-items: center; }
+
+/* ============ ANNOTATIONS ============ */
+.annot-title {
+  font-family: 'Cairo', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+}
+.annot-desc {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 15px;
+  color: #AAAAAA;
+  line-height: 1.7;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.annot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  overflow: hidden;
+}
+.annot-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.annot-num {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  background: #FF0000;
+  color: #FFFFFF;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+.annot-text {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  color: #E0E0E0;
+  line-height: 1.7;
+}
+.annot-text strong { color: #FFFFFF; font-weight: 700; }
+.annot-text .code-tag {
+  display: inline-block;
+  background: #2A2A2A;
+  color: #3EA6FF;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  margin: 0 2px;
+}
+
+/* ============ YOUTUBE HOME SCREEN UI ============ */
+.yt-topbar {
+  height: 56px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0F0F0F;
+  flex-shrink: 0;
+}
+.yt-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.yt-logo-mini {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.yt-play-icon {
+  width: 26px;
+  height: 18px;
+  background: #FF0000;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.yt-play-icon::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 7px solid #FFFFFF;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  margin-left: 2px;
+}
+.yt-logo-text {
+  font-family: 'Roboto', sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  color: #FFFFFF;
+  letter-spacing: -1px;
+}
+.yt-topbar-icons { display: flex; gap: 16px; align-items: center; }
+.yt-icon-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+}
+.yt-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF6B6B, #C9184A);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+.yt-chips-row {
+  display: flex;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #0F0F0F;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.yt-chip {
+  padding: 7px 13px;
+  background: #FFFFFF1A;
+  border-radius: 8px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #FFFFFF;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.yt-chip.active {
+  background: #FFFFFF;
+  color: #0F0F0F;
+  font-weight: 700;
+}
+.yt-videos-scroll {
+  flex: 1;
+  overflow: hidden;
+  padding: 8px 0 12px;
+}
+.yt-video-card {
+  margin-bottom: 14px;
+}
+.yt-thumb {
+  width: 100%;
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+.yt-thumb-time {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.8);
+  color: #FFFFFF;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+}
+.yt-card-info {
+  display: flex;
+  padding: 10px 12px 0;
+  gap: 10px;
+}
+.yt-card-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-size: cover;
+}
+.yt-card-meta { flex: 1; min-width: 0; }
+.yt-card-title {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #FFFFFF;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.yt-card-channel {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 11px;
+  color: #AAAAAA;
+  margin-bottom: 2px;
+}
+.yt-card-stats {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11px;
+  color: #AAAAAA;
+}
+.yt-bottom-nav {
+  height: 50px;
+  background: #0F0F0F;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-shrink: 0;
+}
+.yt-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: #AAAAAA;
+}
+.yt-nav-item.active { color: #FFFFFF; }
+.yt-nav-icon { width: 22px; height: 22px; }
+.yt-nav-label {
+  font-family: 'Roboto', sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+}
+.yt-nav-create {
+  width: 38px;
+  height: 26px;
+  border: 1px solid #FFFFFF;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============ SVG ICON STYLES ============ */
+.icon { fill: currentColor; }
+
+/* ============ PLAYER SCREEN ============ */
+.player-video-area {
+  width: 100%;
+  height: 210px;
+  background: #000000;
+  position: relative;
+  flex-shrink: 0;
+}
+.player-thumb {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.player-controls-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 8px 12px;
+}
+.player-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.player-time {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11px;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+.player-progress-bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 2px;
+  position: relative;
+}
+.player-progress-filled {
+  width: 35%;
+  height: 100%;
+  background: #FF0000;
+  border-radius: 2px;
+}
+.player-controls-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 4px 0;
+}
+.player-ctrl-icon {
+  width: 22px;
+  height: 22px;
+  color: #FFFFFF;
+}
+.player-play-btn {
+  width: 28px;
+  height: 28px;
+  background: #FF0000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.player-info {
+  padding: 12px 14px 6px;
+  flex-shrink: 0;
+}
+.player-title {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #FFFFFF;
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+.player-stats {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11px;
+  color: #AAAAAA;
+}
+.player-actions-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+.player-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: #FFFFFF;
+}
+.player-action-icon { width: 20px; height: 20px; }
+.player-action-label {
+  font-family: 'Roboto', sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+}
+.player-channel-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+.player-channel-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF6B6B, #C9184A);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+.player-channel-info { flex: 1; }
+.player-channel-name {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+.player-channel-subs {
+  font-family: 'Roboto', sans-serif;
+  font-size: 10px;
+  color: #AAAAAA;
+}
+.player-subscribe-btn {
+  padding: 7px 14px;
+  background: #FFFFFF;
+  color: #0F0F0F;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 18px;
+  border: none;
+}
+.player-suggested {
+  flex: 1;
+  overflow: hidden;
+  padding: 8px 0;
+}
+.suggested-item {
+  display: flex;
+  gap: 8px;
+  padding: 6px 12px;
+  margin-bottom: 4px;
+}
+.suggested-thumb {
+  width: 130px;
+  height: 72px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.suggested-duration {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  background: rgba(0,0,0,0.8);
+  color: #FFFFFF;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 9px;
+}
+.suggested-info { flex: 1; padding-top: 2px; }
+.suggested-title {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #FFFFFF;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.suggested-channel {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 10px;
+  color: #AAAAAA;
+  margin-bottom: 2px;
+}
+.suggested-stats {
+  font-family: 'Roboto', sans-serif;
+  font-size: 10px;
+  color: #AAAAAA;
+}
+
+/* ============ SHORTS SCREEN ============ */
+.shorts-full {
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shorts-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.shorts-progress-top {
+  position: absolute;
+  top: 50px;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 2px;
+  z-index: 5;
+}
+.shorts-progress-top::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 45%;
+  height: 100%;
+  background: #FFFFFF;
+  border-radius: 2px;
+}
+.shorts-topbar {
+  position: absolute;
+  top: 65px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 5;
+}
+.shorts-title {
+  font-family: 'Roboto', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.shorts-title-icon {
+  width: 22px;
+  height: 16px;
+  background: #FF0000;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.shorts-title-icon::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 6px solid #FFFFFF;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  margin-left: 2px;
+}
+.shorts-icons { display: flex; gap: 14px; color: #FFFFFF; }
+.shorts-right-actions {
+  position: absolute;
+  right: 12px;
+  bottom: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+  z-index: 5;
+}
+.shorts-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #FFFFFF;
+}
+.shorts-action-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shorts-action-label {
+  font-family: 'Roboto', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+}
+.shorts-bottom-info {
+  position: absolute;
+  left: 14px;
+  right: 80px;
+  bottom: 30px;
+  z-index: 5;
+}
+.shorts-channel-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.shorts-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFB347, #FF6B6B);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+.shorts-channel-name {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+.shorts-follow-btn {
+  padding: 5px 12px;
+  background: #FFFFFF;
+  color: #0F0F0F;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 14px;
+  margin-right: auto;
+}
+.shorts-caption {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 12px;
+  color: #FFFFFF;
+  line-height: 1.5;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+.shorts-music-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 10px;
+  color: #FFFFFF;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+/* Next short peek */
+.shorts-next-peek {
+  position: absolute;
+  bottom: -350px;
+  left: 0;
+  right: 0;
+  height: 350px;
+  background: #1A1A1A;
+  opacity: 0.4;
+  z-index: -1;
+}
+
+/* ============ LIBRARY SCREEN ============ */
+.library-section {
+  padding: 14px 0;
+  border-bottom: 8px solid #1A1A1A;
+}
+.library-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 14px 10px;
+}
+.library-section-title {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+.library-view-all {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11px;
+  color: #AAAAAA;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.library-h-scroll {
+  display: flex;
+  gap: 10px;
+  padding: 0 14px;
+  overflow: hidden;
+}
+.library-h-card {
+  flex-shrink: 0;
+  width: 200px;
+}
+.library-h-thumb {
+  width: 200px;
+  height: 112px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 6px;
+  position: relative;
+}
+.library-h-duration {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  background: rgba(0,0,0,0.8);
+  color: #FFFFFF;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 9px;
+}
+.library-h-title {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 11px;
+  color: #FFFFFF;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.library-h-stats {
+  font-family: 'Roboto', sans-serif;
+  font-size: 10px;
+  color: #AAAAAA;
+}
+.library-list-item {
+  display: flex;
+  gap: 10px;
+  padding: 6px 14px;
+}
+.library-list-thumb {
+  width: 130px;
+  height: 72px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.library-list-info { flex: 1; padding-top: 4px; }
+.library-list-title {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFFFFF;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.library-list-meta {
+  font-family: 'Roboto', sans-serif;
+  font-size: 10px;
+  color: #AAAAAA;
+}
+
+/* ============ PIN SCREEN ============ */
+.pin-screen-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  background: #0F0F0F;
+}
+.pin-lock-icon {
+  width: 80px;
+  height: 80px;
+  background: #FF0000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.pin-title {
+  font-family: 'Cairo', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+}
+.pin-subtitle {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  color: #AAAAAA;
+  margin-bottom: 30px;
+  text-align: center;
+}
+.pin-dots-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+.pin-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pin-dot.filled {
+  background: #FFFFFF;
+}
+.pin-dot.error {
+  border-color: #FF0000;
+  animation: shake 0.4s;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.pin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  width: 240px;
+}
+.pin-key {
+  width: 70px;
+  height: 70px;
+  background: #1F1F1F;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 26px;
+  font-weight: 500;
+  color: #FFFFFF;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.pin-key.empty {
+  background: transparent;
+  border: none;
+}
+.pin-key.action {
+  background: transparent;
+  font-size: 14px;
+  color: #3EA6FF;
+}
+.pin-error-msg {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 12px;
+  color: #FF0000;
+  margin-top: 20px;
+  height: 16px;
+}
+.pin-back-btn {
+  position: absolute;
+  top: 50px;
+  right: 20px;
+  color: #FFFFFF;
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ============ FOLDER SELECT SCREEN ============ */
+.folder-screen-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #0F0F0F;
+  overflow: hidden;
+}
+.folder-header {
+  padding: 14px 16px;
+  background: #0F0F0F;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.folder-back-icon { color: #FFFFFF; }
+.folder-header-title {
+  font-family: 'Cairo', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+  flex: 1;
+}
+.folder-select-all {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 12px;
+  color: #3EA6FF;
+  font-weight: 600;
+}
+.folder-list {
+  flex: 1;
+  overflow: hidden;
+  padding: 8px 0;
+}
+.folder-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.folder-thumb {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.folder-thumb-count {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #FF0000;
+  color: #FFFFFF;
+  font-family: 'Roboto', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 8px;
+  border: 2px solid #0F0F0F;
+}
+.folder-info { flex: 1; min-width: 0; }
+.folder-name {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 2px;
+}
+.folder-meta {
+  font-family: 'Roboto', sans-serif;
+  font-size: 10px;
+  color: #AAAAAA;
+}
+.folder-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #AAAAAA;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.folder-checkbox.checked {
+  background: #3EA6FF;
+  border-color: #3EA6FF;
+}
+.folder-checkbox.checked::after {
+  content: '✓';
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 700;
+}
+.folder-bottom-actions {
+  padding: 12px 16px;
+  background: #0F0F0F;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  gap: 10px;
+}
+.folder-btn {
+  flex: 1;
+  padding: 11px;
+  border-radius: 22px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  border: none;
+}
+.folder-btn.primary {
+  background: #FF0000;
+  color: #FFFFFF;
+}
+.folder-btn.secondary {
+  background: #2A2A2A;
+  color: #FFFFFF;
+}
+
+/* ============ DESIGN SYSTEM PAGE ============ */
+.ds-body {
+  position: absolute;
+  top: 110px;
+  left: 60px;
+  right: 60px;
+  bottom: 60px;
+}
+.ds-section {
+  margin-bottom: 30px;
+}
+.ds-section-title {
+  font-family: 'Cairo', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 16px;
+  padding-right: 14px;
+  border-right: 4px solid #FF0000;
+}
+.ds-color-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.ds-color-card {
+  background: #1A1A1A;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.ds-color-swatch {
+  width: 100%;
+  height: 70px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.ds-color-name {
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 2px;
+}
+.ds-color-hex {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11px;
+  color: #AAAAAA;
+  letter-spacing: 0.5px;
+}
+.ds-color-use {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+.ds-type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ds-type-row {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  padding: 14px 18px;
+  background: #1A1A1A;
+  border-radius: 10px;
+}
+.ds-type-sample {
+  flex: 1;
+  color: #FFFFFF;
+}
+.ds-type-meta {
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  color: #AAAAAA;
+  width: 220px;
+}
+.ds-grid-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.ds-info-card {
+  background: #1A1A1A;
+  border-radius: 12px;
+  padding: 20px;
+}
+.ds-info-card h4 {
+  font-family: 'Cairo', sans-serif;
+  font-size: 16px;
+  color: #FFFFFF;
+  margin-bottom: 10px;
+}
+.ds-info-card p, .ds-info-card li {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  color: #CCCCCC;
+  line-height: 1.7;
+}
+.ds-info-card ul { padding-right: 18px; }
+
+/* ============ FINAL PAGE ============ */
+.final-body {
+  position: absolute;
+  top: 110px;
+  left: 60px;
+  right: 60px;
+  bottom: 60px;
+}
+.final-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+.final-card {
+  background: #1A1A1A;
+  border-radius: 14px;
+  padding: 22px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.final-card h3 {
+  font-family: 'Cairo', sans-serif;
+  font-size: 18px;
+  color: #FFFFFF;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.final-card h3::before {
+  content: '';
+  width: 6px;
+  height: 20px;
+  background: #FF0000;
+  border-radius: 3px;
+}
+.impl-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.impl-table th, .impl-table td {
+  padding: 10px 12px;
+  text-align: right;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+}
+.impl-table th {
+  color: #AAAAAA;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.impl-table td { color: #E0E0E0; }
+.impl-table .screen-cell { color: #FFFFFF; font-weight: 700; }
+.impl-table .code-cell {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11px;
+  color: #3EA6FF;
+  direction: ltr;
+  text-align: left;
+}
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  color: #E0E0E0;
+}
+.status-row:last-child { border-bottom: none; }
+.status-badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.status-done { background: rgba(76,175,80,0.2); color: #4CAF50; }
+.status-pending { background: rgba(255,152,0,0.2); color: #FF9800; }
+.status-critical { background: rgba(255,0,0,0.2); color: #FF0000; }
+.final-note {
+  background: rgba(255,0,0,0.08);
+  border: 1px solid rgba(255,0,0,0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+.final-note h4 {
+  font-family: 'Cairo', sans-serif;
+  font-size: 16px;
+  color: #FF0000;
+  margin-bottom: 8px;
+}
+.final-note p {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  color: #E0E0E0;
+  line-height: 1.7;
+}
+.footer-bar {
+  position: absolute;
+  bottom: 20px;
+  left: 60px;
+  right: 60px;
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Roboto', sans-serif;
+  font-size: 11px;
+  color: #666;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================== PAGE 1: COVER =========================== -->
+<div class="page">
+  <div class="cover-bg"></div>
+  <div class="cover-grid"></div>
+  <div class="cover-content">
+    <div class="youtube-logo-big">
+      <div class="yt-icon-big"></div>
+      <div class="yt-text-big">YouTube</div>
+    </div>
+    <div class="cover-subtitle">Sukaina Tube — نماذج أولية للواجهات</div>
+    <div class="cover-tagline">
+      محاكاة كاملة لتطبيق يوتيوب بأبنية محلية من ذاكرة الهاتف<br>
+      لإيهام الطفل بأنه يستخدم التطبيق الحقيقي
+    </div>
+    <div class="cover-badges">
+      <div class="cover-badge red">● مطابقة 100% ليوتيوب</div>
+      <div class="cover-badge">Dark Mode</div>
+      <div class="cover-badge">RTL عربي</div>
+      <div class="cover-badge blue">Material Icons</div>
+      <div class="cover-badge">5 شاشات</div>
+    </div>
+    <div class="cover-meta">
+      <div class="cover-meta-block">
+        <strong>المشروع:</strong> Sukaina Tube<br>
+        <strong>المرحلة:</strong> Wireframes / Mockups v0.1<br>
+        <strong>المنصة:</strong> Android (Kotlin + Media3)
+      </div>
+      <div class="cover-version">DOC-MK-001 / 2026-11</div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================== PAGE 2: OVERVIEW =========================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-num">02</div>
+      <div>
+        <div class="page-title">نظرة عامة ومبادئ التصميم</div>
+        <div class="page-subtitle">Project Overview &amp; Design Principles</div>
+      </div>
+    </div>
+    <div class="page-header-right">OVERVIEW</div>
+  </div>
+
+  <div class="overview-body">
+    <div class="section-intro">
+      يهدف هذا المستند إلى توثيق النماذج الأولية عالية الدقة لخمس شاشات أساسية في تطبيق <strong>Sukaina Tube</strong> — تطبيق أندرويد يحاكي واجهة يوتيوب بنسبة 100%، لكنه يعرض الفيديوهات المحلية من ذاكرة الهاتف بدلاً من الإنترنت. الهدف هو إيهام الطفل بأنه يستخدم يوتيوب الحقيقي، مع إبقاء المحتوى تحت سيطرة الوالد بالكامل عبر لوحة تحكم سرية محمية برمز PIN.
+    </div>
+
+    <div class="overview-grid">
+      <div class="overview-card">
+        <h3>الهدف من المشروع</h3>
+        <p>إيهام الطفل (سكينة) بأنه يستخدم يوتيوب الحقيقي 100% — نفس الشعار، الألوان، الأيقونات، التخطيط، والتفاعلات — بينما التطبيق يعمل دون اتصال بالإنترنت ويقرأ الفيديوهات من مجلدات محددة سلفاً من قبل الأب عبر لوحة تحكم سرية.</p>
+      </div>
+      <div class="overview-card">
+        <h3>مبادئ التصميم</h3>
+        <ul>
+          <li>مطابقة بصرية 100% ليوتيوب الرسمي</li>
+          <li>دعم RTL للعربية مع Material Symbols</li>
+          <li>وضع Dark (مع Auto-switching للوضعين)</li>
+          <li>حجم خط متوسط مطابق ليوتيوب</li>
+          <li>أيقونات Material Components قياسية</li>
+          <li>بيانات وهمية مولّدة برمجياً (مشاهدات، تعليقات)</li>
+        </ul>
+      </div>
+    </div>
+
+    <table class="screens-table">
+      <thead>
+        <tr>
+          <th style="width:60px">#</th>
+          <th style="width:200px">الشاشة</th>
+          <th>الوصف المختصر</th>
+          <th style="width:140px">التبويب/الوصول</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="screen-num">1</span></td>
+          <td><span class="screen-name">الرئيسية (Home)</span></td>
+          <td>شبكة فيديوهات + شرائح Chips + شريط تنقل سفلي</td>
+          <td>Tab #1</td>
+        </tr>
+        <tr>
+          <td><span class="screen-num">2</span></td>
+          <td><span class="screen-name">المشغل (Player)</span></td>
+          <td>ExoPlayer + أزرار تحكم + فيديوهات مقترحة + تعليقات</td>
+          <td>من Home</td>
+        </tr>
+        <tr>
+          <td><span class="screen-num">3</span></td>
+          <td><span class="screen-name">Shorts</span></td>
+          <td>تمرير عمودي ملء الشاشة بـ ViewPager2</td>
+          <td>Tab #2</td>
+        </tr>
+        <tr>
+          <td><span class="screen-num">4</span></td>
+          <td><span class="screen-name">المكتبة (Library)</span></td>
+          <td>History + Playlists + Watch Later + Liked</td>
+          <td>Tab #5</td>
+        </tr>
+        <tr>
+          <td><span class="screen-num">5</span></td>
+          <td><span class="screen-name">لوحة الأب (PIN + Folders)</span></td>
+          <td>إدخال PIN ثم اختيار المجلدات المسموح بها</td>
+          <td>سرّي — ضغط مطوّل على الشعار</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="overview-card" style="margin-top:24px">
+      <h3>ملاحظات تقنية حاسمة</h3>
+      <ul>
+        <li>المشروع الحالي لا يبني APK — أولوية قصوى لإصلاح أخطاء Gradle/Kotlin قبل أي تطوير جديد.</li>
+        <li>المكتبة المُستخدمة للتشغيل: <strong>Media3 1.5</strong> مع ExoPlayer (تم حل مشكلة TimeBar سابقاً).</li>
+        <li>الوصول للملفات: <strong>Storage Access Framework (SAF)</strong> — لا أذونات خطيرة.</li>
+        <li>تخزين الإعدادات: <strong>EncryptedSharedPreferences</strong> لرمز PIN والمجلدات المختارة.</li>
+        <li>اللغة الافتراضية للواجهة: العربية (RTL)، مع دعم اللغة الإنجليزية تلقائياً.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- =========================== PAGE 3: HOME SCREEN =========================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-num">03</div>
+      <div>
+        <div class="page-title">الشاشة الرئيسية (Home)</div>
+        <div class="page-subtitle">YouTube Home Screen — Video Grid + Chips</div>
+      </div>
+    </div>
+    <div class="page-header-right">SCREEN 01 / 05</div>
+  </div>
+
+  <div class="mockup-page">
+    <!-- ANNOTATIONS COLUMN (RIGHT in RTL) -->
+    <div class="annotations-col">
+      <div class="annot-title">الشاشة الرئيسية</div>
+      <div class="annot-desc">الشاشة الأولى التي يفتحها الطفل عند تشغيل التطبيق. تطابق تخطيط يوتيوب Dark Mode تماماً — شريط علوي، شرائح تصنيفات أفقية، شبكة فيديوهات، وشريط تنقل سفلي بـ 5 تبويبات.</div>
+
+      <div class="annot-list">
+        <div class="annot-item">
+          <div class="annot-num">1</div>
+          <div class="annot-text"><strong>شعار YouTube</strong> — يُستخدم كزر سرّي: ضغط مطوّل 5 ثوانٍ يفتح لوحة الأب. شعار حقيقي بـ <span class="code-tag">#FF0000</span> + نص أبيض Roboto 900.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">2</div>
+          <div class="annot-text"><strong>أيقونة Cast</strong> — تظهر دائماً للواقعية لكنها معطّلة (لا استجابة عند النقر) لأن التطبيق دون إنترنت.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">3</div>
+          <div class="annot-text"><strong>أيقونة الإشعارات</strong> — مع شارة حمراء وهمية بعدد (مولّد عشوائياً 1-9). النقر يفتح نافذة فارغة بتعليق "لا توجد إشعارات".</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">4</div>
+          <div class="annot-text"><strong>أيقونة البحث</strong> — تفتح شاشة بحث (سيتم تنفيذها لاحقاً) تبحث محلياً في أسماء ملفات المجلدات المسموح بها فقط.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">5</div>
+          <div class="annot-text"><strong>صورة الحساب</strong> — حرف أول اسم الطفل "S" بخلفية متدرجة. النقر يفتح Drawer جانبي وهمي (قائمة فارغة).</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">6</div>
+          <div class="annot-text"><strong>شرائح Chips</strong> — تصنيفات HorizontalScrollView. القيم الافتراضية: الكل، موسيقى، ألعاب، كرتون، تعليمي، قنوات، جديد. الشريحة النشطة بخلفية بيضاء.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">7</div>
+          <div class="annot-text"><strong>بطاقة الفيديو</strong> — صورة مصغّرة مولّدة من <span class="code-tag">MediaMetadataRetriever</span> (إطار عند الثانية 1)، عنوان = اسم الملف بدون امتداد.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">8</div>
+          <div class="annot-text"><strong>اسم القناة</strong> — وهمي مولّد من اسم المجلد الأب أو قائمة أسماء عشوائية (مثل: "قناة سكينة"، "كرتون كيدز").</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">9</div>
+          <div class="annot-text"><strong>عدد المشاهدات</strong> — وهمي مولّد عشوائياً (مثل: 1.2M views، 45K views). يُثبَّت لكل فيديو في <span class="code-tag">SharedPreferences</span> ليكون ثابتاً عبر الجلسات.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">10</div>
+          <div class="annot-text"><strong>وقت النشر</strong> — وهمي عشوائي (مثل: 3 days ago، 2 weeks ago). يُولّد مرة واحدة ويُخزّن.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">11</div>
+          <div class="annot-text"><strong>مدة الفيديو</strong> — حقيقية من <span class="code-tag">MediaMetadataRetriever.METADATA_KEY_DURATION</span>، تُعرض بشاح خلفية سوداء شبه شفافة.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">12</div>
+          <div class="annot-text"><strong>شريط التنقل السفلي</strong> — 5 تبويبات: Home (نشط)، Shorts، زر Create+ (معطّل)، Subscriptions (وهمي)، Library. التبويب النشط بأيقونة ملوّنة.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHONE MOCKUP COLUMN -->
+    <div class="phone-col">
+      <div class="pixel-phone">
+        <div class="phone-screen">
+          <!-- Status Bar -->
+          <div class="status-bar">
+            <div class="sb-time">9:41</div>
+            <div class="sb-icons">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M17 4h-1V2h-2v2H10V2H8v2H7C5.34 4 4 5.34 4 7v13c0 1.66 1.34 3 3 3h10c1.66 0 3-1.34 3-3V7c0-1.66-1.34-3-3-3zm0 16H7V9h10v11z"/></svg>
+              <svg width="16" height="10" viewBox="0 0 24 14" fill="#FFFFFF"><rect x="1" y="2" width="20" height="10" rx="2" stroke="#FFFFFF" stroke-width="1" fill="none"/><rect x="3" y="4" width="16" height="6" rx="1" fill="#FFFFFF"/><rect x="22" y="5" width="1.5" height="4" rx="0.5" fill="#FFFFFF"/></svg>
+            </div>
+          </div>
+
+          <!-- YouTube Top Bar -->
+          <div class="yt-topbar">
+            <div class="yt-topbar-left">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" transform="rotate(180 12 12)"/></svg>
+              <div class="yt-logo-mini">
+                <div class="yt-play-icon"></div>
+                <div class="yt-logo-text">YouTube</div>
+              </div>
+            </div>
+            <div class="yt-topbar-icons">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M21 3H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11z"/></svg>
+              <div style="position:relative">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                <div style="position:absolute;top:-2px;left:-2px;width:8px;height:8px;background:#FF0000;border-radius:50%;border:1.5px solid #0F0F0F"></div>
+              </div>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+              <div class="yt-avatar">S</div>
+            </div>
+          </div>
+
+          <!-- Chips Row -->
+          <div class="yt-chips-row">
+            <div class="yt-chip active">الكل</div>
+            <div class="yt-chip">موسيقى</div>
+            <div class="yt-chip">ألعاب</div>
+            <div class="yt-chip">كرتون</div>
+            <div class="yt-chip">تعليمي</div>
+            <div class="yt-chip">قنوات</div>
+          </div>
+
+          <!-- Videos Grid -->
+          <div class="yt-videos-scroll">
+            <div class="yt-video-card">
+              <div class="yt-thumb" style="background-image:linear-gradient(135deg,#FF6B6B,#C9184A)">
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="rgba(255,255,255,0.4)"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                <div class="yt-thumb-time">10:24</div>
+              </div>
+              <div class="yt-card-info">
+                <div class="yt-card-avatar" style="background:linear-gradient(135deg,#FFB347,#FF6B6B)"></div>
+                <div class="yt-card-meta">
+                  <div class="yt-card-title">حلقة جديدة من كرتون سكينة المفضل - مغامرات ممتعة</div>
+                  <div class="yt-card-channel">قناة سكينة كيدز ✓</div>
+                  <div class="yt-card-stats">1.2M views • 3 days ago</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="yt-video-card">
+              <div class="yt-thumb" style="background-image:linear-gradient(135deg,#3EA6FF,#1976D2);height:160px">
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="rgba(255,255,255,0.4)"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                <div class="yt-thumb-time">3:45</div>
+              </div>
+              <div class="yt-card-info">
+                <div class="yt-card-avatar" style="background:linear-gradient(135deg,#4ECDC4,#44A08D)"></div>
+                <div class="yt-card-meta">
+                  <div class="yt-card-title">أغنية الأطفال السعيدة - تعلم الحروف</div>
+                  <div class="yt-card-channel">موسيقى الأطفال</div>
+                  <div class="yt-card-stats">845K views • 1 week ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Navigation -->
+          <div class="yt-bottom-nav">
+            <div class="yt-nav-item active">
+              <svg class="yt-nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+              <div class="yt-nav-label">Home</div>
+            </div>
+            <div class="yt-nav-item">
+              <svg class="yt-nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9.197V14.803L15.5 12 10 9.197z"/><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9.5 13.5v-9l6 4.5-6 4.5z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+              <div class="yt-nav-label">Shorts</div>
+            </div>
+            <div class="yt-nav-item">
+              <div class="yt-nav-create">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              </div>
+              <div class="yt-nav-label" style="opacity:0">.</div>
+            </div>
+            <div class="yt-nav-item">
+              <svg class="yt-nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 8H4V6h16v2zm-2-6H6v2h12V2zm4 10v8c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2v-8c0-1.1.9-2 2-2h16c1.1 0 2 .9 2 2zm-6 4l-6-3.27v6.53L16 16z"/></svg>
+              <div class="yt-nav-label">Subs</div>
+            </div>
+            <div class="yt-nav-item">
+              <svg class="yt-nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+              <div class="yt-nav-label">Library</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================== PAGE 4: PLAYER SCREEN =========================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-num">04</div>
+      <div>
+        <div class="page-title">شاشة المشغل (Player)</div>
+        <div class="page-subtitle">ExoPlayer + Suggested Videos + Comments</div>
+      </div>
+    </div>
+    <div class="page-header-right">SCREEN 02 / 05</div>
+  </div>
+
+  <div class="mockup-page">
+    <div class="annotations-col">
+      <div class="annot-title">شاشة المشغل</div>
+      <div class="annot-desc">تشغيل الفيديو المحلي عبر Media3 ExoPlayer مع أزرار تحكم يوتيوب، معلومات وهمية، وفيديوهات مقترحة من نفس المجلد. تعليقات وهمية في الأسفل.</div>
+
+      <div class="annot-list">
+        <div class="annot-item">
+          <div class="annot-num">1</div>
+          <div class="annot-text"><strong>منطقة الفيديو</strong> — 16:9 ملء العرض. تستخدم <span class="code-tag">androidx.media3.ui.PlayerView</span> مع إخفاء التحكمات الافتراضية واستخدام تحكمات يوتيوب المخصصة.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">2</div>
+          <div class="annot-text"><strong>شريط التقدم</strong> — أحمر <span class="code-tag">#FF0000</span>. تم استبدال <span class="code-tag">DefaultTimeBar.setPlayer</span> بتحديث يدوي للموضع/المدة (حل المشكلة السابقة في Media3 1.5).</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">3</div>
+          <div class="annot-text"><strong>أزرار التحكم</strong> — Play/Pause فعّال فعلياً، الباقي (Next/Prev/Speed/CC/Fullscreen) مزيف لكنه يستجيب بصرياً (تغيير أيقونة).</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">4</div>
+          <div class="annot-text"><strong>عنوان الفيديو</strong> — اسم الملف بدون امتداد، مطبّق عليه سنake case → مسافات. يُعرض بـ 2 سطر كحد أقصى.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">5</div>
+          <div class="annot-text"><strong>المشاهدات والوقت</strong> — وهمي ثابت لكل فيديو (مولّد ومخزّن في SharedPreferences). مثال: "1.2M views • 3 days ago".</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">6</div>
+          <div class="annot-text"><strong>أزرار الإعجاب</strong> — Like/Dislike مع أعداد وهمية. النقر يبدّل الحالة بصرياً فقط. زر Share يفتح شير شيت وهمي. Download/Save معطّلان بصرياً.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">7</div>
+          <div class="annot-text"><strong>صف القناة</strong> — اسم قناة وهمي + شعار مولّد + زر Subscribe (أحمر). Subscribe يتحول لـ "Subscribed" رمادي عند النقر.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">8</div>
+          <div class="annot-text"><strong>الوصف</strong> — قابل للطي. يحتوي على نص وهمي مولّد + روابط مزيفة لا تعمل. النقر يوسّع النافذة.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">9</div>
+          <div class="annot-text"><strong>التعليقات</strong> — 3-10 تعليقات وهمية مولّدة من قوالب جاهزة (عربية). أسماء معلّقين وهمية + أوقات + نصوص + أعداد إعجاب.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">10</div>
+          <div class="annot-text"><strong>الفيديوهات المقترحة</strong> — Up Next من نفس المجلد بشكل أساسي (الأقرب موضوعياً)، مع فيديو عشوائي من مجلد آخر كل 5 عناصر. النقر يفتح نفس الشاشة بفيديو جديد.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">11</div>
+          <div class="annot-text"><strong>السلوك التلقائي (Auto-play)</strong> — عند انتهاء الفيديو، يُشغّل تلقائياً الفيديو التالي من المقترحة بعد 3 ثوانٍ مع شاشة عد تنازلي.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">12</div>
+          <div class="annot-text"><strong>الصوت</strong> — يبدأ بصوت الهاتف الحالي. زر كتم صوت في شريط التحكم. عند سكشن Shorts، صوت تلقائي.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="pixel-phone">
+        <div class="phone-screen">
+          <div class="status-bar">
+            <div class="sb-time">9:41</div>
+            <div class="sb-icons">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M17 4h-1V2h-2v2H10V2H8v2H7C5.34 4 4 5.34 4 7v13c0 1.66 1.34 3 3 3h10c1.66 0 3-1.34 3-3V7c0-1.66-1.34-3-3-3z"/></svg>
+              <svg width="16" height="10" viewBox="0 0 24 14" fill="#FFFFFF"><rect x="1" y="2" width="20" height="10" rx="2" stroke="#FFFFFF" stroke-width="1" fill="none"/><rect x="3" y="4" width="16" height="6" rx="1" fill="#FFFFFF"/></svg>
+            </div>
+          </div>
+
+          <!-- Video Player Area -->
+          <div class="player-video-area">
+            <div class="player-thumb" style="background:linear-gradient(135deg,#FF6B6B,#C9184A)">
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+            </div>
+            <div class="player-controls-overlay">
+              <div class="player-progress-row">
+                <div class="player-time">3:32</div>
+                <div class="player-progress-bar">
+                  <div class="player-progress-filled"></div>
+                </div>
+                <div class="player-time">10:24</div>
+              </div>
+              <div class="player-controls-row">
+                <svg class="player-ctrl-icon" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" transform="scale(-1,1) translate(-24,0)"/></svg>
+                <div class="player-play-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </div>
+                <svg class="player-ctrl-icon" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                <svg class="player-ctrl-icon" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M19 5v14h-2V5h2m-4 0v14h-2V5h2m-4 0v14H9V5h2M7 5v14H5V5h2m14-2H3v18h18V3z" opacity="0.7"/></svg>
+                <svg class="player-ctrl-icon" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M19 6H5c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H5V8h14v8z"/></svg>
+                <svg class="player-ctrl-icon" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Player Info -->
+          <div class="player-info">
+            <div class="player-title">حلقة جديدة من كرتون سكينة المفضل - مغامرات ممتعة في الغابة</div>
+            <div class="player-stats">1.2M views • 3 days ago</div>
+          </div>
+
+          <!-- Action Buttons Row -->
+          <div class="player-actions-row">
+            <div class="player-action">
+              <svg class="player-action-icon" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>
+              <div class="player-action-label">12K</div>
+            </div>
+            <div class="player-action">
+              <svg class="player-action-icon" viewBox="0 0 24 24" fill="#FFFFFF" style="transform:rotate(180deg)"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>
+              <div class="player-action-label">Dislike</div>
+            </div>
+            <div class="player-action">
+              <svg class="player-action-icon" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M14 9V5l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z"/></svg>
+              <div class="player-action-label">Share</div>
+            </div>
+            <div class="player-action">
+              <svg class="player-action-icon" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+              <div class="player-action-label">Save</div>
+            </div>
+          </div>
+
+          <!-- Channel Row -->
+          <div class="player-channel-row">
+            <div class="player-channel-avatar">س</div>
+            <div class="player-channel-info">
+              <div class="player-channel-name">قناة سكينة كيدز ✓</div>
+              <div class="player-channel-subs">2.4M subscribers</div>
+            </div>
+            <div class="player-subscribe-btn">اشتراك</div>
+          </div>
+
+          <!-- Suggested Videos -->
+          <div class="player-suggested">
+            <div class="suggested-item">
+              <div class="suggested-thumb" style="background:linear-gradient(135deg,#FFB347,#FF8E53)">
+                <div class="suggested-duration">5:18</div>
+              </div>
+              <div class="suggested-info">
+                <div class="suggested-title">حلقة ثانية من المغامرات - تعرف على الحيوانات</div>
+                <div class="suggested-channel">قناة سكينة كيدز</div>
+                <div class="suggested-stats">450K views • 5 days ago</div>
+              </div>
+            </div>
+            <div class="suggested-item">
+              <div class="suggested-thumb" style="background:linear-gradient(135deg,#4ECDC4,#44A08D)">
+                <div class="suggested-duration">8:42</div>
+              </div>
+              <div class="suggested-info">
+                <div class="suggested-title">أغنية الحروف العربية - تعليم مبسّط للأطفال</div>
+                <div class="suggested-channel">موسيقى الأطفال</div>
+                <div class="suggested-stats">1.8M views • 2 weeks ago</div>
+              </div>
+            </div>
+            <div class="suggested-item">
+              <div class="suggested-thumb" style="background:linear-gradient(135deg,#3EA6FF,#1976D2)">
+                <div class="suggested-duration">12:03</div>
+              </div>
+              <div class="suggested-info">
+                <div class="suggested-title">قصص ما قبل النوم - حكاية الأميرة سكينة</div>
+                <div class="suggested-channel">حكايات قبل النوم</div>
+                <div class="suggested-stats">320K views • 1 month ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================== PAGE 5: SHORTS SCREEN =========================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-num">05</div>
+      <div>
+        <div class="page-title">شاشة Shorts</div>
+        <div class="page-subtitle">Vertical Full-screen Pager — ViewPager2</div>
+      </div>
+    </div>
+    <div class="page-header-right">SCREEN 03 / 05</div>
+  </div>
+
+  <div class="mockup-page">
+    <div class="annotations-col">
+      <div class="annot-title">شاشة Shorts</div>
+      <div class="annot-desc">تجربة تمرير عمودي ملء الشاشة (مثل TikTok/YouTube Shorts) — كل صفحة تعرض فيديو عمودي واحد مع أزرار تفاعل يمينية ومعلومات سفلية.</div>
+
+      <div class="annot-list">
+        <div class="annot-item">
+          <div class="annot-num">1</div>
+          <div class="annot-text"><strong>الحاوية الرئيسية</strong> — <span class="code-tag">ViewPager2</span> عمودي مع <span class="code-tag">RecyclerView.Adapter</span>. كل Page = Fragment فيديو عمودي واحد.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">2</div>
+          <div class="annot-text"><strong>ملء الشاشة</strong> — إخفاء شريط الحالة وشريط التنقل السفلي (沉浸 وضع). خلفية سوداء كاملة #000000 حول الفيديو.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">3</div>
+          <div class="annot-text"><strong>عنوان Shorts علوي</strong> — شعار يوتيوب صغير + كلمة "Shorts" بأبيض. مع زر بحث وزر كاميرا (معطّلان بصرياً).</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">4</div>
+          <div class="annot-text"><strong>شريط التقدم العلوي</strong> — رفيع جداً (2dp) أبيض، يتحرك أفقياً مع تقدم الفيديو. عند التمرير لـ Short جديد، يبدأ من الصفر.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">5</div>
+          <div class="annot-text"><strong>الأزرار اليمنى</strong> — عمودي: Like (مع عدد وهمي)، Dislike، Comments (مع عدد)، Share، Remix، More. كل زر بدائرة شفافة.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">6</div>
+          <div class="annot-text"><strong>صورة القناة</strong> — أعلى عمود الأزرار، دائرية، مع زر Follow صغير أحمر +.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">7</div>
+          <div class="annot-text"><strong>المعلومات السفلية</strong> — اسم القناة (وهمي) + زر اشتراق + نص الكابشن (وصف الفيديو) + سطر الموسيقى مع أيقونة دوّارة.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">8</div>
+          <div class="annot-text"><strong>تشغيل/إيقاف</strong> — النقر على الفيديو يبدّل بين Play/Pause. الضغط المطوّل يُظهر خيارات (وهمية).</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">9</div>
+          <div class="annot-text"><strong>التمرير (Swipe)</strong> — سحب لأعلى/لأسفل ينتقل بين Shorts. انتقال سلس مع تشغيل تلقائي للفيديو الجديد وإيقاف السابق.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">10</div>
+          <div class="annot-text"><strong>مصدر الفيديوهات</strong> — كل الفيديوهات العمودية (نسبة عرض/ارتفاع &lt; 1) من المجلدات المسموح بها تظهر هنا. الأفقية تظهر في Home/Player فقط.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="pixel-phone">
+        <div class="phone-screen">
+          <!-- Full-screen Shorts (no status bar, no bottom nav) -->
+          <div class="shorts-full">
+            <div class="shorts-bg" style="background:linear-gradient(180deg,#FF6B6B 0%,#C9184A 50%,#1A1A1A 100%)">
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="rgba(255,255,255,0.25)"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+            </div>
+
+            <!-- Progress bar top -->
+            <div class="shorts-progress-top"></div>
+
+            <!-- Top bar -->
+            <div class="shorts-topbar">
+              <div class="shorts-title">
+                <div class="shorts-title-icon"></div>
+                <span>Shorts</span>
+              </div>
+              <div class="shorts-icons">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </div>
+            </div>
+
+            <!-- Right actions column -->
+            <div class="shorts-right-actions">
+              <div style="position:relative;margin-bottom:8px">
+                <div class="shorts-avatar">س</div>
+                <div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:18px;height:18px;background:#FF0000;border-radius:50%;border:2.5px solid #000;display:flex;align-items:center;justify-content:center">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                </div>
+              </div>
+              <div class="shorts-action">
+                <div class="shorts-action-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>
+                </div>
+                <div class="shorts-action-label">12K</div>
+              </div>
+              <div class="shorts-action">
+                <div class="shorts-action-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF" style="transform:rotate(180deg)"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>
+                </div>
+                <div class="shorts-action-label">إلغاء</div>
+              </div>
+              <div class="shorts-action">
+                <div class="shorts-action-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>
+                </div>
+                <div class="shorts-action-label">340</div>
+              </div>
+              <div class="shorts-action">
+                <div class="shorts-action-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M14 9V5l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z"/></svg>
+                </div>
+                <div class="shorts-action-label">مشاركة</div>
+              </div>
+              <div class="shorts-action">
+                <div class="shorts-action-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+                </div>
+                <div class="shorts-action-label">المزيد</div>
+              </div>
+            </div>
+
+            <!-- Bottom info -->
+            <div class="shorts-bottom-info">
+              <div class="shorts-channel-row">
+                <div class="shorts-avatar" style="width:28px;height:28px;font-size:11px">س</div>
+                <div class="shorts-channel-name">@sukaina_kids</div>
+                <div class="shorts-follow-btn">متابعة</div>
+              </div>
+              <div class="shorts-caption">مغامرة جديدة في الغابة 🌳 تعرفوا على الحيوانات مع سكينة #كرتون #أطفال</div>
+              <div class="shorts-music-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                <span>موسيقى أصلية - قناة سكينة كيدز</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================== PAGE 6: LIBRARY SCREEN =========================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-num">06</div>
+      <div>
+        <div class="page-title">شاشة المكتبة (Library)</div>
+        <div class="page-subtitle">History + Playlists + Watch Later + Liked</div>
+      </div>
+    </div>
+    <div class="page-header-right">SCREEN 04 / 05</div>
+  </div>
+
+  <div class="mockup-page">
+    <div class="annotations-col">
+      <div class="annot-title">شاشة المكتبة</div>
+      <div class="annot-desc">تبويب Library (التبويب الخامس) — يعرض سجل المشاهدة والقوائم. كل عنصر مرتبط بالبيانات المحلية من الهاتف.</div>
+
+      <div class="annot-list">
+        <div class="annot-item">
+          <div class="annot-num">1</div>
+          <div class="annot-text"><strong>رأس الصفحة</strong> — عنوان "المكتبة" بخط كبير + زر بحث + زر إعدادات (يفتح الإعدادات العادية فقط، لا يكشف لوحة الأب).</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">2</div>
+          <div class="annot-text"><strong>قسم History</strong> — فيديوهات شوهدت مؤخراً (آخر 20 فيديو). التمرير الأفقي HorizontalScrollView. كل بطاقة: صورة + عنوان + وقت المشاهدة.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">3</div>
+          <div class="annot-text"><strong>قسم Playlists</strong> — قوائم تشغيل وهمية (4-8 قوائم). أسماء مثل: "كرتون صباحي"، "أغانٍ تعليمية"، "قبل النوم". كل قائمة ترتبط بمجلد محدد.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">4</div>
+          <div class="annot-text"><strong>قسم Watch Later</strong> — فارغ افتراضياً. عند النقر على زر "Save" في أي فيديو، يُضاف هنا.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">5</div>
+          <div class="annot-text"><strong>قسم Liked Videos</strong> — فيديوهات نقر الطفل عليها Like. مرتبة زمنياً.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">6</div>
+          <div class="annot-text"><strong>أزرار View All</strong> — تفتح شاشة قائمة كاملة لكل قسم.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">7</div>
+          <div class="annot-text"><strong>تخزين History</strong> — في <span class="code-tag">Room Database</span> محلي. يُحفظ: معرف الفيديو، اسم الملف، المسار، وقت المشاهدة، مدة المشاهدة الفعلية.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">8</div>
+          <div class="annot-text"><strong>إعادة التشغيل</strong> — الاستمرار من حيث توقف (Resume). يحفظ آخر موضع لكل فيديو. عند فتح فيديو شوهد جزئياً، يُسأل: "متابعة من 3:32؟".</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">9</div>
+          <div class="annot-text"><strong>شريط التنقل السفلي</strong> — تبويب "Library" نشط (يمين). نفس الـ BottomNavigationView في Home.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">10</div>
+          <div class="annot-text"><strong>تحديث ديناميكي</strong> — عند إضافة فيديو جديد لمجلد مسموح، يظهر تلقائياً في History/Playlists دون إعادة تشغيل. يستخدم <span class="code-tag">ContentObserver</span>.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="pixel-phone">
+        <div class="phone-screen">
+          <div class="status-bar">
+            <div class="sb-time">9:41</div>
+            <div class="sb-icons">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M17 4h-1V2h-2v2H10V2H8v2H7C5.34 4 4 5.34 4 7v13c0 1.66 1.34 3 3 3h10c1.66 0 3-1.34 3-3V7c0-1.66-1.34-3-3-3z"/></svg>
+              <svg width="16" height="10" viewBox="0 0 24 14" fill="#FFFFFF"><rect x="1" y="2" width="20" height="10" rx="2" stroke="#FFFFFF" stroke-width="1" fill="none"/><rect x="3" y="4" width="16" height="6" rx="1" fill="#FFFFFF"/></svg>
+            </div>
+          </div>
+
+          <!-- Library Header -->
+          <div style="padding:14px 16px;background:#0F0F0F;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between">
+            <div style="font-family:'Cairo',sans-serif;font-size:22px;font-weight:700;color:#FFFFFF">المكتبة</div>
+            <div style="display:flex;gap:14px">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            </div>
+          </div>
+
+          <div style="flex:1;overflow:hidden">
+            <!-- History Section -->
+            <div class="library-section">
+              <div class="library-section-header">
+                <div class="library-section-title">السجل</div>
+                <div class="library-view-all">عرض الكل  ↗</div>
+              </div>
+              <div class="library-h-scroll">
+                <div class="library-h-card">
+                  <div class="library-h-thumb" style="background:linear-gradient(135deg,#FF6B6B,#C9184A)">
+                    <div class="library-h-duration">10:24</div>
+                  </div>
+                  <div class="library-h-title">كرتون سكينة - مغامرات</div>
+                  <div class="library-h-stats">قبل ساعتين</div>
+                </div>
+                <div class="library-h-card">
+                  <div class="library-h-thumb" style="background:linear-gradient(135deg,#4ECDC4,#44A08D)">
+                    <div class="library-h-duration">8:42</div>
+                  </div>
+                  <div class="library-h-title">أغنية الحروف</div>
+                  <div class="library-h-stats">أمس</div>
+                </div>
+                <div class="library-h-card">
+                  <div class="library-h-thumb" style="background:linear-gradient(135deg,#3EA6FF,#1976D2)">
+                    <div class="library-h-duration">5:18</div>
+                  </div>
+                  <div class="library-h-title">قصص قبل النوم</div>
+                  <div class="library-h-stats">قبل يومين</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Playlists Section -->
+            <div class="library-section">
+              <div class="library-section-header">
+                <div class="library-section-title">قوائم التشغيل</div>
+                <div class="library-view-all">عرض الكل  ↗</div>
+              </div>
+              <div class="library-list-item">
+                <div class="library-list-thumb" style="background:linear-gradient(135deg,#FFB347,#FF8E53);display:flex;align-items:center;justify-content:center">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M4 10h12v2H4zm0-4h12v2H4zm0 8h8v2H4zm10 0v6l5-3z"/></svg>
+                </div>
+                <div class="library-list-info">
+                  <div class="library-list-title">كرتون صباحي - مجموعة كاملة</div>
+                  <div class="library-list-meta">24 فيديو • آخر تحديث قبل 3 أيام</div>
+                </div>
+              </div>
+              <div class="library-list-item">
+                <div class="library-list-thumb" style="background:linear-gradient(135deg,#A8E6CF,#3D8B7A);display:flex;align-items:center;justify-content:center">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M4 10h12v2H4zm0-4h12v2H4zm0 8h8v2H4zm10 0v6l5-3z"/></svg>
+                </div>
+                <div class="library-list-info">
+                  <div class="library-list-title">أغانٍ تعليمية - الحروف والأرقام</div>
+                  <div class="library-list-meta">12 فيديو • آخر تحديث قبل أسبوع</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Watch Later Section -->
+            <div class="library-section">
+              <div class="library-section-header">
+                <div class="library-section-title">مشاهدة لاحقاً</div>
+                <div class="library-view-all">عرض الكل  ↗</div>
+              </div>
+              <div style="padding:14px;text-align:center;color:#AAAAAA;font-family:'Tajawal',sans-serif;font-size:12px">لا توجد فيديوهات بعد — احفظ أي فيديو لمشاهدته لاحقاً</div>
+            </div>
+          </div>
+
+          <div class="yt-bottom-nav">
+            <div class="yt-nav-item">
+              <svg class="yt-nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+              <div class="yt-nav-label">Home</div>
+            </div>
+            <div class="yt-nav-item">
+              <svg class="yt-nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9.197V14.803L15.5 12 10 9.197z"/><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9.5 13.5v-9l6 4.5-6 4.5z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+              <div class="yt-nav-label">Shorts</div>
+            </div>
+            <div class="yt-nav-item">
+              <div class="yt-nav-create">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              </div>
+              <div class="yt-nav-label" style="opacity:0">.</div>
+            </div>
+            <div class="yt-nav-item">
+              <svg class="yt-nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 8H4V6h16v2zm-2-6H6v2h12V2zm4 10v8c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2v-8c0-1.1.9-2 2-2h16c1.1 0 2 .9 2 2zm-6 4l-6-3.27v6.53L16 16z"/></svg>
+              <div class="yt-nav-label">Subs</div>
+            </div>
+            <div class="yt-nav-item active">
+              <svg class="yt-nav-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+              <div class="yt-nav-label">Library</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================== PAGE 7: PARENT PIN SCREEN =========================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-num">07</div>
+      <div>
+        <div class="page-title">لوحة الأب — إدخال PIN</div>
+        <div class="page-subtitle">Hidden Parent Lock Screen</div>
+      </div>
+    </div>
+    <div class="page-header-right">SCREEN 05a / 05</div>
+  </div>
+
+  <div class="mockup-page">
+    <div class="annotations-col">
+      <div class="annot-title">شاشة إدخال PIN</div>
+      <div class="annot-desc">الشاشة السرّية الأولى — تظهر فقط عند الوصول للوحة الأب. محمية برمز مكوّن من 4 أرقام.</div>
+
+      <div class="annot-list">
+        <div class="annot-item">
+          <div class="annot-num">1</div>
+          <div class="annot-text"><strong>طريقة الوصول</strong> — ضغط مطوّل على شعار YouTube في الـ Home لمدة <strong>5 ثوانٍ متواصلة</strong>. لا يوجد أي مؤشر بصري أثناء الضغط (للإخفاء التام).</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">2</div>
+          <div class="annot-text"><strong>طريقة بديلة</strong> — 7 نقرات متتالية على صورة حساب المستخدم (S) خلال 3 ثوانٍ.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">3</div>
+          <div class="annot-text"><strong>أيقونة القفل</strong> — دائرة حمراء #FF0000 بأيقونة قفل بيضاء. تظهر في الوسط العلوي. لا توجد علامة "والد" أو أي شيء يكشف الهدف.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">4</div>
+          <div class="annot-text"><strong>العنوان</strong> — "تأكيد الهوية" أو "أدخل الرمز" (نص محايد لا يكشف أنها لوحة أب). العنوان الفرعي: "مطلوب للوصول لهذه الميزة".</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">5</div>
+          <div class="annot-text"><strong>حقول PIN</strong> — 4 دوائر فارغة. عند الإدخال تتحول لمملوءة (أبيض). تدعم الإدخال من لوحة المفاتيح أو النقر على الأرقام.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">6</div>
+          <div class="annot-text"><strong>لوحة الأرقام</strong> — أزرار دائرية بحجم 70dp. تنسيق 3×4 (1-9, فارغ, 0, حذف). تُصدر اهتزازاً خفيفاً (haptic) عند النقر.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">7</div>
+          <div class="annot-text"><strong>PIN افتراضي</strong> — <span class="code-tag">0000</span>. يُطلب من الأب تغييره عند أول تشغيل. يُخزّن في <span class="code-tag">EncryptedSharedPreferences</span> مع Android Keystore.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">8</div>
+          <div class="annot-text"><strong>محاولات خاطئة</strong> — بعد 3 محاولات خاطئة متتالية: قفل 30 ثانية مع رسالة "حاول بعد 30 ثانية". بعد 5 محاولات: قفل 5 دقائق. بعد 10 محاولات: قفل 30 دقيقة.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">9</div>
+          <div class="annot-text"><strong>زر الرجوع</strong> — أعلى يمين، يُرجع الطفل للـ Home دون أي أثر. لا يُترك أي سجل بصري.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">10</div>
+          <div class="annot-text"><strong>عند النجاح</strong> — انتقال سلس (fade) لشاشة اختيار المجلدات (الصفحة التالية). يُحفظ آخر دخول ناجح لمدة 10 دقائق (لا يُطلب PIN مجدداً خلال هذه المدة).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="pixel-phone">
+        <div class="phone-screen">
+          <div class="status-bar">
+            <div class="sb-time">9:41</div>
+            <div class="sb-icons">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M17 4h-1V2h-2v2H10V2H8v2H7C5.34 4 4 5.34 4 7v13c0 1.66 1.34 3 3 3h10c1.66 0 3-1.34 3-3V7c0-1.66-1.34-3-3-3z"/></svg>
+              <svg width="16" height="10" viewBox="0 0 24 14" fill="#FFFFFF"><rect x="1" y="2" width="20" height="10" rx="2" stroke="#FFFFFF" stroke-width="1" fill="none"/><rect x="3" y="4" width="16" height="6" rx="1" fill="#FFFFFF"/></svg>
+            </div>
+          </div>
+
+          <div class="pin-back-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" transform="scale(-1,1) translate(-24,0)"/></svg>
+            <span>رجوع</span>
+          </div>
+
+          <div class="pin-screen-content">
+            <div class="pin-lock-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            </div>
+            <div class="pin-title">تأكيد الهوية</div>
+            <div class="pin-subtitle">أدخل الرمز السري للوصول إلى هذه الميزة</div>
+
+            <div class="pin-dots-row">
+              <div class="pin-dot filled"></div>
+              <div class="pin-dot filled"></div>
+              <div class="pin-dot filled"></div>
+              <div class="pin-dot"></div>
+            </div>
+
+            <div class="pin-keypad">
+              <div class="pin-key">1</div>
+              <div class="pin-key">2</div>
+              <div class="pin-key">3</div>
+              <div class="pin-key">4</div>
+              <div class="pin-key">5</div>
+              <div class="pin-key">6</div>
+              <div class="pin-key">7</div>
+              <div class="pin-key">8</div>
+              <div class="pin-key">9</div>
+              <div class="pin-key empty"></div>
+              <div class="pin-key">0</div>
+              <div class="pin-key action">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#3EA6FF"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H7.07L2.4 12l4.66-7H22v14zm-11.5-9L14 12l-3.5 2.5v-5z"/></svg>
+              </div>
+            </div>
+
+            <div class="pin-error-msg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================== PAGE 8: FOLDER SELECT SCREEN =========================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-num">08</div>
+      <div>
+        <div class="page-title">لوحة الأب — اختيار المجلدات</div>
+        <div class="page-subtitle">Parent Folder Selection Screen</div>
+      </div>
+    </div>
+    <div class="page-header-right">SCREEN 05b / 05</div>
+  </div>
+
+  <div class="mockup-page">
+    <div class="annotations-col">
+      <div class="annot-title">اختيار المجلدات</div>
+      <div class="annot-desc">الشاشة الثانية من لوحة الأب — تُظهر كل مجلدات الهاتف التي تحتوي على فيديوهات، وتمكّن الأب من تحديد أيها يظهر للطفل.</div>
+
+      <div class="annot-list">
+        <div class="annot-item">
+          <div class="annot-num">1</div>
+          <div class="annot-text"><strong>الوصول للملفات</strong> — يستخدم <span class="code-tag">Storage Access Framework (SAF)</span> — لا حاجة لأذونات خطيرة. يفتح <span class="code-tag">ACTION_OPEN_DOCUMENT_TREE</span> لإضافة مجلد جديد.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">2</div>
+          <div class="annot-text"><strong>رأس الشاشة</strong> — زر رجوع + عنوان "إدارة المحتوى" + زر "تحديد الكل" أزرق.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">3</div>
+          <div class="annot-text"><strong>عنصر المجلد</strong> — صورة معاينة (أول فيديو في المجلد) + اسم المجلد + عدد الفيديوهات + الحجم الإجمالي + مربع اختيار دائري.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">4</div>
+          <div class="annot-text"><strong>شارة عدد الفيديوهات</strong> — على زاوية الصورة، حمراء، تعرض العدد الإجمالي للملفات القابلة للتشغيل (mp4, mkv, avi, webm).</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">5</div>
+          <div class="annot-text"><strong>مربعات الاختيار</strong> — دائرية Material You. المختار = أزرق #3EA6FF بعلامة ✓. غير المختار = رمادي فارغ.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">6</div>
+          <div class="annot-text"><strong>زر إضافة مجلد</strong> — في الأسفل، يفتح SAF picker. بعد الاختيار، يُحفظ الـ URI الدائم (FLAG_GRANT_READ_URI_PERMISSION).</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">7</div>
+          <div class="annot-text"><strong>زر الحفظ</strong> — أحمر، يُحفظ التغييرات في <span class="code-tag">EncryptedSharedPreferences</span> كـ Set&lt;String&gt; من URIs. يُعاد تحميل قائمة الفيديوهات في الـ Home فوراً.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">8</div>
+          <div class="annot-text"><strong>زر تغيير PIN</strong> — يفتح نافذة منبثقة تطلب PIN الحالي ثم PIN جديد مرتين.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">9</div>
+          <div class="annot-text"><strong>السلوك عند إلغاء كل المجلدات</strong> — يُحذّر: "لم تختر أي مجلد، لن تظهر فيديوهات للطفل. متابعة؟". لا يسمح بحفظ قائمة فارغة دون تأكيد.</div>
+        </div>
+        <div class="annot-item">
+          <div class="annot-num">10</div>
+          <div class="annot-text"><strong>تنبيه الإخفاء</strong> — عند إلغاء مجلد كان مفعّلاً: الفيديوهات تُحذف من History و Playlists أيضاً (للخصوصية). يُسأل: "سيتم حذف X فيديو من السجل. متابعة؟".</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-col">
+      <div class="pixel-phone">
+        <div class="phone-screen">
+          <div class="status-bar">
+            <div class="sb-time">9:41</div>
+            <div class="sb-icons">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M17 4h-1V2h-2v2H10V2H8v2H7C5.34 4 4 5.34 4 7v13c0 1.66 1.34 3 3 3h10c1.66 0 3-1.34 3-3V7c0-1.66-1.34-3-3-3z"/></svg>
+              <svg width="16" height="10" viewBox="0 0 24 14" fill="#FFFFFF"><rect x="1" y="2" width="20" height="10" rx="2" stroke="#FFFFFF" stroke-width="1" fill="none"/><rect x="3" y="4" width="16" height="6" rx="1" fill="#FFFFFF"/></svg>
+            </div>
+          </div>
+
+          <div class="folder-screen-content">
+            <div class="folder-header">
+              <svg class="folder-back-icon" width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" transform="scale(-1,1) translate(-24,0)"/></svg>
+              <div class="folder-header-title">إدارة المحتوى</div>
+              <div class="folder-select-all">تحديد الكل</div>
+            </div>
+
+            <div style="padding:10px 16px;background:rgba(62,166,255,0.08);border-bottom:1px solid rgba(255,255,255,0.05);font-family:'Tajawal',sans-serif;font-size:11px;color:#3EA6FF;display:flex;align-items:center;gap:8px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#3EA6FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              <span>اختر المجلدات التي تسمح بعرضها للطفل</span>
+            </div>
+
+            <div class="folder-list">
+              <div class="folder-item">
+                <div class="folder-thumb" style="background:linear-gradient(135deg,#FF6B6B,#C9184A)">
+                  <div class="folder-thumb-count">24</div>
+                </div>
+                <div class="folder-info">
+                  <div class="folder-name">كرتون سكينة المفضل</div>
+                  <div class="folder-meta">24 فيديو • 1.8 GB</div>
+                </div>
+                <div class="folder-checkbox checked"></div>
+              </div>
+
+              <div class="folder-item">
+                <div class="folder-thumb" style="background:linear-gradient(135deg,#4ECDC4,#44A08D)">
+                  <div class="folder-thumb-count">12</div>
+                </div>
+                <div class="folder-info">
+                  <div class="folder-name">أغانٍ تعليمية</div>
+                  <div class="folder-meta">12 فيديو • 580 MB</div>
+                </div>
+                <div class="folder-checkbox checked"></div>
+              </div>
+
+              <div class="folder-item">
+                <div class="folder-thumb" style="background:linear-gradient(135deg,#FFB347,#FF8E53)">
+                  <div class="folder-thumb-count">8</div>
+                </div>
+                <div class="folder-info">
+                  <div class="folder-name">قصص ما قبل النوم</div>
+                  <div class="folder-meta">8 فيديوهات • 920 MB</div>
+                </div>
+                <div class="folder-checkbox"></div>
+              </div>
+
+              <div class="folder-item">
+                <div class="folder-thumb" style="background:linear-gradient(135deg,#3EA6FF,#1976D2)">
+                  <div class="folder-thumb-count">45</div>
+                </div>
+                <div class="folder-info">
+                  <div class="folder-name">Movies (للكبار)</div>
+                  <div class="folder-meta">45 فيديو • 12.4 GB</div>
+                </div>
+                <div class="folder-checkbox"></div>
+              </div>
+
+              <div class="folder-item">
+                <div class="folder-thumb" style="background:linear-gradient(135deg,#A8E6CF,#3D8B7A)">
+                  <div class="folder-thumb-count">6</div>
+                </div>
+                <div class="folder-info">
+                  <div class="folder-name">فيديوهات العائلة</div>
+                  <div class="folder-meta">6 فيديوهات • 2.1 GB</div>
+                </div>
+                <div class="folder-checkbox checked"></div>
+              </div>
+
+              <!-- Add Folder Button -->
+              <div class="folder-item" style="border-bottom:none;background:rgba(62,166,255,0.05)">
+                <div style="width:50px;height:50px;border-radius:8px;border:2px dashed #3EA6FF;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#3EA6FF"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                </div>
+                <div class="folder-info">
+                  <div class="folder-name" style="color:#3EA6FF">إضافة مجلد جديد</div>
+                  <div class="folder-meta">اختر من تخزين الهاتف</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="folder-bottom-actions">
+              <button class="folder-btn secondary">تغيير PIN</button>
+              <button class="folder-btn primary">حفظ التغييرات</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================== PAGE 9: DESIGN SYSTEM =========================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-num">09</div>
+      <div>
+        <div class="page-title">نظام الألوان والهوية البصرية</div>
+        <div class="page-subtitle">Color System, Typography &amp; Icons</div>
+      </div>
+    </div>
+    <div class="page-header-right">DESIGN SYSTEM</div>
+  </div>
+
+  <div class="ds-body">
+    <div class="ds-section">
+      <div class="ds-section-title">لوحة ألوان YouTube Dark Mode</div>
+      <div class="ds-color-grid">
+        <div class="ds-color-card">
+          <div class="ds-color-swatch" style="background:#0F0F0F"></div>
+          <div class="ds-color-name">Background</div>
+          <div class="ds-color-hex">#0F0F0F</div>
+          <div class="ds-color-use">خلفية التطبيق الأساسية</div>
+        </div>
+        <div class="ds-color-card">
+          <div class="ds-color-swatch" style="background:#212121"></div>
+          <div class="ds-color-name">Surface</div>
+          <div class="ds-color-hex">#212121</div>
+          <div class="ds-color-use">بطاقات، شرائح Chips مفعّلة</div>
+        </div>
+        <div class="ds-color-card">
+          <div class="ds-color-swatch" style="background:#303030"></div>
+          <div class="ds-color-name">Surface Var</div>
+          <div class="ds-color-hex">#303030</div>
+          <div class="ds-color-use">عناصر تفاعلية، أزرار ثانوية</div>
+        </div>
+        <div class="ds-color-card">
+          <div class="ds-color-swatch" style="background:#1F1F1F"></div>
+          <div class="ds-color-name">Card BG</div>
+          <div class="ds-color-hex">#1F1F1F</div>
+          <div class="ds-color-use">حقول PIN، أزرار لوحة الأرقام</div>
+        </div>
+        <div class="ds-color-card">
+          <div class="ds-color-swatch" style="background:#FFFFFF"></div>
+          <div class="ds-color-name">Text Primary</div>
+          <div class="ds-color-hex">#FFFFFF</div>
+          <div class="ds-color-use">العناوين، النصوص الرئيسية</div>
+        </div>
+        <div class="ds-color-card">
+          <div class="ds-color-swatch" style="background:#AAAAAA"></div>
+          <div class="ds-color-name">Text Secondary</div>
+          <div class="ds-color-hex">#AAAAAA</div>
+          <div class="ds-color-use">المشاهدات، الأسماء الثانوية</div>
+        </div>
+        <div class="ds-color-card">
+          <div class="ds-color-swatch" style="background:#FF0000"></div>
+          <div class="ds-color-name">YouTube Red</div>
+          <div class="ds-color-hex">#FF0000</div>
+          <div class="ds-color-use">الشعار، شريط التقدم، Subscribe</div>
+        </div>
+        <div class="ds-color-card">
+          <div class="ds-color-swatch" style="background:#3EA6FF"></div>
+          <div class="ds-color-name">YouTube Blue</div>
+          <div class="ds-color-hex">#3EA6FF</div>
+          <div class="ds-color-use">روابط، Follow، مربعات الاختيار</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-section">
+      <div class="ds-section-title">نظام الخطوط (Typography)</div>
+      <div class="ds-type-list">
+        <div class="ds-type-row">
+          <div class="ds-type-sample" style="font-family:'Cairo',sans-serif;font-size:24px;font-weight:800">عنوان رئيسي كبير</div>
+          <div class="ds-type-meta">Cairo Black 24sp / Headlines</div>
+        </div>
+        <div class="ds-type-row">
+          <div class="ds-type-sample" style="font-family:'Cairo',sans-serif;font-size:18px;font-weight:700">عنوان قسم</div>
+          <div class="ds-type-meta">Cairo Bold 18sp / Section titles</div>
+        </div>
+        <div class="ds-type-row">
+          <div class="ds-type-sample" style="font-family:'Tajawal',sans-serif;font-size:14px;font-weight:500">عنوان فيديو - نص متوسط الحجم للعناوين الفرعية</div>
+          <div class="ds-type-meta">Tajawal Medium 14sp / Video titles</div>
+        </div>
+        <div class="ds-type-row">
+          <div class="ds-type-sample" style="font-family:'Tajawal',sans-serif;font-size:12px;color:#AAAAAA">1.2M views • 3 days ago — نص ثانوي</div>
+          <div class="ds-type-meta">Tajawal Regular 12sp / Meta info</div>
+        </div>
+        <div class="ds-type-row">
+          <div class="ds-type-sample" style="font-family:'Roboto',sans-serif;font-size:13px;font-weight:500" dir="ltr">YouTube • 1:23 / 10:24</div>
+          <div class="ds-type-meta">Roboto Medium 13sp / English UI</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-section">
+      <div class="ds-section-title">المواصفات التقنية</div>
+      <div class="ds-grid-info">
+        <div class="ds-info-card">
+          <h4>الأيقونات (Icons)</h4>
+          <ul>
+            <li><strong>المجموعة:</strong> Material Symbols Rounded</li>
+            <li><strong>الحجم القياسي:</strong> 24dp (Touch target 48dp)</li>
+            <li><strong>اللون الأساسي:</strong> #FFFFFF (Dark Mode)</li>
+            <li><strong>اللون الثانوي:</strong> #AAAAAA</li>
+            <li><strong>السُمك:</strong> 400 (Regular) للأزرار</li>
+            <li><strong>اتجاه RTL:</strong> أيقونات يتم قلبها (Back, Forward)</li>
+          </ul>
+        </div>
+        <div class="ds-info-card">
+          <h4>المسافات والحشوات (Spacing)</h4>
+          <ul>
+            <li><strong>هامش الشاشة:</strong> 14dp (مطابق ليوتيوب)</li>
+            <li><strong>فجوة البطاقات:</strong> 14dp عمودي</li>
+            <li><strong>حشوة البطاقة:</strong> 10dp × 12dp</li>
+            <li><strong>ارتفاع الصورة المصغّرة:</strong> 16:9 (200dp)</li>
+            <li><strong>ارتفاع شريط التنقل:</strong> 50dp</li>
+            <li><strong>نصف قطر الزوايا:</strong> 8dp للصور، 22dp للأزرار</li>
+          </ul>
+        </div>
+        <div class="ds-info-card">
+          <h4>الخطوط (Fonts)</h4>
+          <ul>
+            <li><strong>الخط العربي الأساسي:</strong> Tajawal (Google Fonts)</li>
+            <li><strong>الخط العربي للعناوين:</strong> Cairo Bold</li>
+            <li><strong>الخط الإنجليزي:</strong> Roboto (Android Default)</li>
+            <li><strong>حجم الخط الافتراضي:</strong> 14sp (متوسط)</li>
+            <li><strong>تكبير الخط للوصول:</strong> يدعم 1.0× حتى 2.0×</li>
+            <li><strong>وزن الخط:</strong> 400/500/700/900</li>
+          </ul>
+        </div>
+        <div class="ds-info-card">
+          <h4>الحركات والانتقالات</h4>
+          <ul>
+            <li><strong>مدة الانتقال:</strong> 300ms افتراضياً</li>
+            <li><strong>المنحنى:</strong> FastOutSlowInInterpolator</li>
+            <li><strong>ظهور Toast:</strong> 200ms fade in</li>
+            <li><strong>تبديل تبويب:</strong> cross-fade 250ms</li>
+            <li><strong>تمرير Shorts:</strong> 400ms snap</li>
+            <li><strong>فتح Player:</strong> SharedElementTransition 350ms</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bar">
+    <span>Sukaina Tube — Wireframes v0.1</span>
+    <span>صفحة 9 / 10</span>
+  </div>
+</div>
+
+<!-- =========================== PAGE 10: IMPLEMENTATION SUMMARY =========================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-num">10</div>
+      <div>
+        <div class="page-title">ملخص التنفيذ والخطوات التالية</div>
+        <div class="page-subtitle">Implementation Roadmap &amp; Next Steps</div>
+      </div>
+    </div>
+    <div class="page-header-right">SUMMARY</div>
+  </div>
+
+  <div class="final-body">
+    <div class="section-intro">
+      هذا القسم يربط النماذج الأولية بالكود الفعلي — يحدد Activity/Fragment المقترح لكل شاشة، المكتبات المطلوبة، والحالة الحالية للمشروع. الخطوة الأكثر إلحاحاً: <strong>إصلاح البناء للحصول على APK يعمل</strong> قبل البدء بتنفيذ أي واجهة جديدة.
+    </div>
+
+    <div class="final-grid">
+      <div class="final-card">
+        <h3>ربط الشاشات بالكود (Activity/Fragment)</h3>
+        <table class="impl-table">
+          <thead>
+            <tr>
+              <th style="width:120px">الشاشة</th>
+              <th>Component المقترح</th>
+              <th style="width:140px">Layout</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="screen-cell">Home</td>
+              <td class="code-cell">HomeFragment + RecyclerView</td>
+              <td class="code-cell">fragment_home.xml</td>
+            </tr>
+            <tr>
+              <td class="screen-cell">Player</td>
+              <td class="code-cell">PlayerActivity + PlayerView</td>
+              <td class="code-cell">activity_player.xml</td>
+            </tr>
+            <tr>
+              <td class="screen-cell">Shorts</td>
+              <td class="code-cell">ShortsFragment + ViewPager2</td>
+              <td class="code-cell">fragment_shorts.xml</td>
+            </tr>
+            <tr>
+              <td class="screen-cell">Library</td>
+              <td class="code-cell">LibraryFragment + NestedScrollView</td>
+              <td class="code-cell">fragment_library.xml</td>
+            </tr>
+            <tr>
+              <td class="screen-cell">PIN</td>
+              <td class="code-cell">PinActivity (transparent theme)</td>
+              <td class="code-cell">activity_pin.xml</td>
+            </tr>
+            <tr>
+              <td class="screen-cell">Folders</td>
+              <td class="code-cell">FolderSelectActivity + RecyclerView</td>
+              <td class="code-cell">activity_folders.xml</td>
+            </tr>
+            <tr>
+              <td class="screen-cell">Main</td>
+              <td class="code-cell">MainActivity + BottomNavigationView</td>
+              <td class="code-cell">activity_main.xml</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="final-card">
+        <h3>المكتبات المطلوبة</h3>
+        <div style="font-family:'Roboto',sans-serif;font-size:12px;color:#3EA6FF;line-height:2;direction:ltr">
+          androidx.media3:media3-exoplayer:1.5.1<br>
+          androidx.media3:media3-ui:1.5.1<br>
+          androidx.viewpager2:viewpager2:1.1.0<br>
+          androidx.recyclerview:recyclerview:1.3.2<br>
+          com.google.android.material:material:1.12.0<br>
+          androidx.security:security-crypto:1.1.0-alpha06<br>
+          androidx.room:room-runtime:2.6.1<br>
+          io.coil-kt:coil:2.5.0<br>
+          org.jetbrains.kotlinx:kotlinx-coroutines:1.7.3
+        </div>
+      </div>
+
+      <div class="final-card">
+        <h3>الحالة الحالية للمشروع</h3>
+        <div class="status-row">
+          <span>إعداد CI وحل مشكلة Android SDK</span>
+          <span class="status-badge status-done">منجز</span>
+        </div>
+        <div class="status-row">
+          <span>حل تعارض الموارد (chip_text)</span>
+          <span class="status-badge status-done">منجز</span>
+        </div>
+        <div class="status-row">
+          <span>حل مشكلة TimeBar في Media3 1.5</span>
+          <span class="status-badge status-done">منجز</span>
+        </div>
+        <div class="status-row">
+          <span>حل مشكلة Encoding لـ YtPlayerControls.kt</span>
+          <span class="status-badge status-done">منجز</span>
+        </div>
+        <div class="status-row">
+          <span>تجميع Kotlin بنجاح</span>
+          <span class="status-badge status-done">منجز</span>
+        </div>
+        <div class="status-row">
+          <span>إنتاج APK نهائي يعمل</span>
+          <span class="status-badge status-critical">حرج</span>
+        </div>
+        <div class="status-row">
+          <span>تنفيذ واجهة Home</span>
+          <span class="status-badge status-pending">معلّق</span>
+        </div>
+        <div class="status-row">
+          <span>تنفيذ واجهة Player</span>
+          <span class="status-badge status-pending">معلّق</span>
+        </div>
+        <div class="status-row">
+          <span>تنفيذ واجهة Shorts</span>
+          <span class="status-badge status-pending">معلّق</span>
+        </div>
+        <div class="status-row">
+          <span>تنفيذ واجهة Library</span>
+          <span class="status-badge status-pending">معلّق</span>
+        </div>
+        <div class="status-row">
+          <span>تنفيذ لوحة الأب (PIN + Folders)</span>
+          <span class="status-badge status-pending">معلّق</span>
+        </div>
+      </div>
+
+      <div class="final-card">
+        <h3>ترتيب التنفيذ المقترح</h3>
+        <div style="font-family:'Tajawal',sans-serif;font-size:13px;color:#E0E0E0;line-height:1.9">
+          <div style="margin-bottom:8px"><strong style="color:#FF0000">1.</strong> استنساخ المستودع وإصلاح أخطاء Gradle للحصول على APK.</div>
+          <div style="margin-bottom:8px"><strong style="color:#FF9800">2.</strong> تنفيذ MainActivity + BottomNav + تبويب Home.</div>
+          <div style="margin-bottom:8px"><strong style="color:#FF9800">3.</strong> تنفيذ Player Activity مع Media3 + التحكمات.</div>
+          <div style="margin-bottom:8px"><strong style="color:#FF9800">4.</strong> تنفيذ لوحة الأب (PIN + Folder Select).</div>
+          <div style="margin-bottom:8px"><strong>5.</strong> توليد البيانات الوهمية (Repository).</div>
+          <div style="margin-bottom:8px"><strong>6.</strong> تنفيذ Library Fragment.</div>
+          <div style="margin-bottom:8px"><strong>7.</strong> تنفيذ Shorts Fragment (ViewPager2).</div>
+          <div style="margin-bottom:8px"><strong>8.</strong> اختبار على هاتف فعلي + تحسينات الأداء.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="final-note">
+      <h4>⚠️ أولوية قصوى قبل أي تطوير جديد</h4>
+      <p>المشروع الحالي <strong>لا ينتج APK</strong>. قبل تنفيذ أي شاشة من هذه النماذج، يجب: (1) استنساخ المستودع من GitHub، (2) فتحه في Android Studio، (3) تشغيل Build وإصلاح أي أخطاء Gradle/Kotlin متبقية، (4) التأكد من إنتاج <span style="font-family:'Roboto',sans-serif;color:#3EA6FF;direction:ltr;display:inline-block">SukainaTube-debug.apk</span> يعمل على الهاتف. هذه الخطوة شرط أساسي قبل البدء بأي تنفيذ للواجهات.</p>
+    </div>
+  </div>
+  <div class="footer-bar">
+    <span>Sukaina Tube — Wireframes v0.1 — 2026-11</span>
+    <span>صفحة 10 / 10 — نهاية المستند</span>
+  </div>
+</div>
+
+</body>
+</html>
