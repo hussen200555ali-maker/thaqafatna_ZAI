@@ -8,7 +8,13 @@ const __dirname = import.meta.dirname || path.dirname(fileURLToPath(import.meta.
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',
+    // استخدم 'node' كـ default environment لتجنب مشاكل jsdom/undici في CI
+    // اختبارات الـ React components تستخدم environmentMatchPattern لتفعيل jsdom
+    environment: 'node',
+    environmentMatchGlobs: [
+      ['tests/unit/**/*.tsx', 'jsdom'],
+      ['tests/unit/component-*.test.ts', 'jsdom'],
+    ],
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx'],
@@ -19,10 +25,21 @@ export default defineConfig({
       include: ['src/lib/**/*.ts', 'src/lib/**/*.tsx'],
       exclude: ['**/*.test.*', '**/*.spec.*'],
     },
+    pool: 'threads', // threads أكثر استقرارًا من forks
+    poolOptions: {
+      threads: {
+        singleThread: false,
+        isolate: true,
+      },
+    },
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+  },
+  // تحديد إصدارات متوافقة من undici لتفادي مشاكل jsdom
+  optimizeDeps: {
+    exclude: ['jsdom'],
   },
 })
