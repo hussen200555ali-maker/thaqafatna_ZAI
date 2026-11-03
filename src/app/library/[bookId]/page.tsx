@@ -83,6 +83,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
   const [loading, setLoading] = useState(true)
   const [scrolled, setScrolled] = useState(false)
   const [activeChapter, setActiveChapter] = useState<number | null>(null)
+  const [shared, setShared] = useState(false)
 
   useEffect(() => {
     params.then((p) => setBookId(parseInt(p.bookId)))
@@ -102,6 +103,56 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // 📤 مشاركة الكتاب — Web Share API + fallback لنسخ الرابط
+  const handleShare = async () => {
+    if (!book) return
+    const shareUrl = window.location.href
+    const shareData = {
+      title: book.title,
+      text: `${book.title} — ${book.author}\n${book.description?.substring(0, 100) || ''}`,
+      url: shareUrl,
+    }
+
+    try {
+      // محاولة استخدام Web Share API (يدعمه الجوال + بعض المتصفحات)
+      if (navigator.share) {
+        await navigator.share(shareData)
+        return
+      }
+    } catch (e) {
+      // المستخدم ألغى المشاركة — لا تفعل شيئًا
+      return
+    }
+
+    // Fallback: نسخ الرابط للحافظة
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setShared(true)
+      setTimeout(() => setShared(false), 2000)
+    } catch {
+      // fallback أخير: فتح Twitter
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareData.text)}&url=${encodeURIComponent(shareUrl)}`, '_blank')
+    }
+  }
+
+  // 📖 تحديد رابط القراءة — أول فصل لو موجود، أو PDF مباشرة، أو لا شيء
+  const getReadUrl = () => {
+    if (!book) return '#'
+    // 1. لو عنده فصول → أول فصل
+    if (book.chapters && book.chapters.length > 0) {
+      return `/library/reader/${book.id}/${book.chapters[0].id}`
+    }
+    // 2. لو عنده PDF → افتح الـ PDF مباشرة
+    if (book.pdfUrl) {
+      return book.pdfUrl
+    }
+    // 3. لا يوجد محتوى للقراءة
+    return '#'
+  }
+
+  const readUrl = getReadUrl()
+  const canRead = readUrl !== '#'
 
   if (loading) {
     return (
@@ -429,25 +480,42 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
 
             {/* CTA Section */}
             <div style={{ padding: '0 16px 16px' }}>
-              <Link
-                href={b.chapters[0] ? `/library/reader/${b.id}/${b.chapters[0].id}` : '#'}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                  width: '100%', padding: '16px',
-                  background: 'linear-gradient(135deg, #9333ea, #ec4899, #f59e0b)',
-                  backgroundSize: '200% 200%',
-                  color: 'white', fontSize: '15px', fontWeight: 700,
-                  border: 'none', borderRadius: '14px', cursor: 'pointer',
-                  boxShadow: '0 8px 24px -8px rgba(147, 51, 234, 0.5)',
-                  transition: 'all 0.3s ease', marginBottom: '10px', textDecoration: 'none',
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                </svg>
-                <span>ابدأ القراءة</span>
-              </Link>
+              {canRead ? (
+                <a
+                  href={readUrl}
+                  target={readUrl.startsWith('http') ? '_blank' : undefined}
+                  rel={readUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                    width: '100%', padding: '16px',
+                    background: 'linear-gradient(135deg, #9333ea, #ec4899, #f59e0b)',
+                    backgroundSize: '200% 200%',
+                    color: 'white', fontSize: '15px', fontWeight: 700,
+                    border: 'none', borderRadius: '14px', cursor: 'pointer',
+                    boxShadow: '0 8px 24px -8px rgba(147, 51, 234, 0.5)',
+                    transition: 'all 0.3s ease', marginBottom: '10px', textDecoration: 'none',
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                  </svg>
+                  <span>{b.pdfUrl && !b.chapters?.length ? 'افتح PDF' : 'ابدأ القراءة'}</span>
+                </a>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                    width: '100%', padding: '16px',
+                    background: 'rgba(68, 64, 60, 0.3)',
+                    color: '#78716c', fontSize: '14px', fontWeight: 600,
+                    border: '1px solid rgba(68, 64, 60, 0.5)',
+                    borderRadius: '14px', marginBottom: '10px',
+                  }}
+                >
+                  📄 لا يوجد محتوى للقراءة
+                </div>
+              )}
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 {b.pdfUrl && (
@@ -471,20 +539,24 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
                     <span>تنزيل</span>
                   </a>
                 )}
-                <button style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  padding: '12px', fontSize: '13px', fontWeight: 600,
-                  borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s',
-                  border: '1px solid',
-                  background: 'rgba(68, 64, 60, 0.3)', color: '#d6d3d1',
-                  borderColor: 'rgba(68, 64, 60, 0.5)',
-                }}>
+                <button
+                  onClick={handleShare}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                    padding: '12px', fontSize: '13px', fontWeight: 600,
+                    borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s',
+                    border: '1px solid',
+                    background: shared ? 'rgba(16, 185, 129, 0.15)' : 'rgba(68, 64, 60, 0.3)',
+                    color: shared ? '#34d399' : '#d6d3d1',
+                    borderColor: shared ? 'rgba(16, 185, 129, 0.4)' : 'rgba(68, 64, 60, 0.5)',
+                  }}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
                     <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
                     <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                   </svg>
-                  <span>مشاركة</span>
+                  <span>{shared ? '✓ تم النسخ' : 'مشاركة'}</span>
                 </button>
               </div>
             </div>
@@ -559,21 +631,37 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
         background: 'rgba(12, 10, 9, 0.95)', backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(41, 37, 36, 0.6)',
       }}>
-        <Link
-          href={b.chapters[0] ? `/library/reader/${b.id}/${b.chapters[0].id}` : '#'}
-          style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-            padding: '12px', background: 'linear-gradient(135deg, #9333ea, #ec4899, #f59e0b)',
-            color: 'white', fontSize: '14px', fontWeight: 700, border: 'none',
-            borderRadius: '12px', cursor: 'pointer', textDecoration: 'none',
-          }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-          </svg>
-          <span>اقرأ الآن</span>
-        </Link>
+        {canRead ? (
+          <a
+            href={readUrl}
+            target={readUrl.startsWith('http') ? '_blank' : undefined}
+            rel={readUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+              padding: '12px', background: 'linear-gradient(135deg, #9333ea, #ec4899, #f59e0b)',
+              color: 'white', fontSize: '14px', fontWeight: 700, border: 'none',
+              borderRadius: '12px', cursor: 'pointer', textDecoration: 'none',
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg>
+            <span>{b.pdfUrl && !b.chapters?.length ? 'افتح PDF' : 'اقرأ الآن'}</span>
+          </a>
+        ) : (
+          <div
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              padding: '12px', background: 'rgba(68, 64, 60, 0.3)',
+              color: '#78716c', fontSize: '14px', fontWeight: 600,
+              border: '1px solid rgba(68, 64, 60, 0.5)',
+              borderRadius: '12px',
+            }}
+          >
+            📄 لا يوجد محتوى للقراءة
+          </div>
+        )}
         {b.pdfUrl && (
           <a
             href={b.pdfUrl}
