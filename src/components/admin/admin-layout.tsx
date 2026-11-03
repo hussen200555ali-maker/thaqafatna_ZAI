@@ -212,7 +212,7 @@ export function AdminLayout({ children, title, subtitle, actions }: AdminLayoutP
           {/* Mobile menu trigger */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden">
+              <Button variant="ghost" size="icon" className="lg:hidden" aria-label="فتح القائمة">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -243,8 +243,8 @@ export function AdminLayout({ children, title, subtitle, actions }: AdminLayoutP
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="relative" aria-label={`الإشعارات (${pendingReviews} غير مقروءة)`}>
+              <Bell className="h-5 w-5" aria-hidden="true" />
               {pendingReviews > 0 && (
                 <span className="absolute -top-0.5 -left-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                   {pendingReviews}
@@ -310,8 +310,8 @@ export function AdminLayout({ children, title, subtitle, actions }: AdminLayoutP
           </div>
         </div>
 
-        {/* Main content */}
-        <main className="p-4 lg:p-8">
+        {/* Main content — مع id لـ skip-to-content link */}
+        <main id="main-content" tabIndex={-1} className="p-4 lg:p-8 focus:outline-none">
           {children}
         </main>
       </div>
