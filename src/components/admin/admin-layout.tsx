@@ -19,7 +19,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { signOut } from 'next-auth/react'
 import {
   LayoutDashboard, BookOpen, Users, Tags, UserCog, Shield,
   MessageSquare, ScrollText, BarChart3, Settings, LogOut,
@@ -69,9 +70,17 @@ const navItems: NavItem[] = [
 
 export function AdminLayout({ children, title, subtitle, actions }: AdminLayoutProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [pendingReviews, setPendingReviews] = useState(0)
   const [newMessages, setNewMessages] = useState(0)
+
+  // 🚪 تسجيل الخروج — يستدعي signOut من NextAuth ويُوجّه لصفحة الدخول
+  const handleLogout = async () => {
+    await signOut({ redirect: false, callbackUrl: '/admin/login' })
+    router.push('/admin/login')
+    router.refresh()
+  }
 
   // جلب عدد المراجعات المعلّقة + الرسائل الجديدة (مرة واحدة)
   useEffect(() => {
@@ -147,18 +156,23 @@ export function AdminLayout({ children, title, subtitle, actions }: AdminLayoutP
 
         {/* User footer */}
         <div className="border-t border-slate-800 p-3">
-          <div className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-slate-800 transition-colors cursor-pointer">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 hover:bg-slate-800 transition-colors cursor-pointer"
+            aria-label="تسجيل الخروج"
+          >
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-gradient-to-br from-red-500 to-pink-500 text-white text-xs">
                 ح
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-right">
               <div className="text-sm font-medium text-white truncate">حسين علي</div>
               <div className="text-xs text-slate-500 truncate">admin@thaqafatna.com</div>
             </div>
-            <LogOut className="h-4 w-4 text-slate-500" />
-          </div>
+            <LogOut className="h-4 w-4 text-slate-500" aria-hidden="true" />
+          </button>
         </div>
       </aside>
 
@@ -284,7 +298,10 @@ export function AdminLayout({ children, title, subtitle, actions }: AdminLayoutP
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600 cursor-pointer">
+                <DropdownMenuItem
+                  className="text-red-600 cursor-pointer"
+                  onClick={handleLogout}
+                >
                   <LogOut className="h-4 w-4 ml-2" />
                   تسجيل الخروج
                 </DropdownMenuItem>
