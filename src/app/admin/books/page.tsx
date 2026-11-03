@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Plus, FileDown, Edit, Copy, Package, Trash2, Eye } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/admin-layout'
 import { Toolbar, LoadingState, ErrorState, StatusBadge, EmptyState, TableRowEmpty } from '@/components/admin/admin-primitives'
@@ -29,22 +30,85 @@ interface Book {
   id: number
   title: string
   author: string
+  description?: string
   status: string
   isPublished: boolean
   createdAt: string
   pdfUrl?: string | null
-  category?: { name: string; icon: string }
+  difficulty?: string
+  category?: { id?: number; name: string; icon: string }
   _count?: { chapters: number; reviews: number }
 }
 
 type StatusType = 'draft' | 'in_review' | 'published' | 'archived' | 'all'
 
 export default function AdminBooksPage() {
+  const router = useRouter()
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusType>('all')
+
+  // 🗑️ حذف كتاب — مع تأكيد واضح
+  const handleDelete = async (book: Book) => {
+    const confirmed = window.confirm(
+      `هل أنت متأكد من حذف الكتاب ${book.title}؟\n\nلا يمكن التراجع عن هذا الإجراء.`
+    )
+    if (!confirmed) return
+
+    try {
+      const res = await fetch(`/api/admin/books/${book.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const d = await res.json()
+        throw new Error(d.error || `HTTP ${res.status}`)
+      }
+      // تحديث القائمة محليًا
+      setBooks(prev => prev.filter(b => b.id !== book.id))
+      alert('✅ تم حذف الكتاب بنجاح')
+    } catch (e: any) {
+      alert('❌ فشل الحذف: ' + e.message)
+    }
+  }
+
+  // 📋 نسخ كتاب — ينشئ نسخة بالعنوان "(نسخة)"
+  const handleCopy = async (book: Book) => {
+    const newTitle = `${book.title} (نسخة)`
+    const confirmed = window.confirm(
+      `سيتم إنشاء نسخة من ${book.title} بعنوان ${newTitle}. هل تريد المتابعة؟`
+    )
+    if (!confirmed) return
+
+    try {
+      const res = await fetch('/api/admin/books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newTitle,
+          author: book.author,
+          description: book.description || '',
+          categoryId: book.category?.id || 1,
+          difficulty: book.difficulty || 'medium',
+          status: 'draft',
+        }),
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        throw new Error(d.error || `HTTP ${res.status}`)
+      }
+      alert('✅ تم إنشاء نسخة بنجاح (كمسودة)')
+      loadBooks() // إعادة تحميل القائمة
+    } catch (e: any) {
+      alert('❌ فشل النسخ: ' + e.message)
+    }
+  }
+
+  // ✏️ تعديل كتاب — يوجّه لصفحة التعديل (لو موجودة) أو يعرض تنبيه
+  const handleEdit = (book: Book) => {
+    // حاليًا نوجّه لصفحة الإصدارات كحل مؤقت
+    // TODO: إنشاء صفحة /admin/books/[id]/edit لاحقًا
+    router.push(`/admin/books/${book.id}/versions`)
+  }
 
   const loadBooks = () => {
     setLoading(true)
@@ -205,16 +269,25 @@ export default function AdminBooksPage() {
                               الإصدارات
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="cursor-pointer">
+                          <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={() => handleEdit(book)}
+                          >
                             <Edit className="h-4 w-4 ml-2" />
                             تعديل
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="cursor-pointer">
+                          <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={() => handleCopy(book)}
+                          >
                             <Copy className="h-4 w-4 ml-2" />
                             نسخ
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="cursor-pointer text-red-600">
+                          <DropdownMenuItem
+                            className="cursor-pointer text-red-600"
+                            onClick={() => handleDelete(book)}
+                          >
                             <Trash2 className="h-4 w-4 ml-2" />
                             حذف
                           </DropdownMenuItem>
