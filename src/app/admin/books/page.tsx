@@ -1,19 +1,28 @@
 /**
  * 📚 إدارة الكتب — /admin
- * قائمة الكتب مع بحث + تصفية + إجراءات
+ * قائمة الكتب مع بحث + تصفية + إجراءات كاملة (تعديل، نسخ، حذف)
+ *
+ * الإجراءات:
+ * - 👁️ عرض: redirect لصفحة الكتاب العامة
+ * - 📦 الإصدارات: redirect لصفحة الإصدارات (مع رفع PDF)
+ * - ✏️ تعديل: يفتح modal لتعديل البيانات الأساسية
+ * - 📋 نسخ: ينشئ نسخة via POST /api/books
+ * - 🗑️ حذف: يحذف via DELETE /api/books/[id]
  */
 
 'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Plus, FileDown, Edit, Copy, Package, Trash2, Eye } from 'lucide-react'
+import { Plus, FileDown, Edit, Copy, Package, Trash2, Eye, X, Save, Loader2 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin/admin-layout'
-import { Toolbar, LoadingState, ErrorState, StatusBadge, EmptyState, TableRowEmpty } from '@/components/admin/admin-primitives'
+import { Toolbar, LoadingState, ErrorState, StatusBadge, EmptyState } from '@/components/admin/admin-primitives'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
@@ -36,21 +45,76 @@ interface Book {
   createdAt: string
   pdfUrl?: string | null
   difficulty?: string
+  language?: string
+  pages?: number
+  readingTimeMin?: number
+  keywords?: string
   category?: { id?: number; name: string; icon: string }
   _count?: { chapters: number; reviews: number }
 }
 
 type StatusType = 'draft' | 'in_review' | 'published' | 'archived' | 'all'
 
+interface EditForm {
+  title: string
+  author: string
+  description: string
+  categoryId: string
+  difficulty: string
+  pages: number
+  readingTimeMin: number
+  language: string
+  keywords: string
+  status: string
+}
+
 export default function AdminBooksPage() {
-  const router = useRouter()
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusType>('all')
 
-  // 🗑️ حذف كتاب — مع تأكيد واضح
+  // Modal state للتعديل
+  const [editingBook, setEditingBook] = useState<Book | null>(null)
+  const [editForm, setEditForm] = useState<EditForm | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [categories, setCategories] = useState<Array<{ id: number; name: string; icon: string }>>([])
+
+  const loadBooks = () => {
+    setLoading(true)
+    setError(null)
+    fetch('/api/admin/books')
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) throw new Error(d.error)
+        setBooks(Array.isArray(d.books) ? d.books : (Array.isArray(d) ? d : []))
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false))
+  }
+
+  const loadCategories = () => {
+    fetch('/api/book-categories')
+      .then(r => r.json())
+      .then(d => setCategories(d.categories || []))
+      .catch(() => {})
+  }
+
+  useEffect(() => {
+    loadBooks()
+    loadCategories()
+  }, [])
+
+  const filtered = books.filter(b => {
+    const matchesSearch = !search ||
+      (b.title || '').toLowerCase().includes(search.toLowerCase()) ||
+      (b.author || '').toLowerCase().includes(search.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || b.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
+
+  // 🗑️ حذف كتاب
   const handleDelete = async (book: Book) => {
     const confirmed = window.confirm(
       `هل أنت متأكد من حذف الكتاب ${book.title}؟\n\nلا يمكن التراجع عن هذا الإجراء.`
@@ -58,12 +122,11 @@ export default function AdminBooksPage() {
     if (!confirmed) return
 
     try {
-      const res = await fetch(`/api/admin/books/${book.id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/books/${book.id}`, { method: 'DELETE' })
       if (!res.ok) {
         const d = await res.json()
         throw new Error(d.error || `HTTP ${res.status}`)
       }
-      // تحديث القائمة محليًا
       setBooks(prev => prev.filter(b => b.id !== book.id))
       alert('✅ تم حذف الكتاب بنجاح')
     } catch (e: any) {
@@ -71,7 +134,7 @@ export default function AdminBooksPage() {
     }
   }
 
-  // 📋 نسخ كتاب — ينشئ نسخة بالعنوان "(نسخة)"
+  // 📋 نسخ كتاب — يستخدم POST /api/books (الـ endpoint الصحيح)
   const handleCopy = async (book: Book) => {
     const newTitle = `${book.title} (نسخة)`
     const confirmed = window.confirm(
@@ -80,7 +143,7 @@ export default function AdminBooksPage() {
     if (!confirmed) return
 
     try {
-      const res = await fetch('/api/admin/books', {
+      const res = await fetch('/api/books', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -97,41 +160,69 @@ export default function AdminBooksPage() {
         throw new Error(d.error || `HTTP ${res.status}`)
       }
       alert('✅ تم إنشاء نسخة بنجاح (كمسودة)')
-      loadBooks() // إعادة تحميل القائمة
+      loadBooks()
     } catch (e: any) {
       alert('❌ فشل النسخ: ' + e.message)
     }
   }
 
-  // ✏️ تعديل كتاب — يوجّه لصفحة التعديل (لو موجودة) أو يعرض تنبيه
+  // ✏️ فتح modal التعديل
   const handleEdit = (book: Book) => {
-    // حاليًا نوجّه لصفحة الإصدارات كحل مؤقت
-    // TODO: إنشاء صفحة /admin/books/[id]/edit لاحقًا
-    router.push(`/admin/books/${book.id}/versions`)
+    setEditingBook(book)
+    setEditForm({
+      title: book.title || '',
+      author: book.author || '',
+      description: book.description || '',
+      categoryId: book.category?.id?.toString() || '1',
+      difficulty: book.difficulty || 'medium',
+      pages: book.pages || 0,
+      readingTimeMin: book.readingTimeMin || 15,
+      language: book.language || 'ar',
+      keywords: book.keywords || '',
+      status: book.status || 'draft',
+    })
   }
 
-  const loadBooks = () => {
-    setLoading(true)
-    setError(null)
-    fetch('/api/admin/books')
-      .then(r => r.json())
-      .then(d => {
-        if (d.error) throw new Error(d.error)
-        setBooks(Array.isArray(d.books) ? d.books : (Array.isArray(d) ? d : []))
+  // 💾 حفظ التعديل
+  const handleSaveEdit = async () => {
+    if (!editingBook || !editForm) return
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/books/${editingBook.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editForm.title,
+          author: editForm.author,
+          description: editForm.description,
+          categoryId: parseInt(editForm.categoryId),
+          difficulty: editForm.difficulty,
+          pages: editForm.pages,
+          readingTimeMin: editForm.readingTimeMin,
+          language: editForm.language,
+          keywords: editForm.keywords,
+          status: editForm.status,
+        }),
       })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false))
+      if (!res.ok) {
+        const d = await res.json()
+        throw new Error(d.error || `HTTP ${res.status}`)
+      }
+      // تحديث الكتاب في القائمة محليًا
+      setBooks(prev => prev.map(b =>
+        b.id === editingBook.id
+          ? { ...b, ...editForm, category: categories.find(c => c.id === parseInt(editForm.categoryId)) }
+          : b
+      ))
+      setEditingBook(null)
+      setEditForm(null)
+      alert('✅ تم حفظ التعديلات بنجاح')
+    } catch (e: any) {
+      alert('❌ فشل الحفظ: ' + e.message)
+    } finally {
+      setSaving(false)
+    }
   }
-
-  useEffect(() => { loadBooks() }, [])
-
-  const filtered = books.filter(b => {
-    const matchesSearch = !search ||
-      (b.title || '').toLowerCase().includes(search.toLowerCase()) ||
-      (b.author || '').toLowerCase().includes(search.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || b.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
 
   return (
     <AdminLayout
@@ -153,7 +244,6 @@ export default function AdminBooksPage() {
       }
     >
       <Card className="overflow-hidden">
-        {/* Toolbar */}
         <div className="border-b p-4">
           <Toolbar
             searchValue={search}
@@ -176,7 +266,6 @@ export default function AdminBooksPage() {
           />
         </div>
 
-        {/* Table */}
         {loading ? (
           <LoadingState />
         ) : error ? (
@@ -274,7 +363,7 @@ export default function AdminBooksPage() {
                             onClick={() => handleEdit(book)}
                           >
                             <Edit className="h-4 w-4 ml-2" />
-                            تعديل
+                            تعديل البيانات
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="cursor-pointer"
@@ -301,7 +390,6 @@ export default function AdminBooksPage() {
           </Table>
         )}
 
-        {/* Pagination (mock) */}
         {filtered.length > 0 && (
           <div className="flex items-center justify-between border-t bg-slate-50 px-4 py-3 text-sm">
             <p className="text-slate-500">
@@ -315,6 +403,175 @@ export default function AdminBooksPage() {
           </div>
         )}
       </Card>
+
+      {/* Modal التعديل */}
+      {editingBook && editForm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => { setEditingBook(null); setEditForm(null) }}
+        >
+          <div
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">
+                ✏️ تعديل الكتاب: {editingBook.title}
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => { setEditingBook(null); setEditForm(null) }}
+                aria-label="إغلاق"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <Label className="text-sm font-medium">العنوان *</Label>
+                <Input
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">المؤلف *</Label>
+                <Input
+                  value={editForm.author}
+                  onChange={(e) => setEditForm({ ...editForm, author: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Label className="text-sm font-medium">الوصف</Label>
+                <Textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">التصنيف</Label>
+                <Select
+                  value={editForm.categoryId}
+                  onValueChange={(v) => setEditForm({ ...editForm, categoryId: v })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={c.id.toString()}>
+                        {c.icon} {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">الصعوبة</Label>
+                <Select
+                  value={editForm.difficulty}
+                  onValueChange={(v) => setEditForm({ ...editForm, difficulty: v })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="easy">سهل</SelectItem>
+                    <SelectItem value="medium">متوسط</SelectItem>
+                    <SelectItem value="hard">صعب</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">عدد الصفحات</Label>
+                <Input
+                  type="number"
+                  value={editForm.pages}
+                  onChange={(e) => setEditForm({ ...editForm, pages: parseInt(e.target.value) || 0 })}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">وقت القراءة (دقيقة)</Label>
+                <Input
+                  type="number"
+                  value={editForm.readingTimeMin}
+                  onChange={(e) => setEditForm({ ...editForm, readingTimeMin: parseInt(e.target.value) || 15 })}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">اللغة</Label>
+                <Select
+                  value={editForm.language}
+                  onValueChange={(v) => setEditForm({ ...editForm, language: v })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ar">العربية</SelectItem>
+                    <SelectItem value="en">الإنجليزية</SelectItem>
+                    <SelectItem value="fr">الفرنسية</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">الحالة</Label>
+                <Select
+                  value={editForm.status}
+                  onValueChange={(v) => setEditForm({ ...editForm, status: v })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">📝 مسودة</SelectItem>
+                    <SelectItem value="published">✅ منشور</SelectItem>
+                    <SelectItem value="archived">📦 مؤرشف</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="sm:col-span-2">
+                <Label className="text-sm font-medium">الكلمات المفتاحية (مفصولة بفواصل)</Label>
+                <Input
+                  value={editForm.keywords}
+                  onChange={(e) => setEditForm({ ...editForm, keywords: e.target.value })}
+                  className="mt-1"
+                  placeholder="تاريخ, فلسفة, أدب"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => { setEditingBook(null); setEditForm(null) }}
+              >
+                إلغاء
+              </Button>
+              <Button
+                onClick={handleSaveEdit}
+                disabled={saving}
+                className="gap-2"
+              >
+                {saving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   )
 }
