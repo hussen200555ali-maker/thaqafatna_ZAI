@@ -17,7 +17,7 @@ import { db } from '@/lib/db'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const SETUP_SECRET = process.env.AUTH_SECRET || 'test'
+const SETUP_SECRET = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'test'
 
 const DEFAULT_PASSWORD = 'Admin123!'
 
