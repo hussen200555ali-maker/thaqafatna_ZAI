@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/game-store";
 import { PDFViewer } from "@/components/library/pdf-viewer";
+import { PdfReader } from "@/components/library/pdf-reader";
 
 /**
  * قارئ الكتب الذكي
@@ -44,6 +45,46 @@ export default function BookReaderPage({
   // إعدادات القراءة
   const [fontSize, setFontSize] = useState(16);
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // حفظ صفحة PDF (localStorage للزوار + API للمسجلين)
+  const [savedPdfPage, setSavedPdfPage] = useState<number>(1);
+  const [pdfTotalPages, setPdfTotalPages] = useState<number>(0);
+
+  // استعادة الصفحة المحفوظة عند تحميل الكتاب
+  useEffect(() => {
+    if (!bookId) return;
+    // 1. محاولة من localStorage (للزوار)
+    const localPage = localStorage.getItem(`thaqafatna-pdf-page-${bookId}`);
+    if (localPage) {
+      setSavedPdfPage(parseInt(localPage));
+    }
+    // 2. محاولة من API (للمسجلين) — يُoverride localStorage
+    if (userId) {
+      fetch(`/api/books/${bookId}/progress?userId=${userId}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data?.pdfPage) {
+            setSavedPdfPage(data.pdfPage);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [bookId, userId]);
+
+  // حفظ صفحة PDF تلقائيًا
+  const handlePdfPageChange = useCallback((page: number) => {
+    if (!bookId) return;
+    // 1. حفظ في localStorage (للزوار)
+    localStorage.setItem(`thaqafatna-pdf-page-${bookId}`, page.toString());
+    // 2. حفظ في API (للمسجلين)
+    if (userId) {
+      fetch(`/api/books/${bookId}/progress`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, pdfPage: page }),
+      }).catch(() => {});
+    }
+  }, [bookId, userId]);
 
   // تتبّع القراءة
   const contentRef = useRef<HTMLDivElement>(null);
@@ -277,20 +318,23 @@ export default function BookReaderPage({
 
         {/* محتوى الفصل */}
         {/* ===== محتوى الفصل أو PDF ===== */}
-        {book?.pdfUrl && book.contentType === 'pdf' ? (
+        {book?.pdfUrl && (book.contentType === 'pdf' || !book.contentType) ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="w-full"
           >
-            {/* عارض PDF احترافي بشريط أدوات */}
-            <PDFViewer
+            {/* 📖 القارئ الاحترافي الجديد (react-pdf) */}
+            <PdfReader
               pdfUrl={book.pdfUrl}
               pdfFileName={book.pdfFileName || 'كتاب PDF'}
               pdfSize={book.pdfSize || 0}
               pageCount={book.pdfPageCount || 0}
               title={book.title}
               isDarkMode={isDarkMode}
+              initialPage={savedPdfPage}
+              onPageChange={handlePdfPageChange}
+              onDocumentLoad={(total) => setPdfTotalPages(total)}
             />
 
             {/* شريط معلومات سفلي */}
@@ -301,7 +345,7 @@ export default function BookReaderPage({
               <div className="text-sm flex items-center gap-3 flex-wrap">
                 <span className="font-medium">📄 {book.pdfFileName || 'ملف PDF'}</span>
                 {book.pdfSize > 0 && <span className="text-xs opacity-75">· {formatBytes(book.pdfSize)}</span>}
-                {book.pdfPageCount > 0 && <span className="text-xs opacity-75">· {book.pdfPageCount} صفحة</span>}
+                {pdfTotalPages > 0 && <span className="text-xs opacity-75">· {pdfTotalPages} صفحة</span>}
                 {book.downloads > 0 && <span className="text-xs opacity-75">· 📥 {book.downloads} تنزيل</span>}
               </div>
               <a
