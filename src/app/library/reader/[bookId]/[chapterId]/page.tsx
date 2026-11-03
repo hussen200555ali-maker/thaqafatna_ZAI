@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/game-store";
 import { PDFViewer } from "@/components/library/pdf-viewer";
 import { PdfReader } from "@/components/library/pdf-reader";
+import { PdfReaderPro } from "@/components/library/pdf-reader-pro";
 
 /**
  * قارئ الكتب الذكي
@@ -324,44 +325,17 @@ export default function BookReaderPage({
             animate={{ opacity: 1, y: 0 }}
             className="w-full"
           >
-            {/* 📖 القارئ الاحترافي الجديد (react-pdf) */}
-            <PdfReader
+            {/* 📖 القارئ الاحترافي المخصص 100% (Sprint 6) */}
+            <PdfReaderPro
               pdfUrl={book.pdfUrl}
               pdfFileName={book.pdfFileName || 'كتاب PDF'}
               pdfSize={book.pdfSize || 0}
-              pageCount={book.pdfPageCount || 0}
               title={book.title}
-              isDarkMode={isDarkMode}
               initialPage={savedPdfPage}
+              initialMode={isDarkMode ? 'dark' : 'light'}
               onPageChange={handlePdfPageChange}
               onDocumentLoad={(total) => setPdfTotalPages(total)}
             />
-
-            {/* شريط معلومات سفلي */}
-            <div className={cn(
-              "mt-4 p-4 rounded-xl flex items-center justify-between gap-3 flex-wrap",
-              isDarkMode ? "bg-stone-800 text-stone-300" : "bg-blue-50 text-blue-800"
-            )}>
-              <div className="text-sm flex items-center gap-3 flex-wrap">
-                <span className="font-medium">📄 {book.pdfFileName || 'ملف PDF'}</span>
-                {book.pdfSize > 0 && <span className="text-xs opacity-75">· {formatBytes(book.pdfSize)}</span>}
-                {pdfTotalPages > 0 && <span className="text-xs opacity-75">· {pdfTotalPages} صفحة</span>}
-                {book.downloads > 0 && <span className="text-xs opacity-75">· 📥 {book.downloads} تنزيل</span>}
-              </div>
-              <a
-                href={book.pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                  isDarkMode
-                    ? "bg-stone-700 hover:bg-stone-600 text-white"
-                    : "bg-white hover:bg-blue-100 text-blue-700 border border-blue-300"
-                )}
-              >
-                🔗 فتح في نافذة جديدة
-              </a>
-            </div>
           </motion.div>
         ) : book?.pdfUrl ? (
           // الكتاب له PDF لكن contentType ليس "pdf" - اعرض PDF بأي حال
