@@ -199,7 +199,22 @@ export default function BookReaderPage({
     );
   }
 
-  if (!book || !chapter) {
+  if (!book) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-stone-50">
+        <Card className="p-8 text-center">
+          <p className="text-stone-600 mb-4">الكتاب غير موجود</p>
+          <Button onClick={() => router.push(`/library`)}>العودة للمكتبة</Button>
+        </Card>
+      </div>
+    );
+  }
+
+  // لو الكتاب له PDF فقط (بدون فصول)، لا نحتاج chapter — نعرض القارئ مباشرة
+  const hasPdfOnly = book?.pdfUrl && (!allChapters || allChapters.length === 0);
+  const chapterData = chapter || (hasPdfOnly ? { title: book.title, content: '', order: 1, estimatedMinutes: 0 } : null);
+
+  if (!chapterData) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-stone-50">
         <Card className="p-8 text-center">
@@ -307,13 +322,13 @@ export default function BookReaderPage({
             الفصل {chapter.order} من {allChapters.length}
           </p>
           <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: "var(--font-tajawal)" }}>
-            {chapter.title}
+            {chapterData.title}
           </h1>
           <p className={cn(
             "text-xs",
             isDarkMode ? "text-stone-500" : "text-stone-400"
           )}>
-            ⏱️ {chapter.estimatedMinutes} دقيقة قراءة
+            ⏱️ {chapterData.estimatedMinutes} دقيقة قراءة
           </p>
         </div>
 
@@ -440,7 +455,7 @@ export default function BookReaderPage({
                   <h3 className="font-bold text-sm">لغز هذا الفصل</h3>
                   <p className="text-xs opacity-70">أكملت قراءة الفصل! حلّ اللغز لتفتح الفصل التالي</p>
                 </div>
-                <Link href={`/?level=${chapter.relatedLevelId}`}>
+                <Link href={`/?level=${chapterData.relatedLevelId}`}>
                   <Button size="sm" className="bg-gradient-to-r from-amber-500 to-orange-600">
                     ابدأ اللغز ←
                   </Button>
