@@ -144,8 +144,8 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
       return `/library/reader/${book.id}/${book.chapters[0].id}`
     }
     // 2. لو عنده PDF → افتح الـ PDF مباشرة
-    if (book.pdfUrl) {
-      return book.pdfUrl
+        if (book.pdfUrl) {
+      return `/library/reader/${book.id}/1`
     }
     // 3. لا يوجد محتوى للقراءة
     return '#'
