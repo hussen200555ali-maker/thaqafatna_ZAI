@@ -94,11 +94,13 @@ export async function POST(request: NextRequest) {
   }
 
   if (hasAdminRole && !user.twoFactorEnabled) {
-    // أدمن لم يُفعّل 2FA — يجب أن يُفعّله
+    // أدمن لم يُفعّل 2FA — نسمح بالدخول لكن نُوجّه لإعداد 2FA بعد الدخول
+    // (مؤقت: في الإنتاج يجب تفعيل 2FA إلزاميًا، لكن لـ UAT نسمح بالدخول)
     return NextResponse.json({
       requiresTwoFactor: false,
       needs2FASetup: true,
-      message: 'يجب تفعيل 2FA قبل الدخول',
+      message: 'يُنصح بتفعيل 2FA — يمكنك الدخول الآن وتفعيله لاحقًا من الإعدادات',
+      allowLogin: true,
     })
   }
 
