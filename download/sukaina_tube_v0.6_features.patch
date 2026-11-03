@@ -1,0 +1,946 @@
+From cae9603f64fae027d204a09db9ac69eabeb810f0 Mon Sep 17 00:00:00 2001
+From: Z User <z@container>
+Date: Tue, 3 Nov 2026 01:43:23 +0000
+Subject: [PATCH] feat: adopt S+Play logo, add Splash, Onboarding, Screen Time
+ & Sleep Timer
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Logo & Brand:
+- Replace ic_launcher_foreground.xml with S+Play logo (red S ribbon + white play triangle)
+- Replace ic_logo.xml with compact S+Play for top bar
+- Change launcher background to dark (#0F0F0F)
+
+Splash Screen:
+- Add core-splashscreen dependency
+- Create splash_background.xml with S+Play on dark
+- Add Theme.SukainaTube.Splash theme
+- Install SplashScreen API in MainActivity
+
+Onboarding Wizard:
+- Create OnboardingActivity (3 steps: welcome → PIN setup → done)
+- Add onboarding_completed flag to SettingsStore
+- Redirect to onboarding on first launch from MainActivity
+
+Screen Time:
+- Add dailyLimitMinutes, todayWatchedMinutes, lastWatchDate to SettingsStore
+- Add Screen Time section in ParentSettingsActivity with daily limit dialog
+- Track watching time in WatchActivity (1 minute interval)
+- Auto-pause when daily limit reached
+
+Sleep Timer:
+- Add Sleep Timer button in player controls
+- Add showSleepTimerDialog() in WatchActivity
+- Options: 5/10/15/30/45/60/90 minutes
+- Auto-pause when timer expires
+---
+ app/build.gradle.kts                          |   1 +
+ app/src/main/AndroidManifest.xml              |   6 +
+ .../com/sukaina/tube/data/SettingsStore.kt    |  36 +++++
+ .../sukaina/tube/player/YtPlayerControls.kt   |   2 +
+ .../java/com/sukaina/tube/ui/MainActivity.kt  |  12 ++
+ .../tube/ui/parent/OnboardingActivity.kt      | 109 +++++++++++++++
+ .../tube/ui/parent/ParentSettingsActivity.kt  |  48 +++++++
+ .../sukaina/tube/ui/watch/WatchActivity.kt    | 105 +++++++++++++++
+ app/src/main/res/drawable/dot_active.xml      |   6 +
+ app/src/main/res/drawable/dot_inactive.xml    |   6 +
+ .../res/drawable/ic_launcher_foreground.xml   |  28 +++-
+ app/src/main/res/drawable/ic_logo.xml         |  25 +++-
+ app/src/main/res/drawable/ic_sleep_timer.xml  |  20 +++
+ .../main/res/drawable/splash_background.xml   |  19 +++
+ .../main/res/layout/activity_onboarding.xml   | 125 ++++++++++++++++++
+ .../res/layout/activity_parent_settings.xml   |  39 ++++++
+ .../main/res/layout/view_player_controls.xml  |   9 ++
+ app/src/main/res/layout/view_top_bar.xml      |   2 +-
+ app/src/main/res/values/colors.xml            |   2 +-
+ app/src/main/res/values/themes.xml            |   9 ++
+ 20 files changed, 597 insertions(+), 12 deletions(-)
+ create mode 100644 app/src/main/java/com/sukaina/tube/ui/parent/OnboardingActivity.kt
+ create mode 100644 app/src/main/res/drawable/dot_active.xml
+ create mode 100644 app/src/main/res/drawable/dot_inactive.xml
+ create mode 100644 app/src/main/res/drawable/ic_sleep_timer.xml
+ create mode 100644 app/src/main/res/drawable/splash_background.xml
+ create mode 100644 app/src/main/res/layout/activity_onboarding.xml
+
+diff --git a/app/build.gradle.kts b/app/build.gradle.kts
+index 869f41e..d1ea0f1 100644
+--- a/app/build.gradle.kts
++++ b/app/build.gradle.kts
+@@ -45,6 +45,7 @@ android {
+ 
+ dependencies {
+     implementation("androidx.core:core-ktx:1.13.1")
++    implementation("androidx.core:core-splashscreen:1.0.1")
+     implementation("androidx.appcompat:appcompat:1.7.0")
+     implementation("com.google.android.material:material:1.12.0")
+     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+index 80490f1..c480367 100644
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -24,6 +24,7 @@
+             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|layoutDirection"
+             android:exported="true"
+             android:launchMode="singleTop"
++            android:theme="@style/Theme.SukainaTube.Splash"
+             android:windowSoftInputMode="adjustResize">
+             <intent-filter>
+                 <action android:name="android.intent.action.MAIN" />
+@@ -54,6 +55,11 @@
+             android:name=".ui.parent.SearchActivity"
+             android:theme="@style/Theme.SukainaTube"
+             android:windowSoftInputMode="adjustResize|stateVisible" />
++
++        <activity
++            android:name=".ui.parent.OnboardingActivity"
++            android:theme="@style/Theme.SukainaTube.Splash"
++            android:exported="false" />
+     </application>
+ 
+ </manifest>
+diff --git a/app/src/main/java/com/sukaina/tube/data/SettingsStore.kt b/app/src/main/java/com/sukaina/tube/data/SettingsStore.kt
+index 5124577..0354370 100644
+--- a/app/src/main/java/com/sukaina/tube/data/SettingsStore.kt
++++ b/app/src/main/java/com/sukaina/tube/data/SettingsStore.kt
+@@ -81,6 +81,38 @@ class SettingsStore(context: Context) {
+             bump()
+         }
+ 
++    // ---------- إعداد أول مرة (Onboarding) ----------
++
++    var onboardingCompleted: Boolean
++        get() = prefs.getBoolean(KEY_ONBOARDING, false)
++        set(value) {
++            prefs.edit().putBoolean(KEY_ONBOARDING, value).apply()
++        }
++
++    // ---------- وقت المشاهدة (Screen Time) ----------
++
++    /** حد المشاهدة اليومي بالدقائق (0 = غير محدود). */
++    var dailyLimitMinutes: Int
++        get() = prefs.getInt(KEY_DAILY_LIMIT, 0)
++        set(value) {
++            prefs.edit().putInt(KEY_DAILY_LIMIT, value).apply()
++            bump()
++        }
++
++    /** دقائق المشاهدة اليوم (تُعاد تعبئتها كل يوم). */
++    var todayWatchedMinutes: Int
++        get() = prefs.getInt(KEY_TODAY_WATCHED, 0)
++        set(value) {
++            prefs.edit().putInt(KEY_TODAY_WATCHED, value).apply()
++        }
++
++    /** تاريخ آخر جلسة مشاهدة (لإعادة تعيين العدّاد يومياً). */
++    var lastWatchDate: String
++        get() = prefs.getString(KEY_LAST_DATE, "") ?: ""
++        set(value) {
++            prefs.edit().putString(KEY_LAST_DATE, value).apply()
++        }
++
+     // ---------- الاشتراكات الوهمية ----------
+ 
+     var subscribedBuckets: Set<String>
+@@ -133,5 +165,9 @@ class SettingsStore(context: Context) {
+         const val KEY_LOCK_EXIT = "lock_exit"
+         const val KEY_PIN = "parent_pin"
+         const val KEY_SUBS = "subscribed_buckets"
++        const val KEY_ONBOARDING = "onboarding_completed"
++        const val KEY_DAILY_LIMIT = "daily_limit_minutes"
++        const val KEY_TODAY_WATCHED = "today_watched_minutes"
++        const val KEY_LAST_DATE = "last_watch_date"
+     }
+ }
+diff --git a/app/src/main/java/com/sukaina/tube/player/YtPlayerControls.kt b/app/src/main/java/com/sukaina/tube/player/YtPlayerControls.kt
+index 3dde46d..942ef64 100644
+--- a/app/src/main/java/com/sukaina/tube/player/YtPlayerControls.kt
++++ b/app/src/main/java/com/sukaina/tube/player/YtPlayerControls.kt
+@@ -40,6 +40,7 @@ class YtPlayerControls @JvmOverloads constructor(
+ 
+     var onBack: (() -> Unit)? = null
+     var onFullscreenToggle: ((Boolean) -> Unit)? = null
++    var onSleepTimer: (() -> Unit)? = null
+ 
+     private val hideRunnable = Runnable { hide() }
+     private val seekHideRunnable = Runnable { binding.seekIndicator.visibility = View.GONE }
+@@ -110,6 +111,7 @@ class YtPlayerControls @JvmOverloads constructor(
+         binding.btnBack.setOnClickListener { onBack?.invoke() }
+         binding.btnFullscreen.setOnClickListener { toggleFullscreen() }
+         binding.btnSpeed.setOnClickListener { showSpeedMenu(it) }
++        binding.btnSleepTimer.setOnClickListener { onSleepTimer?.invoke() }
+         binding.timeBar.addListener(scrubListener)
+     }
+ 
+diff --git a/app/src/main/java/com/sukaina/tube/ui/MainActivity.kt b/app/src/main/java/com/sukaina/tube/ui/MainActivity.kt
+index 7d13619..2313f82 100644
+--- a/app/src/main/java/com/sukaina/tube/ui/MainActivity.kt
++++ b/app/src/main/java/com/sukaina/tube/ui/MainActivity.kt
+@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
+ import androidx.activity.OnBackPressedCallback
+ import androidx.appcompat.app.AppCompatActivity
+ import androidx.core.content.ContextCompat
++import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+ import androidx.fragment.app.Fragment
+ import androidx.lifecycle.Lifecycle
+ import androidx.lifecycle.lifecycleScope
+@@ -49,9 +50,20 @@ class MainActivity : AppCompatActivity() {
+     }
+ 
+     override fun onCreate(savedInstanceState: Bundle?) {
++        // تثبيت شاشة البداية المخصصة (S+Play logo)
++        installSplashScreen()
+         enableEdgeToEdge()
+         super.onCreate(savedInstanceState)
+         app = application as SukainaApp
++
++        // فحص Onboarding — إذا لم يكتمل، افتح شاشة الإعداد الأول
++        if (!app.settings.onboardingCompleted) {
++            val onbIntent = Intent(this, com.sukaina.tube.ui.parent.OnboardingActivity::class.java)
++            startActivity(onbIntent)
++            finish()
++            return
++        }
++
+         binding = ActivityMainBinding.inflate(layoutInflater)
+         setContentView(binding.root)
+ 
+diff --git a/app/src/main/java/com/sukaina/tube/ui/parent/OnboardingActivity.kt b/app/src/main/java/com/sukaina/tube/ui/parent/OnboardingActivity.kt
+new file mode 100644
+index 0000000..10dff96
+--- /dev/null
++++ b/app/src/main/java/com/sukaina/tube/ui/parent/OnboardingActivity.kt
+@@ -0,0 +1,109 @@
++package com.sukaina.tube.ui.parent
++
++import android.content.Intent
++import android.os.Bundle
++import androidx.appcompat.app.AppCompatActivity
++import com.sukaina.tube.R
++import com.sukaina.tube.SukainaApp
++import com.sukaina.tube.databinding.ActivityOnboardingBinding
++import com.sukaina.tube.ui.MainActivity
++
++/**
++ * معالج الإعداد الأول — يظهر عند أول تشغيل فقط.
++ * 3 خطوات: ترحيب → إعداد رمز PIN (اختياري) → ابدأ المشاهدة.
++ */
++class OnboardingActivity : AppCompatActivity() {
++
++    private lateinit var binding: ActivityOnboardingBinding
++    private val app get() = application as SukainaApp
++    private var step = 0
++
++    override fun onCreate(savedInstanceState: Bundle?) {
++        super.onCreate(savedInstanceState)
++        binding = ActivityOnboardingBinding.inflate(layoutInflater)
++        setContentView(binding.root)
++
++        renderStep()
++        binding.btnPrimary.setOnClickListener { handlePrimary() }
++        binding.btnSecondary.setOnClickListener { handleSecondary() }
++    }
++
++    private fun renderStep() {
++        when (step) {
++            0 -> {
++                binding.stepTitle.text = "أهلًا بك في Sukaina Tube"
++                binding.stepDesc.text = "تطبيق يعرض فيديوهات هاتفك بواجهة تشبه يوتيوب.\nبدون إنترنت، بدون إعلانات، آمن للأطفال."
++                binding.btnPrimary.text = "ابدأ الإعداد"
++                binding.btnSecondary.text = "تخطّي مؤقتًا"
++                binding.dot1.setBackgroundResource(R.drawable.dot_active)
++                binding.dot2.setBackgroundResource(R.drawable.dot_inactive)
++                binding.dot3.setBackgroundResource(R.drawable.dot_inactive)
++            }
++            1 -> {
++                binding.stepTitle.text = "إعداد رمز ولي الأمر"
++                binding.stepDesc.text = "يمكنك حماية الإعدادات برمز سري من 4 أرقام.\nيُفتح بالضغط المطوّل على الشعار."
++                binding.btnPrimary.text = "إنشاء رمز الآن"
++                binding.btnSecondary.text = "لاحقًا"
++                binding.dot1.setBackgroundResource(R.drawable.dot_inactive)
++                binding.dot2.setBackgroundResource(R.drawable.dot_active)
++                binding.dot3.setBackgroundResource(R.drawable.dot_inactive)
++            }
++            2 -> {
++                binding.stepTitle.text = "كل شيء جاهز!"
++                binding.stepDesc.text = "اختر المجلدات من إعدادات ولي الأمر.\nاستمتع بمشاهدة آمنة لطفلك."
++                binding.btnPrimary.text = "ابدأ المشاهدة"
++                binding.btnSecondary.text = "افتح الإعدادات"
++                binding.dot1.setBackgroundResource(R.drawable.dot_inactive)
++                binding.dot2.setBackgroundResource(R.drawable.dot_inactive)
++                binding.dot3.setBackgroundResource(R.drawable.dot_active)
++            }
++        }
++    }
++
++    private fun handlePrimary() {
++        when (step) {
++            0 -> { step = 1; renderStep() }
++            1 -> {
++                // فتح شاشة إنشاء PIN مباشرة
++                val intent = Intent(this, ParentPinActivity::class.java)
++                intent.putExtra(ParentPinActivity.EXTRA_CHANGE, true)
++                startActivityForResult(intent, REQ_PIN)
++            }
++            2 -> finishOnboarding()
++        }
++    }
++
++    private fun handleSecondary() {
++        when (step) {
++            0 -> finishOnboarding()
++            1 -> { step = 2; renderStep() }
++            2 -> {
++                // فتح إعدادات ولي الأمر مباشرة
++                val intent = Intent(this, ParentSettingsActivity::class.java)
++                startActivity(intent)
++                finishOnboarding()
++            }
++        }
++    }
++
++    @Deprecated("Deprecated in Java")
++    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
++        super.onActivityResult(requestCode, resultCode, data)
++        if (requestCode == REQ_PIN) {
++            step = 2
++            renderStep()
++        }
++    }
++
++    private fun finishOnboarding() {
++        app.settings.onboardingCompleted = true
++        val intent = Intent(this, MainActivity::class.java)
++        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
++        startActivity(intent)
++        finish()
++    }
++
++    companion object {
++        private const val REQ_PIN = 100
++    }
++}
+diff --git a/app/src/main/java/com/sukaina/tube/ui/parent/ParentSettingsActivity.kt b/app/src/main/java/com/sukaina/tube/ui/parent/ParentSettingsActivity.kt
+index d18ee32..00f4583 100644
+--- a/app/src/main/java/com/sukaina/tube/ui/parent/ParentSettingsActivity.kt
++++ b/app/src/main/java/com/sukaina/tube/ui/parent/ParentSettingsActivity.kt
+@@ -17,6 +17,9 @@ import com.sukaina.tube.data.SettingsStore
+ import com.sukaina.tube.databinding.ActivityParentSettingsBinding
+ import com.sukaina.tube.util.Ui
+ import kotlinx.coroutines.launch
++import java.text.SimpleDateFormat
++import java.util.Date
++import java.util.Locale
+ 
+ class ParentSettingsActivity : AppCompatActivity() {
+ 
+@@ -118,6 +121,51 @@ class ParentSettingsActivity : AppCompatActivity() {
+                 .setNegativeButton(R.string.action_back, null)
+                 .show()
+         }
++
++        // ---- Screen Time ----
++        updateScreenTimeDisplay()
++        binding.btnDailyLimit.setOnClickListener { showDailyLimitDialog() }
++    }
++
++    private fun updateScreenTimeDisplay() {
++        val limit = settings.dailyLimitMinutes
++        val limitText = if (limit == 0) "غير محدود" else "${limit} دقيقة"
++        binding.btnDailyLimit.text = "الحد اليومي: $limitText"
++
++        // إعادة تعيين العدّاد إذا تغير اليوم
++        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
++        if (settings.lastWatchDate != today) {
++            settings.todayWatchedMinutes = 0
++            settings.lastWatchDate = today
++        }
++
++        val watched = settings.todayWatchedMinutes
++        val watchedText = if (limit > 0) {
++            "المشاهد اليوم: ${watched} / ${limit} دقيقة"
++        } else {
++            "المشاهد اليوم: ${watched} دقيقة"
++        }
++        binding.todayWatched.text = watchedText
++    }
++
++    private fun showDailyLimitDialog() {
++        val options = intArrayOf(0, 15, 30, 45, 60, 90, 120, 180, 240)
++        val labels = arrayOf(
++            "غير محدود", "15 دقيقة", "30 دقيقة", "45 دقيقة",
++            "ساعة واحدة", "ساعة ونصف", " ساعتان", "3 ساعات", "4 ساعات"
++        )
++        val current = settings.dailyLimitMinutes
++        val checkedIndex = options.indexOfFirst { it == current }.coerceAtLeast(0)
++
++        AlertDialog.Builder(this)
++            .setTitle("الحد اليومي للمشاهدة")
++            .setSingleChoiceItems(labels, checkedIndex) { dialog, which ->
++                settings.dailyLimitMinutes = options[which]
++                updateScreenTimeDisplay()
++                dialog.dismiss()
++            }
++            .setNegativeButton(R.string.action_back, null)
++            .show()
+     }
+ 
+     private fun rebuildFolders() {
+diff --git a/app/src/main/java/com/sukaina/tube/ui/watch/WatchActivity.kt b/app/src/main/java/com/sukaina/tube/ui/watch/WatchActivity.kt
+index 21da27d..6fc982b 100644
+--- a/app/src/main/java/com/sukaina/tube/ui/watch/WatchActivity.kt
++++ b/app/src/main/java/com/sukaina/tube/ui/watch/WatchActivity.kt
+@@ -37,6 +37,11 @@ import com.sukaina.tube.util.Fmt
+ import com.sukaina.tube.util.Ui
+ import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.launch
++import android.os.Handler
++import android.os.Looper
++import java.text.SimpleDateFormat
++import java.util.Date
++import java.util.Locale
+ import kotlinx.coroutines.withContext
+ import kotlin.math.abs
+ 
+@@ -53,6 +58,19 @@ class WatchActivity : AppCompatActivity() {
+     private var pendingSeek = 0L
+     private var savedLabel = false
+ 
++    // Sleep Timer
++    private val handler = Handler(Looper.getMainLooper())
++    private var sleepTimerRunnable: Runnable? = null
++    private var sleepTimerMinutes = 0
++
++    // Screen Time tracking
++    private val screenTimeTracker = object : Runnable {
++        override fun run() {
++            trackWatchMinute()
++            handler.postDelayed(this, 60_000L) // كل دقيقة
++        }
++    }
++
+     private val app get() = application as SukainaApp
+ 
+     override fun onCreate(savedInstanceState: Bundle?) {
+@@ -71,6 +89,7 @@ class WatchActivity : AppCompatActivity() {
+         binding.controls.applyInsets()
+         binding.controls.onBack = { goBack() }
+         binding.controls.onFullscreenToggle = { setFullscreen(it) }
++        binding.controls.onSleepTimer = { showSleepTimerDialog() }
+         binding.controls.setFullscreen(false)
+ 
+         setupPlayer()
+@@ -103,6 +122,15 @@ class WatchActivity : AppCompatActivity() {
+                         if (target < duration - 4000) seekTo(target)
+                     }
+                     if (playbackState == Player.STATE_ENDED) onFinished()
++                    // بدء تتبع وقت المشاهدة عند الجاهزية
++                    if (playbackState == Player.STATE_READY) {
++                        handler.postDelayed(screenTimeTracker, 60_000L)
++                    }
++                }
++                override fun onIsPlayingChanged(isPlaying: Boolean) {
++                    if (!isPlaying) {
++                        handler.removeCallbacks(screenTimeTracker)
++                    }
+                 }
+             })
+         }
+@@ -348,16 +376,93 @@ class WatchActivity : AppCompatActivity() {
+         super.onStop()
+         saveHistory()
+         if (!isChangingConfigurations) player.pause()
++        handler.removeCallbacks(screenTimeTracker)
+     }
+ 
+     override fun onDestroy() {
+         saveHistory()
++        handler.removeCallbacks(screenTimeTracker)
++        sleepTimerRunnable?.let { handler.removeCallbacks(it) }
+         binding.playerView.player = null
+         binding.controls.release()
+         player.release()
+         super.onDestroy()
+     }
+ 
++    // ---------- Sleep Timer ----------
++
++    fun showSleepTimerDialog() {
++        val options = intArrayOf(0, 5, 10, 15, 30, 45, 60, 90)
++        val labels = arrayOf(
++            "إيقاف المؤقت", "5 دقائق", "10 دقائق", "15 دقيقة",
++            "30 دقيقة", "45 دقيقة", "ساعة واحدة", "ساعة ونصف"
++        )
++        androidx.appcompat.app.AlertDialog.Builder(this)
++            .setTitle("مؤقت النوم")
++            .setSingleChoiceItems(labels, 0) { dialog, which ->
++                startSleepTimer(options[which])
++                dialog.dismiss()
++            }
++            .setNegativeButton(R.string.action_back, null)
++            .show()
++    }
++
++    private fun startSleepTimer(minutes: Int) {
++        sleepTimerRunnable?.let { handler.removeCallbacks(it) }
++        if (minutes == 0) {
++            sleepTimerMinutes = 0
++            Toast.makeText(this, "تم إيقاف المؤقت", Toast.LENGTH_SHORT).show()
++            return
++        }
++        sleepTimerMinutes = minutes
++        Toast.makeText(this, "سيُوقف التشغيل بعد $minutes دقيقة", Toast.LENGTH_SHORT).show()
++        sleepTimerRunnable = Runnable {
++            player.pause()
++            sleepTimerMinutes = 0
++            Toast.makeText(this, "انتهى وقت المشاهدة", Toast.LENGTH_SHORT).show()
++        }
++        handler.postDelayed(sleepTimerRunnable!!, minutes.toLong() * 60_000L)
++    }
++
++    // ---------- Screen Time Tracking ----------
++
++    private fun trackWatchMinute() {
++        if (!this::player.isInitialized || !player.isPlaying) return
++
++        val settings = app.settings
++        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
++
++        // إعادة تعيين العدّاد إذا تغير اليوم
++        if (settings.lastWatchDate != today) {
++            settings.todayWatchedMinutes = 0
++            settings.lastWatchDate = today
++        }
++
++        settings.todayWatchedMinutes = settings.todayWatchedMinutes + 1
++
++        // فحص تجاوز الحد اليومي
++        val limit = settings.dailyLimitMinutes
++        if (limit > 0 && settings.todayWatchedMinutes >= limit) {
++            player.pause()
++            Toast.makeText(this, "انتهى الحد اليومي للمشاهدة", Toast.LENGTH_LONG).show()
++            handler.removeCallbacks(screenTimeTracker)
++        }
++    }
++
++    private fun checkDailyLimit(): Boolean {
++        val settings = app.settings
++        val limit = settings.dailyLimitMinutes
++        if (limit == 0) return true
++
++        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
++        if (settings.lastWatchDate != today) {
++            settings.todayWatchedMinutes = 0
++            settings.lastWatchDate = today
++        }
++
++        return settings.todayWatchedMinutes < limit
++    }
++
+     companion object {
+         private const val EXTRA_VIDEO_ID = "video_id"
+ 
+diff --git a/app/src/main/res/drawable/dot_active.xml b/app/src/main/res/drawable/dot_active.xml
+new file mode 100644
+index 0000000..a87a875
+--- /dev/null
++++ b/app/src/main/res/drawable/dot_active.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android"
++    android:shape="oval">
++    <solid android:color="@color/yt_red" />
++    <size android:width="8dp" android:height="8dp" />
++</shape>
+diff --git a/app/src/main/res/drawable/dot_inactive.xml b/app/src/main/res/drawable/dot_inactive.xml
+new file mode 100644
+index 0000000..a392807
+--- /dev/null
++++ b/app/src/main/res/drawable/dot_inactive.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android"
++    android:shape="oval">
++    <solid android:color="#FF555555" />
++    <size android:width="8dp" android:height="8dp" />
++</shape>
+diff --git a/app/src/main/res/drawable/ic_launcher_foreground.xml b/app/src/main/res/drawable/ic_launcher_foreground.xml
+index 28407a5..d92ddd9 100644
+--- a/app/src/main/res/drawable/ic_launcher_foreground.xml
++++ b/app/src/main/res/drawable/ic_launcher_foreground.xml
+@@ -1,14 +1,34 @@
+ <?xml version="1.0" encoding="utf-8"?>
++<!--
++  Sukaina Tube — Adopted Logo (S + Play Triangle)
++  حرف S على شكل شريط أحمر متدفق + مثلث تشغيل أبيض في المركز
++-->
+ <vector xmlns:android="http://schemas.android.com/apk/res/android"
+     android:width="108dp"
+     android:height="108dp"
+     android:viewportWidth="108"
+     android:viewportHeight="108">
++
++    <!-- S-shaped ribbon (red) -->
++    <path
++        android:strokeColor="#FFFF0033"
++        android:strokeWidth="13"
++        android:strokeLineCap="round"
++        android:pathData="M 27,31.5 Q 27,22.5 37.8,22.5 L 70.2,22.5 Q 82.8,22.5 82.8,34.2 Q 82.8,45 70.2,46.8 L 45,50.4 Q 34.2,52.2 34.2,61.2 Q 34.2,70.2 45,72 L 72,75.6 Q 82.8,77.4 82.8,85.5" />
++
++    <!-- Highlight on top of S ribbon (lighter red, thinner) -->
+     <path
+-        android:fillColor="#FFFF0033"
+-        android:pathData="M32,34h44a8,8 0 0 1 8,8v24a8,8 0 0 1 -8,8h-44a8,8 0 0 1 -8,-8v-24a8,8 0 0 1 8,-8z" />
++        android:strokeColor="#33FF6B6B"
++        android:strokeWidth="5"
++        android:strokeLineCap="round"
++        android:pathData="M 27,31.5 Q 27,22.5 37.8,22.5 L 70.2,22.5 Q 82.8,22.5 82.8,34.2 Q 82.8,45 70.2,46.8 L 45,50.4 Q 34.2,52.2 34.2,61.2 Q 34.2,70.2 45,72 L 72,75.6 Q 82.8,77.4 82.8,85.5" />
++
++    <!-- White play triangle in center -->
+     <path
+         android:fillColor="#FFFFFFFF"
+-        android:pathData="M48,44l16,10 -16,10z" />
+-</vector>
++        android:strokeColor="#FFFF0033"
++        android:strokeWidth="1.5"
++        android:strokeLineJoin="round"
++        android:pathData="M 47,47 L 47,63 L 63,55 Z" />
+ 
++</vector>
+diff --git a/app/src/main/res/drawable/ic_logo.xml b/app/src/main/res/drawable/ic_logo.xml
+index 59650da..8b048ad 100644
+--- a/app/src/main/res/drawable/ic_logo.xml
++++ b/app/src/main/res/drawable/ic_logo.xml
+@@ -1,14 +1,27 @@
+ <?xml version="1.0" encoding="utf-8"?>
++<!--
++  Sukaina Tube — Small Logo (S + Play) for Top Bar
++  حرف S أحمر + مثلث تشغيل أبيض — الإصدار الصغير
++-->
+ <vector xmlns:android="http://schemas.android.com/apk/res/android"
+-    android:width="46dp"
++    android:width="36dp"
+     android:height="32dp"
+-    android:viewportWidth="46"
++    android:viewportWidth="36"
+     android:viewportHeight="32">
++
++    <!-- S-shaped ribbon (red) -->
+     <path
+-        android:fillColor="#FFFF0033"
+-        android:pathData="M8,1h30a7,7 0 0 1 7,7v16a7,7 0 0 1 -7,7h-30a7,7 0 0 1 -7,-7v-16a7,7 0 0 1 7,-7z" />
++        android:strokeColor="#FFFF0033"
++        android:strokeWidth="5.5"
++        android:strokeLineCap="round"
++        android:pathData="M 10,9 Q 10,5 14,5 L 22,5 Q 26,5 26,9 Q 26,12.5 22,13 L 14,14 Q 10,14.5 10,18 Q 10,21.5 14,22 L 22,22.5 Q 26,23 26,26.5" />
++
++    <!-- White play triangle in center -->
+     <path
+         android:fillColor="#FFFFFFFF"
+-        android:pathData="M19,10l10,6 -10,6z" />
+-</vector>
++        android:strokeColor="#FFFF0033"
++        android:strokeWidth="0.8"
++        android:strokeLineJoin="round"
++        android:pathData="M 15,13 L 15,19 L 21,16 Z" />
+ 
++</vector>
+diff --git a/app/src/main/res/drawable/ic_sleep_timer.xml b/app/src/main/res/drawable/ic_sleep_timer.xml
+new file mode 100644
+index 0000000..d5b0b58
+--- /dev/null
++++ b/app/src/main/res/drawable/ic_sleep_timer.xml
+@@ -0,0 +1,20 @@
++<?xml version="1.0" encoding="utf-8"?>
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:viewportWidth="24"
++    android:viewportHeight="24"
++    android:tint="@color/white">
++    <!-- Clock circle -->
++    <path
++        android:fillColor="#FFFFFFFF"
++        android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8z" />
++    <!-- Clock hands -->
++    <path
++        android:fillColor="#FFFFFFFF"
++        android:pathData="M12.5,7H11v6l5.25,3.15 0.75,-1.23 -4.5,-2.67z" />
++    <!-- Moon crescent (sleep symbol) -->
++    <path
++        android:fillColor="#FFFFFFFF"
++        android:pathData="M19,3.5c-0.55,0 -1,0.45 -1,1s0.45,1 1,1 1,-0.45 1,-1 -0.45,-1 -1,-1zM16,5c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" />
++</vector>
+diff --git a/app/src/main/res/drawable/splash_background.xml b/app/src/main/res/drawable/splash_background.xml
+new file mode 100644
+index 0000000..bf924d6
+--- /dev/null
++++ b/app/src/main/res/drawable/splash_background.xml
+@@ -0,0 +1,19 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++  Splash Screen Background — Dark background with S+Play logo centered
++  شاشة البداية: خلفية داكنة + شعار S+Play في المركز
++-->
++<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
++    <!-- Dark background -->
++    <item android:drawable="@color/ic_launcher_background" />
++    <!-- S+Play logo centered -->
++    <item
++        android:gravity="center"
++        android:width="108dp"
++        android:height="108dp">
++        <inset
++            android:drawable="@drawable/ic_launcher_foreground"
++            android:insetTop="0dp"
++            android:insetBottom="0dp" />
++    </item>
++</layer-list>
+diff --git a/app/src/main/res/layout/activity_onboarding.xml b/app/src/main/res/layout/activity_onboarding.xml
+new file mode 100644
+index 0000000..6eafad9
+--- /dev/null
++++ b/app/src/main/res/layout/activity_onboarding.xml
+@@ -0,0 +1,125 @@
++<?xml version="1.0" encoding="utf-8"?>
++<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:background="@color/ic_launcher_background"
++    android:fillViewport="true">
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:gravity="center"
++        android:minHeight="500dp"
++        android:orientation="vertical"
++        android:paddingStart="32dp"
++        android:paddingEnd="32dp"
++        android:paddingTop="60dp"
++        android:paddingBottom="40dp">
++
++        <!-- S+Play Logo -->
++        <ImageView
++            android:id="@+id/logo"
++            android:layout_width="120dp"
++            android:layout_height="120dp"
++            android:contentDescription="@string/app_name"
++            android:src="@drawable/ic_launcher_foreground" />
++
++        <!-- Brand -->
++        <TextView
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginTop="16dp"
++            android:fontFamily="sans-serif-black"
++            android:letterSpacing="-0.03"
++            android:text="@string/app_name"
++            android:textColor="@color/white"
++            android:textSize="28sp" />
++
++        <!-- Step Title -->
++        <TextView
++            android:id="@+id/stepTitle"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginTop="40dp"
++            android:fontFamily="sans-serif-bold"
++            android:gravity="center"
++            android:textColor="@color/white"
++            android:textSize="20sp"
++            tools:ignore="HardcodedText" />
++
++        <!-- Step Description -->
++        <TextView
++            android:id="@+id/stepDesc"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginTop="12dp"
++            android:gravity="center"
++            android:lineSpacingMultiplier="1.4"
++            android:textColor="#AAAAAA"
++            android:textSize="15sp"
++            tools:ignore="HardcodedText" />
++
++        <!-- Progress dots -->
++        <LinearLayout
++            android:id="@+id/dots"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginTop="32dp"
++            android:gravity="center"
++            android:orientation="horizontal">
++
++            <View
++                android:id="@+id/dot1"
++                android:layout_width="8dp"
++                android:layout_height="8dp"
++                android:layout_marginEnd="6dp"
++                android:background="@drawable/dot_active" />
++
++            <View
++                android:id="@+id/dot2"
++                android:layout_width="8dp"
++                android:layout_height="8dp"
++                android:layout_marginEnd="6dp"
++                android:background="@drawable/dot_inactive" />
++
++            <View
++                android:id="@+id/dot3"
++                android:layout_width="8dp"
++                android:layout_height="8dp"
++                android:background="@drawable/dot_inactive" />
++        </LinearLayout>
++
++        <!-- Primary button -->
++        <com.google.android.material.button.MaterialButton
++            android:id="@+id/btnPrimary"
++            android:layout_width="match_parent"
++            android:layout_height="52dp"
++            android:layout_marginTop="40dp"
++            android:fontFamily="sans-serif-bold"
++            android:textAllCaps="false"
++            android:textColor="@color/white"
++            android:textSize="16sp"
++            app:backgroundTint="@color/yt_red"
++            app:cornerRadius="26dp"
++            tools:ignore="HardcodedText" />
++
++        <!-- Secondary button (skip) -->
++        <com.google.android.material.button.MaterialButton
++            android:id="@+id/btnSecondary"
++            android:layout_width="match_parent"
++            android:layout_height="48dp"
++            android:layout_marginTop="8dp"
++            android:fontFamily="sans-serif-medium"
++            android:textAllCaps="false"
++            android:textColor="#3EA6FF"
++            android:textSize="14sp"
++            app:backgroundTint="@android:color/transparent"
++            app:cornerRadius="24dp"
++            app:strokeColor="#3EA6FF"
++            app:strokeWidth="1dp"
++            tools:ignore="HardcodedText" />
++
++    </LinearLayout>
++</ScrollView>
+diff --git a/app/src/main/res/layout/activity_parent_settings.xml b/app/src/main/res/layout/activity_parent_settings.xml
+index 98b1e5e..a3bd38b 100644
+--- a/app/src/main/res/layout/activity_parent_settings.xml
++++ b/app/src/main/res/layout/activity_parent_settings.xml
+@@ -129,6 +129,45 @@
+                 android:layout_marginTop="14dp"
+                 android:background="@color/divider" />
+ 
++            <!-- Screen Time Section -->
++            <TextView
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:layout_marginStart="16dp"
++                android:layout_marginTop="16dp"
++                android:fontFamily="sans-serif-medium"
++                android:text="وقت المشاهدة"
++                android:textColor="@color/text_primary"
++                android:textSize="15sp" />
++
++            <TextView
++                android:id="@+id/btnDailyLimit"
++                android:layout_width="match_parent"
++                android:layout_height="52dp"
++                android:background="?attr/selectableItemBackground"
++                android:gravity="center_vertical"
++                android:paddingStart="16dp"
++                android:paddingEnd="16dp"
++                android:text="الحد اليومي: غير محدود"
++                android:textColor="@color/text_primary"
++                android:textSize="15sp" />
++
++            <TextView
++                android:id="@+id/todayWatched"
++                android:layout_width="match_parent"
++                android:layout_height="wrap_content"
++                android:layout_marginStart="16dp"
++                android:layout_marginEnd="16dp"
++                android:layout_marginBottom="8dp"
++                android:textColor="@color/text_secondary"
++                android:textSize="12sp" />
++
++            <View
++                android:layout_width="match_parent"
++                android:layout_height="1dp"
++                android:layout_marginTop="14dp"
++                android:background="@color/divider" />
++
+             <TextView
+                 android:id="@+id/btnChangePin"
+                 android:layout_width="match_parent"
+diff --git a/app/src/main/res/layout/view_player_controls.xml b/app/src/main/res/layout/view_player_controls.xml
+index 61fc6f0..c254955 100644
+--- a/app/src/main/res/layout/view_player_controls.xml
++++ b/app/src/main/res/layout/view_player_controls.xml
+@@ -133,6 +133,15 @@
+                 android:textColor="@color/white"
+                 android:textSize="12sp" />
+ 
++            <ImageButton
++                android:id="@+id/btnSleepTimer"
++                android:layout_width="40dp"
++                android:layout_height="40dp"
++                android:background="?attr/selectableItemBackgroundBorderless"
++                android:contentDescription="مؤقت النوم"
++                android:padding="10dp"
++                android:src="@drawable/ic_sleep_timer" />
++
+             <ImageButton
+                 android:id="@+id/btnFullscreen"
+                 android:layout_width="40dp"
+diff --git a/app/src/main/res/layout/view_top_bar.xml b/app/src/main/res/layout/view_top_bar.xml
+index 415db5a..8eacebb 100644
+--- a/app/src/main/res/layout/view_top_bar.xml
++++ b/app/src/main/res/layout/view_top_bar.xml
+@@ -12,7 +12,7 @@
+ 
+     <ImageView
+         android:id="@+id/logo"
+-        android:layout_width="46dp"
++        android:layout_width="36dp"
+         android:layout_height="32dp"
+         android:contentDescription="@string/app_name"
+         android:src="@drawable/ic_logo" />
+diff --git a/app/src/main/res/values/colors.xml b/app/src/main/res/values/colors.xml
+index 6e8b2de..afd40c4 100644
+--- a/app/src/main/res/values/colors.xml
++++ b/app/src/main/res/values/colors.xml
+@@ -18,5 +18,5 @@
+     <color name="icon_tint">#FF0F0F0F</color>
+     <color name="like_active">#FF065FD4</color>
+     <color name="comment_bg">#FFF2F2F2</color>
+-    <color name="ic_launcher_background">#FFFFFFFF</color>
++    <color name="ic_launcher_background">#FF0F0F0F</color>
+ </resources>
+diff --git a/app/src/main/res/values/themes.xml b/app/src/main/res/values/themes.xml
+index 5d8b376..545d8b6 100644
+--- a/app/src/main/res/values/themes.xml
++++ b/app/src/main/res/values/themes.xml
+@@ -29,6 +29,15 @@
+         <item name="android:windowLightNavigationBar">false</item>
+     </style>
+ 
++    <!-- Splash Screen Theme -->
++    <style name="Theme.SukainaTube.Splash" parent="Theme.SukainaTube">
++        <item name="android:windowBackground">@drawable/splash_background</item>
++        <item name="android:statusBarColor">@android:color/transparent</item>
++        <item name="android:navigationBarColor">@android:color/transparent</item>
++        <item name="android:windowLightStatusBar">false</item>
++        <item name="android:windowLightNavigationBar">false</item>
++    </style>
++
+     <style name="TextAppearance.Yt.Title" parent="TextAppearance.Material3.TitleMedium">
+         <item name="android:textColor">@color/text_primary</item>
+         <item name="android:textSize">15sp</item>
+-- 
+2.47.3
+
