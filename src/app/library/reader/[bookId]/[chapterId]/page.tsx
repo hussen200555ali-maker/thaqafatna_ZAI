@@ -225,11 +225,11 @@ export default function BookReaderPage({
     );
   }
 
-  const currentIdx = allChapters.findIndex((c) => c.order === chapterNumber);
+  const currentIdx = allChapters.length > 0 ? allChapters.findIndex((c) => c?.order === chapterNumber) : 0;
   const prevChapter = currentIdx > 0 ? allChapters[currentIdx - 1] : null;
   const nextChapter =
-    currentIdx < allChapters.length - 1 ? allChapters[currentIdx + 1] : null;
-  const isLastChapter = currentIdx === allChapters.length - 1;
+    currentIdx >= 0 && currentIdx < allChapters.length - 1 ? allChapters[currentIdx + 1] : null;
+  const isLastChapter = allChapters.length > 0 && currentIdx === allChapters.length - 1;
 
   return (
     <div
@@ -267,7 +267,7 @@ export default function BookReaderPage({
             )}>
               <motion.div
                 className="h-full bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full"
-                animate={{ width: `${((currentIdx + 1) / allChapters.length) * 100}%` }}
+                animate={{ width: `${allChapters.length > 0 ? ((currentIdx + 1) / allChapters.length) * 100 : 0}%` }}
               />
             </div>
           </div>
