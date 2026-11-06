@@ -31,6 +31,16 @@ interface PdfReaderProProps {
   initialMode?: 'light' | 'dark' | 'sepia'
   onPageChange?: (page: number) => void
   onDocumentLoad?: (totalPages: number) => void
+  /** حد الفصل: أول صفحة من نطاق الفصل (1-based) */
+  pageStart?: number
+  /** حد الفصل: آخر صفحة من نطاق الفصل (1-based) */
+  pageEnd?: number
+  /** عنوان الفصل الحالي لعرضه في الهيدر */
+  chapterTitle?: string
+  /** رقم الفصل الحالي للعرض */
+  chapterOrder?: number
+  /** إجمالي الفصول للعرض */
+  totalChapters?: number
 }
 
 // ============== PdfReaderPro ==============
@@ -59,6 +69,11 @@ export function PdfReaderPro({
   initialMode = 'light',
   onPageChange,
   onDocumentLoad,
+  pageStart,
+  pageEnd,
+  chapterTitle,
+  chapterOrder,
+  totalChapters,
 }: PdfReaderProProps) {
   // ===== Document state =====
   const [numPages, setNumPages] = useState(0)
@@ -66,6 +81,11 @@ export function PdfReaderPro({
   const [scale, setScale] = useState(1.0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // ===== Chapter range (optional) =====
+  const hasChapterRange = pageStart != null && pageEnd != null && pageStart > 0 && pageEnd >= pageStart
+  const minPage = hasChapterRange ? Number(pageStart) : 1
+  const maxPage = hasChapterRange ? Number(pageEnd) : 0 // 0 = use numPages
 
   // ===== UI state =====
   const [readingMode, setReadingMode] = useState<'light' | 'dark' | 'sepia'>(initialMode)
@@ -105,12 +125,21 @@ export function PdfReaderPro({
     setError(null)
     onDocumentLoad?.(pdf.numPages)
 
+    // إن كان للفصل نطاق، تحقق من أن الصفحة الحالية ضمن النطاق
+    if (hasChapterRange) {
+      const s = Number(pageStart)
+      const e = Number(pageEnd)
+      if (initialPage < s || initialPage > e) {
+        setCurrentPage(s) // ابدأ من أول صفحة في الفصل
+      }
+    }
+
     // استرجاع العلامات المرجعية من localStorage
     try {
       const stored = localStorage.getItem(`thaqafatna-bookmarks-${title}`)
       if (stored) setBookmarks(JSON.parse(stored))
     } catch {}
-  }, [onDocumentLoad, title])
+  }, [onDocumentLoad, title, hasChapterRange, pageStart, pageEnd, initialPage])
 
   const onDocLoadError = useCallback((err: Error) => {
     setError(err.message || 'فشل تحميل PDF')
@@ -118,18 +147,27 @@ export function PdfReaderPro({
   }, [])
 
   // ===== Page navigation =====
+  const effectiveMax = maxPage > 0 ? Math.min(maxPage, numPages || maxPage) : numPages
   const goToPage = useCallback((page: number) => {
-    if (page < 1 || (numPages > 0 && page > numPages)) return
+    // قيود النطاق: إن كان للفصل حد، نقيّد بين minPage و effectiveMax
+    const lower = hasChapterRange ? minPage : 1
+    const upper = hasChapterRange ? (maxPage > 0 ? Math.min(maxPage, numPages || maxPage) : numPages) : numPages
+    if (page < lower) return
+    if (upper > 0 && page > upper) return
     setCurrentPage(page)
     // scroll لأعلى منطقة العرض
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
 
     if (pageDebounce.current) clearTimeout(pageDebounce.current)
     pageDebounce.current = setTimeout(() => onPageChange?.(page), 500)
-  }, [numPages, onPageChange])
+  }, [numPages, onPageChange, hasChapterRange, minPage, maxPage])
 
-  const goPrev = useCallback(() => goToPage(currentPage - 1), [currentPage, goToPage])
-  const goNext = useCallback(() => goToPage(currentPage + 1), [currentPage, goToPage])
+  const atStart = hasChapterRange ? currentPage <= minPage : currentPage <= 1
+  const atEnd = hasChapterRange
+    ? (effectiveMax > 0 && currentPage >= effectiveMax)
+    : (numPages > 0 && currentPage >= numPages)
+  const goPrev = useCallback(() => { if (!atStart) goToPage(currentPage - 1) }, [currentPage, goToPage, atStart])
+  const goNext = useCallback(() => { if (!atEnd) goToPage(currentPage + 1) }, [currentPage, goToPage, atEnd])
 
   // ===== Zoom (smooth, no reload) =====
   const zoomIn = () => setScale(s => Math.min(s + 0.25, 3.0))
@@ -274,25 +312,29 @@ export function PdfReaderPro({
             <List className="h-5 w-5" />
           </button>
           <div className="min-w-0 hidden sm:block">
-            <div className="text-sm font-bold truncate">{title}</div>
-            <div className="text-[10px] opacity-60 truncate">{pdfFileName}</div>
+            <div className="text-sm font-bold truncate">{chapterTitle ? chapterTitle : title}</div>
+            <div className="text-[10px] opacity-60 truncate">
+              {hasChapterRange
+                ? `الفصل ${chapterOrder ?? ''}${totalChapters ? ' من ' + totalChapters : ''} · صفحات ${minPage}–${effectiveMax || numPages}${numPages > 0 ? ' من ' + numPages : ''}`
+                : pdfFileName}
+            </div>
           </div>
         </div>
 
         {/* Center: Page indicator */}
         <div className="flex items-center gap-1">
-          <button onClick={goPrev} disabled={currentPage <= 1} className="w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-30 hover:bg-stone-100 dark:hover:bg-stone-800" title="السابق (→)">
+          <button onClick={goPrev} disabled={atStart} className="w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-30 hover:bg-stone-100 dark:hover:bg-stone-800" title={atStart ? (hasChapterRange ? 'أول صفحة في الفصل' : 'السابق (→)') : 'السابق (→)'}>
             <ChevronRight className="h-4 w-4" />
           </button>
           <input
             type="number"
             value={currentPage}
             onChange={(e) => { const p = parseInt(e.target.value); if (!isNaN(p)) goToPage(p) }}
-            min={1} max={numPages}
+            min={minPage} max={effectiveMax || numPages}
             className={cn('w-12 text-center text-xs font-bold rounded-md border px-1 py-1', readingMode === 'dark' ? 'bg-stone-800 border-stone-600 text-white' : 'bg-white border-stone-300')}
           />
-          <span className="text-xs opacity-60">/ {numPages}</span>
-          <button onClick={goNext} disabled={currentPage >= numPages} className="w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-30 hover:bg-stone-100 dark:hover:bg-stone-800" title="التالي (←)">
+          <span className="text-xs opacity-60">/ {effectiveMax || numPages}</span>
+          <button onClick={goNext} disabled={atEnd} className="w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-30 hover:bg-stone-100 dark:hover:bg-stone-800" title={atEnd ? (hasChapterRange ? 'آخر صفحة في الفصل' : 'التالي (←)') : 'التالي (←)'}>
             <ChevronLeft className="h-4 w-4" />
           </button>
         </div>
@@ -500,11 +542,17 @@ export function PdfReaderPro({
           <div className="flex-1 h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-blue-400 to-purple-500 rounded-full transition-all duration-300"
-              style={{ width: `${numPages > 0 ? (currentPage / numPages) * 100 : 0}%` }}
+              style={{
+                width: hasChapterRange && effectiveMax > minPage
+                  ? `${Math.min(100, Math.max(0, ((currentPage - minPage + 1) / (effectiveMax - minPage + 1)) * 100))}%`
+                  : `${numPages > 0 ? (currentPage / numPages) * 100 : 0}%`,
+              }}
             />
           </div>
           <span className="text-xs font-medium whitespace-nowrap">
-            {currentPage} / {numPages} ({numPages > 0 ? Math.round((currentPage / numPages) * 100) : 0}%)
+            {hasChapterRange && effectiveMax > minPage
+              ? `${currentPage} / ${effectiveMax} (${Math.min(100, Math.round(((currentPage - minPage + 1) / (effectiveMax - minPage + 1)) * 100))}%`
+              : `${currentPage} / ${numPages} (${numPages > 0 ? Math.round((currentPage / numPages) * 100) : 0}%)`}
           </span>
         </div>
 

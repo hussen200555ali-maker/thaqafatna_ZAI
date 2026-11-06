@@ -26,6 +26,8 @@ export async function GET(
         estimatedMinutes: true,
         isFree: true,
         relatedLevelId: true,
+        pageStart: true,
+        pageEnd: true,
       },
     });
 
