@@ -26,6 +26,8 @@ export async function GET(
         isFree: true,
         keywords: true,
         relatedLevelId: true,
+        pageStart: true,
+        pageEnd: true,
       },
     });
 
@@ -48,11 +50,122 @@ export async function POST(
     const { id } = await params;
     const bookId = parseInt(id);
     const body = await request.json();
-    const { title, content, readingTimeMin, isFree, keywords, relatedLevelId } = body;
+
+    // ===== دعم الإنشاء الجماعي (batch) =====
+    // إن كان body.chapters مصفوفة، نُنشئها دفعة واحدة
+    if (Array.isArray(body.chapters)) {
+      const chaptersData = body.chapters as Array<{
+        title: string;
+        content?: string;
+        readingTimeMin?: number;
+        isFree?: boolean;
+        keywords?: string[] | string;
+        relatedLevelId?: number | null;
+        pageStart?: number | null;
+        pageEnd?: number | null;
+      }>;
+
+      // التحقق من البيانات
+      for (const ch of chaptersData) {
+        if (!ch.title) {
+          return NextResponse.json(
+            { error: "كل فصل يجب أن يحتوي على title" },
+            { status: 400 }
+          );
+        }
+        if (
+          (ch.pageStart != null && ch.pageEnd == null) ||
+          (ch.pageStart == null && ch.pageEnd != null)
+        ) {
+          return NextResponse.json(
+            { error: "يجب تحديد pageStart و pageEnd معًا أو تركهما فارغين" },
+            { status: 400 }
+          );
+        }
+        if (
+          ch.pageStart != null &&
+          ch.pageEnd != null &&
+          Number(ch.pageEnd) < Number(ch.pageStart)
+        ) {
+          return NextResponse.json(
+            { error: `pageEnd (${ch.pageEnd}) يجب أن يكون ≥ pageStart (${ch.pageStart}) للفصل: ${ch.title}` },
+            { status: 400 }
+          );
+        }
+      }
+
+      // حذف الفصول القديمة المرتبطة بهذا الكتاب (لتفادي التكرار عند إعادة الحفظ)
+      if (body.replace === true) {
+        await db.bookChapter.deleteMany({ where: { bookId } });
+      }
+
+      // جلب آخر order
+      const lastChapter = await db.bookChapter.findFirst({
+        where: { bookId },
+        orderBy: { order: "desc" },
+      });
+      let nextOrder = (lastChapter?.order || 0) + 1;
+
+      const created: any[] = [];
+      for (const ch of chaptersData) {
+        const c = await db.bookChapter.create({
+          data: {
+            bookId,
+            order: nextOrder++,
+            title: ch.title,
+            content: ch.content || "",
+            estimatedMinutes: ch.readingTimeMin || 5,
+            isFree: ch.isFree !== undefined ? ch.isFree : true,
+            keywords: Array.isArray(ch.keywords)
+              ? JSON.stringify(ch.keywords)
+              : ch.keywords || "[]",
+            relatedLevelId: ch.relatedLevelId || null,
+            pageStart: ch.pageStart != null ? Number(ch.pageStart) : null,
+            pageEnd: ch.pageEnd != null ? Number(ch.pageEnd) : null,
+          },
+        });
+        created.push(c);
+      }
+
+      return NextResponse.json({ chapters: created, count: created.length }, { status: 201 });
+    }
+
+    // ===== دعم الإنشاء الفردي (للتوافق مع القديم) =====
+    const {
+      title,
+      content,
+      readingTimeMin,
+      isFree,
+      keywords,
+      relatedLevelId,
+      pageStart,
+      pageEnd,
+    } = body;
 
     if (!title) {
       return NextResponse.json(
         { error: "Missing required field: title" },
+        { status: 400 }
+      );
+    }
+
+    // التحقق من pageStart/pageEnd
+    if (
+      (pageStart != null && pageEnd == null) ||
+      (pageStart == null && pageEnd != null)
+    ) {
+      return NextResponse.json(
+        { error: "يجب تحديد pageStart و pageEnd معًا أو تركهما فارغين" },
+        { status: 400 }
+      );
+    }
+    if (
+      pageStart != null &&
+      pageEnd != null &&
+      Number(pageEnd) < Number(pageStart)
+    ) {
+      return NextResponse.json(
+        { error: "pageEnd يجب أن يكون ≥ pageStart" },
         { status: 400 }
       );
     }
@@ -76,6 +189,8 @@ export async function POST(
           ? JSON.stringify(keywords)
           : keywords || "[]",
         relatedLevelId: relatedLevelId || null,
+        pageStart: pageStart != null ? Number(pageStart) : null,
+        pageEnd: pageEnd != null ? Number(pageEnd) : null,
       },
     });
 

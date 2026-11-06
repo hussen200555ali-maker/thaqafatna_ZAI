@@ -319,7 +319,11 @@ export default function BookReaderPage({
             "text-xs mb-1",
             isDarkMode ? "text-stone-400" : "text-stone-400"
           )}>
-            الفصل {chapterData.order} من {allChapters.length}
+            {allChapters.length > 0
+              ? `الفصل ${chapter?.order ?? chapterNumber} من ${allChapters.length}`
+              : hasPdfOnly
+                ? `📖 ${book.title} — ملف PDF كامل`
+                : `الفصل ${chapterNumber}`}
           </p>
           <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: "var(--font-tajawal)" }}>
             {chapterData.title}
@@ -328,7 +332,9 @@ export default function BookReaderPage({
             "text-xs",
             isDarkMode ? "text-stone-500" : "text-stone-400"
           )}>
-            ⏱️ {chapterData.estimatedMinutes} دقيقة قراءة
+            {chapter?.pageStart != null && chapter?.pageEnd != null
+              ? `📄 صفحات ${chapter.pageStart}–${chapter.pageEnd}`
+              : `⏱️ ${chapterData.estimatedMinutes} دقيقة قراءة`}
           </p>
         </div>
 
@@ -350,6 +356,11 @@ export default function BookReaderPage({
               initialMode={isDarkMode ? 'dark' : 'light'}
               onPageChange={handlePdfPageChange}
               onDocumentLoad={(total) => setPdfTotalPages(total)}
+              pageStart={chapter?.pageStart ?? undefined}
+              pageEnd={chapter?.pageEnd ?? undefined}
+              chapterTitle={chapterData?.title}
+              chapterOrder={chapter?.order ?? 1}
+              totalChapters={allChapters.length > 0 ? allChapters.length : undefined}
             />
           </motion.div>
         ) : book?.pdfUrl ? (

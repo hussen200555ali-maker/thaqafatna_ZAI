@@ -255,7 +255,7 @@ async function main() {
   for (const book of demoBooks) {
     if (categoriesMap.has(book.categoryName)) continue
 
-    const existing = await prisma.category.findFirst({
+    const existing = await prisma.bookCategory.findFirst({
       where: { name: book.categoryName },
     })
 
@@ -264,7 +264,7 @@ async function main() {
       categoryId = existing.id
       console.log(`   ✅ تصنيف موجود: ${book.categoryName} (#${categoryId})`)
     } else {
-      const cat = await prisma.category.create({
+      const cat = await prisma.bookCategory.create({
         data: {
           name: book.categoryName,
           icon: book.categoryIcon,
