@@ -319,7 +319,7 @@ export default function BookReaderPage({
             "text-xs mb-1",
             isDarkMode ? "text-stone-400" : "text-stone-400"
           )}>
-            الفصل {chapter.order} من {allChapters.length}
+            الفصل {chapterData.order} من {allChapters.length}
           </p>
           <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: "var(--font-tajawal)" }}>
             {chapterData.title}
@@ -389,7 +389,7 @@ export default function BookReaderPage({
               lineHeight: 1.9,
               fontFamily: "var(--font-tajawal), serif",
             }}
-            dangerouslySetInnerHTML={{ __html: chapter.content || "<p>لا يوجد محتوى لهذا الفصل.</p>" }}
+            dangerouslySetInnerHTML={{ __html: chapterData.content || "<p>لا يوجد محتوى لهذا الفصل.</p>" }}
           />
         )}
 
@@ -438,7 +438,7 @@ export default function BookReaderPage({
         </div>
 
         {/* ===== لغز مرتبط بالفصل ===== */}
-        {chapter.relatedLevelId && (
+        {chapterData.relatedLevelId && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
