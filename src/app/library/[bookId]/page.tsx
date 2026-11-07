@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { BookCover } from '@/components/library/book-cover'
+import { useGameStore } from '@/lib/game-store'
 
 /**
  * 📖 صفحة الكتاب — تصميم Dark Elegant Noor Editorial
@@ -85,6 +86,40 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
   const [activeChapter, setActiveChapter] = useState<number | null>(null)
   const [shared, setShared] = useState(false)
 
+  // ===== تقدّم القراءة والإشارة المرجعية =====
+  const [userId, setUserId] = useState<string | null>(null)
+  const [readingProgress, setReadingProgress] = useState<{
+    percent: number
+    completedCount: number
+    totalChapters: number
+    currentChapter: number | null
+  } | null>(null)
+  const [isBookmarked, setIsBookmarked] = useState(false)
+  const [bookmarkLoading, setBookmarkLoading] = useState(false)
+
+  // قراءة userId من gameStore (Zustand) أولاً، ثم من localStorage
+  const storeUserId = useGameStore((s) => s.userId)
+  const initCloudSync = useGameStore((s) => s.initCloudSync)
+
+  useEffect(() => {
+    // 1. من Zustand store أولاً
+    if (storeUserId) {
+      setUserId(storeUserId)
+      return
+    }
+    // 2. من localStorage كمصدر احتياطي
+    try {
+      const stored = localStorage.getItem('thaqafatna-user-id')
+        || localStorage.getItem('userId')
+        || localStorage.getItem('thaqafatna-userId')
+      if (stored) setUserId(stored)
+      else {
+        // 3. محاولة تهيئة من gameStore
+        initCloudSync?.().then(() => {}).catch(() => {})
+      }
+    } catch {}
+  }, [storeUserId, initCloudSync])
+
   useEffect(() => {
     params.then((p) => setBookId(parseInt(p.bookId)))
   }, [params])
@@ -103,6 +138,62 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // جلب تقدّم القراءة + حالة الإشارة المرجعية عند توفّر userId
+  useEffect(() => {
+    if (!bookId || !userId) return
+    // 1. جلب تقدّم القراءة
+    fetch(`/api/books/${bookId}/progress?userId=${encodeURIComponent(userId)}`)
+      .then(r => r.json())
+      .then(data => {
+        const p = data.progress
+        if (!p) return
+        const completed = Array.isArray(p.completedChapters) ? p.completedChapters : []
+        const total = book?.chapters?.length || 0
+        const percent = total > 0
+          ? Math.min(100, Math.round((completed.length / total) * 100))
+          : (p.currentScroll ? Math.min(100, Math.round(p.currentScroll)) : 0)
+        setReadingProgress({
+          percent,
+          completedCount: completed.length,
+          totalChapters: total,
+          currentChapter: p.currentChapter ?? null,
+        })
+      })
+      .catch(() => {})
+    // 2. جلب حالة الإشارة المرجعية
+    fetch(`/api/books/${bookId}/bookmark?userId=${encodeURIComponent(userId)}`)
+      .then(r => r.json())
+      .then(data => {
+        setIsBookmarked(Array.isArray(data.bookmarks) && data.bookmarks.length > 0)
+      })
+      .catch(() => {})
+  }, [bookId, userId, book?.chapters?.length])
+
+  // 📌 تبديل الإشارة المرجعية (حفظ/إزالة)
+  const handleBookmarkToggle = async () => {
+    if (!bookId) return
+    if (!userId) {
+      // تنبيه بسيط لو لم يسجّل المستخدم الدخول
+      alert('سجّل الدخول أولاً لحفظ الكتاب في قائمتك')
+      return
+    }
+    setBookmarkLoading(true)
+    try {
+      const res = await fetch(`/api/books/${bookId}/bookmark`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, action: 'toggle' }),
+      })
+      if (!res.ok) throw new Error('فشل التبديل')
+      const data = await res.json()
+      setIsBookmarked(!!data.isBookmarked)
+    } catch (e) {
+      // تجاهل
+    } finally {
+      setBookmarkLoading(false)
+    }
+  }
 
   // 📤 مشاركة الكتاب — Web Share API + fallback لنسخ الرابط
   const handleShare = async () => {
@@ -223,20 +314,32 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button title="إشارة مرجعية" style={{
-              width: '40px', height: '40px', borderRadius: '10px',
-              background: 'rgba(41, 37, 36, 0.5)', border: '1px solid rgba(68, 64, 60, 0.4)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#a8a29e', cursor: 'pointer', transition: 'all 0.2s',
-            }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5v16l7-5 7 5V5z" /></svg>
+            <button
+              title={isBookmarked ? 'إزالة من المحفوظات' : 'حفظ في قائمتي'}
+              onClick={handleBookmarkToggle}
+              disabled={bookmarkLoading}
+              style={{
+                width: '40px', height: '40px', borderRadius: '10px',
+                background: isBookmarked ? 'rgba(245, 158, 11, 0.15)' : 'rgba(41, 37, 36, 0.5)',
+                border: isBookmarked ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid rgba(68, 64, 60, 0.4)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: isBookmarked ? '#fbbf24' : '#a8a29e', cursor: bookmarkLoading ? 'wait' : 'pointer',
+                transition: 'all 0.2s', opacity: bookmarkLoading ? 0.6 : 1,
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
             </button>
-            <button title="مشاركة" style={{
-              width: '40px', height: '40px', borderRadius: '10px',
-              background: 'rgba(41, 37, 36, 0.5)', border: '1px solid rgba(68, 64, 60, 0.4)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#a8a29e', cursor: 'pointer', transition: 'all 0.2s',
-            }}>
+            <button
+              title="مشاركة الكتاب"
+              onClick={handleShare}
+              style={{
+                width: '40px', height: '40px', borderRadius: '10px',
+                background: shared ? 'rgba(16, 185, 129, 0.15)' : 'rgba(41, 37, 36, 0.5)',
+                border: shared ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(68, 64, 60, 0.4)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: shared ? '#34d399' : '#a8a29e', cursor: 'pointer', transition: 'all 0.2s',
+              }}
+            >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
             </button>
           </div>
@@ -562,7 +665,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
             </div>
           </div>
 
-          {/* Reading Progress Card (mockup) */}
+          {/* Reading Progress Card */}
           <div style={{
             background: 'rgba(28, 25, 23, 0.5)',
             border: '1px solid rgba(41, 37, 36, 0.6)',
@@ -570,12 +673,35 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
               <span style={{ fontSize: '12px', color: '#a8a29e' }}>📊 تقدّمك في القراءة</span>
-              <span style={{ fontSize: '14px', fontWeight: 700, color: '#c084fc' }}>0%</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: readingProgress && readingProgress.percent > 0 ? '#c084fc' : '#78716c' }}>
+                {readingProgress ? `${readingProgress.percent}%` : '0%'}
+              </span>
             </div>
             <div style={{ height: '6px', background: 'rgba(41, 37, 36, 0.6)', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
-              <div style={{ height: '100%', width: '0%', borderRadius: '3px', background: 'linear-gradient(90deg, #9333ea, #ec4899, #f59e0b)', boxShadow: '0 0 12px rgba(147, 51, 234, 0.5)' }} />
+              <div style={{
+                height: '100%',
+                width: `${readingProgress?.percent || 0}%`,
+                borderRadius: '3px',
+                background: 'linear-gradient(90deg, #9333ea, #ec4899, #f59e0b)',
+                boxShadow: readingProgress && readingProgress.percent > 0 ? '0 0 12px rgba(147, 51, 234, 0.5)' : 'none',
+                transition: 'width 0.5s ease',
+              }} />
             </div>
-            <p style={{ fontSize: '11px', color: '#78716c' }}>0 من {b.chapters.length} فصل مكتمل · ابدأ القراءة الآن</p>
+            <p style={{ fontSize: '11px', color: '#78716c' }}>
+              {(() => {
+                if (!b.chapters || b.chapters.length === 0) {
+                  // كتاب PDF بدون فصول — نعتمد على currentScroll
+                  if (readingProgress && readingProgress.percent > 0) {
+                    return `تقدّمت ${readingProgress.percent}% في القراءة`
+                  }
+                  return 'ابدأ القراءة الآن'
+                }
+                if (readingProgress && readingProgress.completedCount > 0) {
+                  return `${readingProgress.completedCount} من ${b.chapters.length} فصل مكتمل · ${readingProgress.percent}%`
+                }
+                return `0 من ${b.chapters.length} فصل مكتمل · ابدأ القراءة الآن`
+              })()}
+            </p>
           </div>
 
           {/* Sticky TOC */}
