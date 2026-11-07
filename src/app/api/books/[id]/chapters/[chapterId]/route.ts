@@ -32,6 +32,31 @@ export async function GET(
     });
 
     if (!chapter) {
+      // 📌 Fallback: لو الكتاب له PDF لكن بدون فصول، نرجع فصلًا افتراضيًا
+      // بدل 404، حتى يتمكن القارئ من عرض الـ PDF مباشرة
+      const book = await db.book.findUnique({
+        where: { id: bookId },
+        select: { id: true, title: true, pdfUrl: true, contentType: true },
+      });
+      if (book?.pdfUrl) {
+        return NextResponse.json({
+          chapter: {
+            id: 0,
+            order: chapterNumber,
+            title: book.title,
+            content: "",
+            estimatedMinutes: 0,
+            isFree: true,
+            relatedLevelId: null,
+            pageStart: null,
+            pageEnd: null,
+          },
+          totalChapters: 0,
+          hasPrev: false,
+          hasNext: false,
+          isPdfOnly: true,
+        });
+      }
       return NextResponse.json({ error: "Chapter not found" }, { status: 404 });
     }
 
