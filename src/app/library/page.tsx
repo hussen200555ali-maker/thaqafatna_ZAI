@@ -68,6 +68,7 @@ export default function LibraryPage() {
   const [books, setBooks] = useState<Book[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [activeSearch, setActiveSearch] = useState('')  // الاستعلام الفعّال بعد الضغط على بحث
   const [searchPlaceholder, setSearchPlaceholder] = useState(searchPlaceholders[0])
 
   useEffect(() => {
@@ -94,12 +95,53 @@ export default function LibraryPage() {
     return () => clearInterval(timer)
   }, [])
 
+  // 🔍 فلترة الكتب بناءً على الاستعلام الفعّال
+  const trimmed = activeSearch.trim()
+  const isSearching = trimmed.length > 0
+  const searchResults = isSearching
+    ? books.filter(b => {
+        const q = trimmed.toLowerCase()
+        return (
+          (b.title || '').toLowerCase().includes(q) ||
+          (b.author || '').toLowerCase().includes(q) ||
+          (b.description || '').toLowerCase().includes(q)
+        )
+      })
+    : []
+
   const featuredBooks = books.filter(b => b.isFeatured).slice(0, 6)
   const displayBooks = featuredBooks.length >= 4 ? featuredBooks : books.slice(0, 6)
   const mostDownloaded = [...books].sort((a, b) => b.downloads - a.downloads).slice(0, 5)
   const totalBooks = books.length
   const totalDownloads = books.reduce((s, b) => s + b.downloads, 0)
   const totalAuthors = new Set(books.map(b => b.author)).size
+
+  // 📝 تنفيذ البحث (يُستدعى عند الضغط على زر "بحث" أو Enter)
+  const handleSearch = (e?: React.FormEvent) => {
+    e?.preventDefault()
+    setActiveSearch(searchQuery)
+    // scroll لقسم النتائج لو موجودة استعلام
+    if (searchQuery.trim()) {
+      setTimeout(() => {
+        document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    }
+  }
+
+  // 🏷️ اختيار اقتراح بحث
+  const handleSuggestion = (suggestion: string) => {
+    setSearchQuery(suggestion)
+    setActiveSearch(suggestion)
+    setTimeout(() => {
+      document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+
+  // 🗑️ مسح البحث
+  const clearSearch = () => {
+    setSearchQuery('')
+    setActiveSearch('')
+  }
 
   if (loading) {
     return (
@@ -221,7 +263,7 @@ export default function LibraryPage() {
               background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.3), rgba(37, 99, 235, 0.3))',
               borderRadius: '16px', filter: 'blur(20px)', opacity: 0.5,
             }} />
-            <div style={{
+            <form onSubmit={handleSearch} style={{
               position: 'relative',
               display: 'flex', alignItems: 'center', gap: '12px', padding: '8px',
               background: 'rgba(28, 25, 23, 0.8)', backdropFilter: 'blur(20px)',
@@ -241,28 +283,56 @@ export default function LibraryPage() {
                   color: 'white', fontSize: '16px', fontFamily: 'inherit', padding: '12px 0',
                 }}
               />
-              <button style={{
-                padding: '12px 24px',
-                background: 'linear-gradient(135deg, #9333ea, #2563eb)',
-                color: 'white', fontWeight: 600, fontSize: '14px',
-                border: 'none', borderRadius: '12px', cursor: 'pointer',
-                boxShadow: '0 8px 16px -4px rgba(147, 51, 234, 0.4)',
-                transition: 'all 0.2s', fontFamily: 'inherit',
-              }}>بحث</button>
-            </div>
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  title="مسح"
+                  style={{
+                    background: 'transparent', border: 'none', cursor: 'pointer',
+                    color: '#78716c', padding: '8px', fontSize: '18px',
+                  }}
+                >×</button>
+              )}
+              <button
+                type="submit"
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #9333ea, #2563eb)',
+                  color: 'white', fontWeight: 600, fontSize: '14px',
+                  border: 'none', borderRadius: '12px', cursor: 'pointer',
+                  boxShadow: '0 8px 16px -4px rgba(147, 51, 234, 0.4)',
+                  transition: 'all 0.2s', fontFamily: 'inherit',
+                }}
+              >بحث</button>
+            </form>
           </div>
 
           {/* Suggestions */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '16px' }}>
             <span style={{ fontSize: '12px', color: '#78716c' }}>جرّب:</span>
             {['الليبرالية', 'ابن خلدون', 'التراث', 'تطوير الذات', 'الفلسفة'].map(s => (
-              <button key={s} style={{
-                padding: '6px 14px', borderRadius: '100px',
-                background: 'rgba(41, 37, 36, 0.5)',
-                color: '#d6d3d1', fontSize: '12px', cursor: 'pointer',
-                transition: 'all 0.2s', border: '1px solid transparent',
-                fontFamily: 'inherit',
-              }}>{s}</button>
+              <button
+                key={s}
+                onClick={() => handleSuggestion(s)}
+                style={{
+                  padding: '6px 14px', borderRadius: '100px',
+                  background: 'rgba(41, 37, 36, 0.5)',
+                  color: '#d6d3d1', fontSize: '12px', cursor: 'pointer',
+                  transition: 'all 0.2s', border: '1px solid transparent',
+                  fontFamily: 'inherit',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(147, 51, 234, 0.2)'
+                  e.currentTarget.style.borderColor = 'rgba(147, 51, 234, 0.4)'
+                  e.currentTarget.style.color = '#c084fc'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(41, 37, 36, 0.5)'
+                  e.currentTarget.style.borderColor = 'transparent'
+                  e.currentTarget.style.color = '#d6d3d1'
+                }}
+              >{s}</button>
             ))}
           </div>
         </section>
@@ -296,6 +366,85 @@ export default function LibraryPage() {
             ))}
           </div>
         </section>
+
+        {/* ===== Search Results Section ===== */}
+        {isSearching && (
+          <section id="search-results" style={{ marginBottom: '64px', scrollMarginTop: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div>
+                <h2 style={{ fontFamily: "'Cairo', sans-serif", fontSize: '28px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span>🔍</span>
+                  <span>نتائج البحث</span>
+                </h2>
+                <p style={{ fontSize: '14px', color: '#78716c', marginTop: '4px' }}>
+                  {searchResults.length > 0
+                    ? `${searchResults.length} نتيجة لـ «${trimmed}»`
+                    : `لا توجد نتائج لـ «${trimmed}»`}
+                </p>
+              </div>
+              <button
+                onClick={clearSearch}
+                style={{
+                  padding: '8px 16px', borderRadius: '10px',
+                  background: 'rgba(41, 37, 36, 0.5)', color: '#d6d3d1',
+                  border: '1px solid rgba(68, 64, 60, 0.4)', fontSize: '13px',
+                  cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600,
+                }}
+              >✕ إغلاق</button>
+            </div>
+
+            {searchResults.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: '#78716c', background: 'rgba(28, 25, 23, 0.5)', borderRadius: '18px', border: '1px solid rgba(41, 37, 36, 0.6)' }}>
+                <div style={{ fontSize: '48px', marginBottom: '12px' }}>🔍</div>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: '#a8a29e', marginBottom: '8px' }}>
+                  لم نعثر على نتائج
+                </div>
+                <div style={{ fontSize: '13px' }}>
+                  جرّب كلمات مختلفة أو تحقّق من الإملاء
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '20px' }}>
+                {searchResults.map(book => (
+                  <Link key={book.id} href={`/library/${book.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={{ cursor: 'pointer', transition: 'transform 0.3s' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseOut={e => e.currentTarget.style.transform = ''}>
+                      <div style={{
+                        position: 'relative', aspectRatio: '2/3',
+                        borderRadius: '8px', overflow: 'hidden',
+                        boxShadow: '0 8px 24px -8px rgba(0,0,0,0.5)', marginBottom: '12px',
+                        background: 'linear-gradient(135deg, #1e3a8a, #6366f1)',
+                      }}>
+                        {book.coverImage ? (
+                          <img src={book.coverImage} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '48px' }}>📚</div>
+                        )}
+                        {book.pdfUrl && (
+                          <div style={{
+                            position: 'absolute', top: '8px', right: '8px',
+                            background: 'rgba(239, 68, 68, 0.9)', color: 'white',
+                            fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px',
+                            backdropFilter: 'blur(4px)',
+                          }}>PDF</div>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#e7e5e4', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {book.title}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#78716c', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {book.author}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '11px' }}>
+                        <span style={{ color: '#fbbf24' }}>⭐ {book.ratingAvg.toFixed(1)}</span>
+                        <span style={{ color: '#78716c' }}>· 👁️ {formatCount(book.views)}</span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Featured Books */}
         <section style={{ marginBottom: '64px' }}>
