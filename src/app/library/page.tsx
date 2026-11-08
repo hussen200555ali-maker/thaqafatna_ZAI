@@ -21,6 +21,7 @@ interface Book {
   id: number
   title: string
   author: string
+  description?: string
   coverImage: string
   pdfUrl?: string | null
   contentType?: string
@@ -33,6 +34,7 @@ interface Book {
   downloads: number
   isFeatured: boolean
   isPremium: boolean
+  keywords?: string[] | string
   category: { id: number; name: string; icon: string; color: string }
   _count: { chapters: number; reviews: number }
   createdAt: string
