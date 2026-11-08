@@ -63,7 +63,7 @@ interface Category {
   _count?: { books: number };
 }
 
-export function LibraryAdminView({ onBack }: { onBack: () => void }) {
+export function LibraryAdminView({ onBack, embedded = false }: { onBack?: () => void; embedded?: boolean }) {
   const [activeTab, setActiveTab] = useState<Tab>("books");
   const { toast } = useToast();
 
@@ -76,38 +76,65 @@ export function LibraryAdminView({ onBack }: { onBack: () => void }) {
   ];
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      {/* ===== Header ===== */}
-      <header className="bg-white border-b border-stone-200 sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <button onClick={onBack} className="flex items-center gap-2 text-stone-600 hover:text-stone-900">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
-            <span className="text-sm font-medium">رجوع</span>
-          </button>
-          <h1 className="text-xl font-bold text-stone-900" style={{ fontFamily: "var(--font-tajawal)" }}>
-            📚 إدارة المكتبة
-          </h1>
-          <div className="w-16" />
+    <div className={embedded ? "min-h-[60vh]" : "min-h-screen bg-stone-50"}>
+      {/* ===== Header (يُخفى في الوضع المُدمج) ===== */}
+      {!embedded && (
+        <header className="bg-white border-b border-stone-200 sticky top-0 z-30">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            {onBack && (
+              <button onClick={onBack} className="flex items-center gap-2 text-stone-600 hover:text-stone-900">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+                <span className="text-sm font-medium">رجوع</span>
+              </button>
+            )}
+            <h1 className="text-xl font-bold text-stone-900" style={{ fontFamily: "var(--font-tajawal)" }}>
+              📚 إدارة المكتبة
+            </h1>
+            <div className="w-16" />
+          </div>
+          {/* تبويبات */}
+          <div className="max-w-6xl mx-auto px-4 flex gap-1 overflow-x-auto">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "px-4 py-2.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap flex items-center gap-1.5",
+                  activeTab === tab.id
+                    ? "border-indigo-500 text-indigo-600"
+                    : "border-transparent text-stone-500 hover:text-stone-700"
+                )}
+              >
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </header>
+      )}
+
+      {/* ===== تبويبات مدمجة (تظهر داخل AdminLayout في الوضع المُدمج) ===== */}
+      {embedded && (
+        <div className="mb-6 border-b border-stone-200 bg-white rounded-xl px-2 overflow-x-auto">
+          <div className="flex gap-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap flex items-center gap-1.5",
+                  activeTab === tab.id
+                    ? "border-indigo-500 text-indigo-600"
+                    : "border-transparent text-stone-500 hover:text-stone-700"
+                )}
+              >
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
-        {/* تبويبات */}
-        <div className="max-w-6xl mx-auto px-4 flex gap-1 overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "px-4 py-2.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap flex items-center gap-1.5",
-                activeTab === tab.id
-                  ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-stone-500 hover:text-stone-700"
-              )}
-            >
-              <span>{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-      </header>
+      )}
 
       {/* ===== المحتوى ===== */}
       <div className="max-w-6xl mx-auto px-4 py-6">

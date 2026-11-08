@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LevelEditor } from "./level-editor";
-import { LibraryAdminView } from "@/components/library/library-admin";
 import { PdfImportTool } from "@/components/library/pdf-import-tool";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -35,7 +34,7 @@ interface AdminChapter {
   _count: { levels: number };
 }
 
-type View = "list" | "editor" | "quality-check" | "difficulty-balance" | "library" | "pdf-import";
+type View = "list" | "editor" | "quality-check" | "difficulty-balance" | "pdf-import";
 
 export function AdminPanel() {
   const [view, setView] = useState<View>("list");
@@ -217,10 +216,6 @@ export function AdminPanel() {
     return <DifficultyBalanceView onBack={() => setView("list")} />;
   }
 
-  if (view === "library") {
-    return <LibraryAdminView onBack={() => setView("list")} />;
-  }
-
   if (view === "pdf-import") {
     return (
       <div className="min-h-screen bg-stone-50">
@@ -302,7 +297,7 @@ export function AdminPanel() {
               ⚖️ موازنة الصعوبة
             </Button>
             <Button
-              onClick={() => setView("library")}
+              onClick={() => { window.location.href = "/admin/library"; }}
               variant="outline"
               className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
             >

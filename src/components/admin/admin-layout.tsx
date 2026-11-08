@@ -21,7 +21,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, BookOpen, Users, Tags, UserCog, Shield,
+  LayoutDashboard, BookOpen, Library, Users, Tags, UserCog, Shield,
   MessageSquare, ScrollText, BarChart3, Settings, LogOut,
   Search, Bell, Menu, X, ChevronLeft, Plus
 } from 'lucide-react'
@@ -55,6 +55,7 @@ interface AdminLayoutProps {
 
 const navItems: NavItem[] = [
   { href: '/admin', label: 'لوحة التحكم', icon: LayoutDashboard },
+  { href: '/admin/library', label: 'المكتبة', icon: Library },
   { href: '/admin/books', label: 'الكتب', icon: BookOpen },
   { href: '/admin/categories', label: 'التصنيفات', icon: Tags },
   { href: '/admin/authors', label: 'المؤلفون', icon: UserCog },
