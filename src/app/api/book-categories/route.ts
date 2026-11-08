@@ -6,11 +6,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-// GET — جلب التصنيفات المنشورة
-export async function GET() {
+// GET — جلب التصنيفات (كلها للأدمن، أو المنشورة فقط عند ?published=true)
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const publishedOnly = searchParams.get("published") === "true";
+
     const categories = await db.bookCategory.findMany({
-      where: { isPublished: true },
+      where: publishedOnly ? { isPublished: true } : {},
       orderBy: { order: "asc" },
       include: {
         _count: {
