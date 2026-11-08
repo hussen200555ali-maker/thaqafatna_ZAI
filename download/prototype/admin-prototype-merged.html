@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نموذج أولي — لوحة إدارة ثقافتنا الموحّدة (مكتبة + لعبة)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Cairo:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --bg: #0c0a09;
+    --panel: #1c1917;
+    --panel-2: #292524;
+    --border: rgba(68, 64, 60, 0.6);
+    --text: #f5f5f4;
+    --text-muted: #a8a29e;
+    --text-dim: #78716c;
+    --primary: #9333ea;
+    --amber: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --blue: #2563eb;
+  }
+  * { font-family: 'Tajawal', sans-serif; }
+  h1, h2, h3, .display { font-family: 'Cairo', sans-serif; }
+  body { background: var(--bg); color: var(--text); }
+  .sidebar { background: linear-gradient(180deg, #1c1917 0%, #0c0a09 100%); border-left: 1px solid var(--border); }
+  .nav-section-title { font-size: 10px; font-weight: 800; color: #57534e; text-transform: uppercase; letter-spacing: 0.1em; padding: 12px 24px 6px; }
+  .nav-item { transition: all 0.2s; border-right: 3px solid transparent; }
+  .nav-item:hover { background: rgba(147, 51, 234, 0.08); }
+  .nav-item.active { background: rgba(147, 51, 234, 0.15); border-right-color: #9333ea; color: #c084fc; }
+  .nav-item.active .nav-icon { color: #c084fc; }
+  .nav-item.library-section.active { background: rgba(37, 99, 235, 0.15); border-right-color: #2563eb; }
+  .nav-item.library-section.active .nav-icon { color: #60a5fa; }
+  .nav-item.game-section.active { background: rgba(245, 158, 11, 0.15); border-right-color: #f59e0b; }
+  .nav-item.game-section.active .nav-icon { color: #fbbf24; }
+  .card { background: rgba(28, 25, 23, 0.5); border: 1px solid var(--border); border-radius: 18px; }
+  .stat-card { background: linear-gradient(135deg, rgba(28, 25, 23, 0.8), rgba(41, 37, 36, 0.5)); border: 1px solid var(--border); }
+  .btn-primary { background: linear-gradient(135deg, #9333ea, #2563eb); }
+  .btn-amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .btn-blue { background: linear-gradient(135deg, #2563eb, #1e40af); }
+  .badge { padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700; }
+  .pulse-dot { animation: pulse 2s infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .view { display: none; }
+  .view.active { display: block; }
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(168, 162, 158, 0.3); border-radius: 3px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .tab-btn { padding: 10px 18px; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; font-weight: 600; font-size: 14px; }
+  .tab-btn.active { border-bottom-color: var(--primary); color: #c084fc; }
+  .chapter-pill { transition: all 0.2s; cursor: pointer; }
+  .level-card { transition: all 0.2s; }
+  .level-card:hover { transform: translateY(-2px); }
+  .progress-bar { background: linear-gradient(90deg, #9333ea, #ec4899, #f59e0b); }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="flex min-h-screen">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar w-72 flex-shrink-0 flex flex-col">
+
+    <!-- Logo -->
+    <div class="p-6 border-b border-stone-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 via-blue-500 to-amber-500 flex items-center justify-center text-2xl font-bold display">
+          ث
+        </div>
+        <div>
+          <h1 class="text-lg font-bold display">ثقافتنا</h1>
+          <p class="text-xs text-stone-500">لوحة الإدارة الموحّدة</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto scrollbar-thin py-2">
+
+      <!-- ============ القسم العام ============ -->
+      <p class="nav-section-title">📊 عام</p>
+
+      <a href="#" onclick="showView('dashboard'); return false;" class="nav-item active flex items-center gap-3 px-6 py-3 text-sm font-medium text-stone-300" data-view="dashboard">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span>لوحة التحكم</span>
+      </a>
+
+      <!-- ============ قسم المكتبة ============ -->
+      <p class="nav-section-title">📚 المكتبة</p>
+
+      <a href="#" onclick="showView('library'); return false;" class="nav-item library-section flex items-center gap-3 px-6 py-3 text-sm font-medium text-stone-300" data-view="library">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        <span>إدارة المكتبة</span>
+      </a>
+
+      <a href="#" onclick="showView('books'); return false;" class="nav-item library-section flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="books">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+        <span>الكتب</span>
+        <span class="badge bg-blue-500/20 text-blue-400 mr-auto">10</span>
+      </a>
+
+      <a href="#" onclick="showView('categories'); return false;" class="nav-item library-section flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="categories">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        <span>تصنيفات الكتب</span>
+      </a>
+
+      <a href="#" onclick="showView('book-chapters'); return false;" class="nav-item library-section flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="book-chapters">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+        <span>فصول الكتب</span>
+      </a>
+
+      <!-- ============ قسم اللعبة ============ -->
+      <p class="nav-section-title">🎮 اللعبة</p>
+
+      <a href="#" onclick="showView('chapters'); return false;" class="nav-item game-section flex items-center gap-3 px-6 py-3 text-sm font-medium text-stone-300" data-view="chapters">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        <span>فصول اللعبة ومراحلها</span>
+      </a>
+
+      <a href="#" onclick="showView('levels'); return false;" class="nav-item game-section flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="levels">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <span>محرر المراحل</span>
+      </a>
+
+      <a href="#" onclick="showView('quality'); return false;" class="nav-item game-section flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="quality">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span>مدقّق الجودة</span>
+        <span class="badge bg-red-500/20 text-red-400 mr-auto">3</span>
+      </a>
+
+      <a href="#" onclick="showView('difficulty'); return false;" class="nav-item game-section flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="difficulty">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        <span>موازنة الصعوبة</span>
+      </a>
+
+      <a href="#" onclick="showView('skills'); return false;" class="nav-item game-section flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="skills">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6"/></svg>
+        <span>شجرة المهارات</span>
+      </a>
+
+      <!-- ============ قسم المجتمع ============ -->
+      <p class="nav-section-title">👥 المجتمع</p>
+
+      <a href="#" onclick="showView('users'); return false;" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="users">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <span>اللاعبون</span>
+        <span class="badge bg-stone-700 text-stone-400 mr-auto">1.2K</span>
+      </a>
+
+      <a href="#" onclick="showView('reviews'); return false;" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="reviews">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span>المراجعات</span>
+        <span class="badge bg-red-500/20 text-red-400 mr-auto">5</span>
+      </a>
+
+      <a href="#" onclick="showView('messages'); return false;" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="messages">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span>الرسائل</span>
+      </a>
+
+      <!-- ============ قسم النظام ============ -->
+      <p class="nav-section-title">⚙️ النظام</p>
+
+      <a href="#" onclick="showView('roles'); return false;" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="roles">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>الأدوار والصلاحيات</span>
+      </a>
+
+      <a href="#" onclick="showView('audit'); return false;" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="audit">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>سجل التدقيق</span>
+      </a>
+
+      <a href="#" onclick="showView('reports'); return false;" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="reports">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>التقارير</span>
+      </a>
+
+      <a href="#" onclick="showView('settings'); return false;" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-stone-400" data-view="settings">
+        <svg class="nav-icon w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6"/></svg>
+        <span>الإعدادات العامة</span>
+      </a>
+    </nav>
+
+    <!-- User card -->
+    <div class="p-4 border-t border-stone-800">
+      <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-stone-800/50 cursor-pointer">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center font-bold text-white display">ح</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold truncate">حسن علي</p>
+          <p class="text-xs text-stone-500 truncate">مدير النظام</p>
+        </div>
+        <button class="text-stone-500 hover:text-red-400" title="خروج">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="flex-1 overflow-y-auto scrollbar-thin">
+
+    <!-- Topbar -->
+    <header class="sticky top-0 z-30 backdrop-blur-md bg-stone-950/80 border-b border-stone-800 px-8 py-4 flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2 text-xs text-stone-500 mb-1">
+          <span>الرئيسية</span>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          <span id="breadcrumb">لوحة التحكم</span>
+        </div>
+        <h2 class="text-xl font-bold display" id="page-title">لوحة التحكم</h2>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <input type="text" placeholder="بحث في كل شيء..." class="bg-stone-900 border border-stone-700 rounded-lg px-4 py-2 pr-10 text-sm w-72 focus:outline-none focus:border-purple-500">
+          <svg class="absolute right-3 top-2.5 w-4 h-4 text-stone-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <button class="relative w-10 h-10 rounded-lg bg-stone-900 hover:bg-stone-800 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full pulse-dot"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- =========== VIEW: DASHBOARD (موحّد) =========== -->
+    <div id="view-dashboard" class="view active p-8">
+      <!-- إحصائيات شاملة (مكتبة + لعبة) -->
+      <div class="grid grid-cols-4 gap-4 mb-8">
+        <div class="stat-card p-6 rounded-2xl">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-2xl">📚</div>
+            <span class="badge bg-green-500/20 text-green-400">+3</span>
+          </div>
+          <p class="text-3xl font-bold display">10</p>
+          <p class="text-xs text-stone-500 mt-1">كتاب منشور</p>
+        </div>
+        <div class="stat-card p-6 rounded-2xl">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center text-2xl">🎮</div>
+            <span class="badge bg-amber-500/20 text-amber-400">15 مرحلة</span>
+          </div>
+          <p class="text-3xl font-bold display">3</p>
+          <p class="text-xs text-stone-500 mt-1">فصول لعبة منشورة</p>
+        </div>
+        <div class="stat-card p-6 rounded-2xl">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-2xl">👥</div>
+            <span class="badge bg-green-500/20 text-green-400">+12%</span>
+          </div>
+          <p class="text-3xl font-bold display">1,247</p>
+          <p class="text-xs text-stone-500 mt-1">لاعب نشط</p>
+        </div>
+        <div class="stat-card p-6 rounded-2xl">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-2xl">⚠️</div>
+            <span class="badge bg-red-500/20 text-red-400">8</span>
+          </div>
+          <p class="text-3xl font-bold display">8</p>
+          <p class="text-xs text-stone-500 mt-1">مهام معلّقة</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-6 mb-6">
+        <!-- نشاط اللاعبين -->
+        <div class="col-span-2 card p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold display">📊 النشاط الأسبوعي (مكتبة + لعبة)</h3>
+            <div class="flex gap-2">
+              <button class="badge bg-purple-500/20 text-purple-400">يومي</button>
+              <button class="badge bg-stone-800 text-stone-400">أسبوعي</button>
+            </div>
+          </div>
+          <div class="flex items-end justify-between gap-3 h-48 mt-4">
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg" style="height: 50%" title="مكتبة"></div>
+              <div class="w-full bg-gradient-to-t from-amber-600 to-amber-400 rounded-t-lg -mt-2" style="height: 40%" title="لعبة"></div>
+              <span class="text-xs text-stone-500 mt-1">السبت</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg" style="height: 65%"></div>
+              <div class="w-full bg-gradient-to-t from-amber-600 to-amber-400 rounded-t-lg -mt-2" style="height: 55%"></div>
+              <span class="text-xs text-stone-500 mt-1">الأحد</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg" style="height: 45%"></div>
+              <div class="w-full bg-gradient-to-t from-amber-600 to-amber-400 rounded-t-lg -mt-2" style="height: 70%"></div>
+              <span class="text-xs text-stone-500 mt-1">الإثنين</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg" style="height: 80%"></div>
+              <div class="w-full bg-gradient-to-t from-amber-600 to-amber-400 rounded-t-lg -mt-2" style="height: 60%"></div>
+              <span class="text-xs text-stone-500 mt-1">الثلاثاء</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg" style="height: 70%"></div>
+              <div class="w-full bg-gradient-to-t from-amber-600 to-amber-400 rounded-t-lg -mt-2" style="height: 75%"></div>
+              <span class="text-xs text-stone-500 mt-1">الأربعاء</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg" style="height: 90%"></div>
+              <div class="w-full bg-gradient-to-t from-amber-600 to-amber-400 rounded-t-lg -mt-2" style="height: 85%"></div>
+              <span class="text-xs text-stone-500 mt-1">الخميس</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg" style="height: 75%"></div>
+              <div class="w-full bg-gradient-to-t from-amber-600 to-amber-400 rounded-t-lg -mt-2" style="height: 80%"></div>
+              <span class="text-xs text-stone-500 mt-1">الجمعة</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 mt-4 text-xs">
+            <div class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-500 rounded"></div><span class="text-stone-500">قراءات المكتبة</span></div>
+            <div class="flex items-center gap-2"><div class="w-3 h-3 bg-amber-500 rounded"></div><span class="text-stone-500">مراحل اللعبة المكتملة</span></div>
+          </div>
+        </div>
+
+        <!-- أكثر المراحل صعوبة -->
+        <div class="card p-6">
+          <h3 class="text-lg font-bold display mb-4">🔥 أكثر المراحل صعوبة</h3>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-stone-800/50">
+              <span class="badge bg-red-500/20 text-red-400">1</span>
+              <div class="flex-1">
+                <p class="text-sm font-bold">المرحلة 12 — أبيات شعرية</p>
+                <p class="text-xs text-stone-500">68% فشل</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-stone-800/50">
+              <span class="badge bg-red-500/20 text-red-400">2</span>
+              <div class="flex-1">
+                <p class="text-sm font-bold">المرحلة 8 — معلومات عامة</p>
+                <p class="text-xs text-stone-500">54% فشل</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-stone-800/50">
+              <span class="badge bg-amber-500/20 text-amber-400">3</span>
+              <div class="flex-1">
+                <p class="text-sm font-bold">المرحلة 15 — تركيب كلمات</p>
+                <p class="text-xs text-stone-500">42% فشل</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- مهام معلّقة (موحّدة) -->
+      <div class="card p-6">
+        <h3 class="text-lg font-bold display mb-4">✅ مهام معلّقة</h3>
+        <div class="grid grid-cols-4 gap-4">
+          <div class="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-2xl">📝</span>
+              <p class="text-sm font-bold">3 مراحل لعبة مسودة</p>
+            </div>
+            <p class="text-xs text-stone-500 mb-3">بانتظار المراجعة</p>
+            <button onclick="showView('chapters')" class="text-xs text-amber-400 hover:underline">مراجعة ←</button>
+          </div>
+          <div class="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-2xl">📚</span>
+              <p class="text-sm font-bold">2 كتب بانتظار النشر</p>
+            </div>
+            <p class="text-xs text-stone-500 mb-3">مسودات جاهزة للنشر</p>
+            <button onclick="showView('books')" class="text-xs text-blue-400 hover:underline">معالجة ←</button>
+          </div>
+          <div class="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-2xl">⚠️</span>
+              <p class="text-sm font-bold">3 أسئلة للمراجعة</p>
+            </div>
+            <p class="text-xs text-stone-500 mb-3">مدقّق الجودة وجد مشاكل</p>
+            <button onclick="showView('quality')" class="text-xs text-red-400 hover:underline">معالجة ←</button>
+          </div>
+          <div class="p-4 rounded-xl bg-stone-700/30 border border-stone-700">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-2xl">📬</span>
+              <p class="text-sm font-bold">5 رسائل جديدة</p>
+            </div>
+            <p class="text-xs text-stone-500 mb-3">من لاعبين/قرّاء</p>
+            <button onclick="showView('messages')" class="text-xs text-stone-300 hover:underline">الرد ←</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========== VIEW: LIBRARY (مكتبة بتبويبات مدمجة) =========== -->
+    <div id="view-library" class="view p-8">
+      <div class="mb-6">
+        <h3 class="text-xl font-bold display mb-1">📚 إدارة المكتبة</h3>
+        <p class="text-sm text-stone-500">كل ما يخص الكتب في مكان واحد</p>
+      </div>
+
+      <!-- تبويبات المكتبة -->
+      <div class="flex gap-1 border-b border-stone-800 mb-6 overflow-x-auto scrollbar-thin">
+        <button onclick="showLibraryTab('books')" class="tab-btn active text-stone-300" data-libtab="books">📚 الكتب</button>
+        <button onclick="showLibraryTab('import')" class="tab-btn text-stone-500" data-libtab="import">📤 استيراد PDF</button>
+        <button onclick="showLibraryTab('categories')" class="tab-btn text-stone-500" data-libtab="categories">📂 التصنيفات</button>
+        <button onclick="showLibraryTab('chapters')" class="tab-btn text-stone-500" data-libtab="chapters">📑 فصول الكتب</button>
+        <button onclick="showLibraryTab('stats')" class="tab-btn text-stone-500" data-libtab="stats">📊 إحصائيات</button>
+      </div>
+
+      <!-- مكتبة: تبويب الكتب -->
+      <div id="libtab-books" class="libtab">
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-sm text-stone-500">10 كتب منشورة · 3 مسودات</p>
+          <button class="px-4 py-2 rounded-lg btn-blue text-sm font-bold text-white">+ كتاب جديد</button>
+        </div>
+        <div class="grid grid-cols-5 gap-4">
+          <div class="card p-3 cursor-pointer hover:border-blue-500/40">
+            <div class="aspect-[2/3] rounded-lg bg-gradient-to-br from-amber-700 to-yellow-900 mb-2 relative">
+              <div class="absolute top-2 right-2 badge bg-red-500/80">PDF</div>
+              <div class="absolute inset-0 flex items-center justify-center text-4xl">📖</div>
+            </div>
+            <p class="font-bold text-sm truncate">مقدمة ابن خلدون</p>
+            <p class="text-xs text-stone-500 truncate">عبد الرحمن بن خلدون</p>
+          </div>
+          <div class="card p-3 cursor-pointer hover:border-blue-500/40">
+            <div class="aspect-[2/3] rounded-lg bg-gradient-to-br from-green-700 to-emerald-900 mb-2 relative">
+              <div class="absolute inset-0 flex items-center justify-center text-4xl">📕</div>
+            </div>
+            <p class="font-bold text-sm truncate">رياض الصالحين</p>
+            <p class="text-xs text-stone-500 truncate">الإمام النووي</p>
+          </div>
+          <div class="card p-3 cursor-pointer hover:border-blue-500/40">
+            <div class="aspect-[2/3] rounded-lg bg-gradient-to-br from-purple-700 to-indigo-900 mb-2 relative">
+              <div class="absolute top-2 right-2 badge bg-red-500/80">PDF</div>
+              <div class="absolute inset-0 flex items-center justify-center text-4xl">📘</div>
+            </div>
+            <p class="font-bold text-sm truncate">كليلة ودمنة</p>
+            <p class="text-xs text-stone-500 truncate">ابن المقفع</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- باقي تبويبات المكتبة (placeholders) -->
+      <div id="libtab-import" class="libtab hidden">
+        <div class="card p-12 text-center">
+          <div class="text-6xl mb-4">📤</div>
+          <h4 class="font-bold display mb-2">استيراد PDF</h4>
+          <p class="text-sm text-stone-500 mb-4">ارفع ملف PDF واستخرج فصوله تلقائيًا</p>
+          <button class="px-6 py-2.5 rounded-lg btn-blue text-sm font-bold text-white">اختر ملف PDF</button>
+        </div>
+      </div>
+      <div id="libtab-categories" class="libtab hidden">
+        <div class="grid grid-cols-4 gap-3">
+          <div class="card p-4 text-center"><div class="text-3xl mb-2">📖</div><p class="font-bold">الأدب العربي</p><p class="text-xs text-stone-500">3 كتب</p></div>
+          <div class="card p-4 text-center"><div class="text-3xl mb-2">🕌</div><p class="font-bold">الكتب الدينية</p><p class="text-xs text-stone-500">4 كتب</p></div>
+          <div class="card p-4 text-center"><div class="text-3xl mb-2">📜</div><p class="font-bold">التاريخ والتراث</p><p class="text-xs text-stone-500">2 كتب</p></div>
+          <div class="card p-4 text-center"><div class="text-3xl mb-2">🔬</div><p class="font-bold">العلوم</p><p class="text-xs text-stone-500">1 كتاب</p></div>
+        </div>
+      </div>
+      <div id="libtab-chapters" class="libtab hidden">
+        <div class="card p-6">
+          <p class="text-sm text-stone-500 mb-4">اختر كتابًا لإدارة فصوله (تحديد نطاقات الصفحات يدويًا)</p>
+          <div class="space-y-2">
+            <div class="p-3 rounded-lg bg-stone-800 hover:bg-stone-700 cursor-pointer flex items-center justify-between">
+              <span class="font-bold">مقدمة ابن خلدون</span>
+              <span class="text-xs text-stone-500">4 فصول · ص 1-100</span>
+            </div>
+            <div class="p-3 rounded-lg bg-stone-800 hover:bg-stone-700 cursor-pointer flex items-center justify-between">
+              <span class="font-bold">كليلة ودمنة</span>
+              <span class="text-xs text-stone-500">2 فصول · ص 1-50</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="libtab-stats" class="libtab hidden">
+        <div class="grid grid-cols-3 gap-4">
+          <div class="stat-card p-6 rounded-2xl"><p class="text-3xl font-bold display text-blue-400">8,452</p><p class="text-xs text-stone-500 mt-1">إجمالي القراءات</p></div>
+          <div class="stat-card p-6 rounded-2xl"><p class="text-3xl font-bold display text-green-400">1,247</p><p class="text-xs text-stone-500 mt-1">تنزيلات</p></div>
+          <div class="stat-card p-6 rounded-2xl"><p class="text-3xl font-bold display text-amber-400">4.6</p><p class="text-xs text-stone-500 mt-1">متوسط التقييم</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========== VIEW: GAME CHAPTERS =========== -->
+    <div id="view-chapters" class="view p-8">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h3 class="text-xl font-bold display mb-1">🎮 فصول اللعبة ومراحلها</h3>
+          <p class="text-sm text-stone-500">إدارة فصول اللعبة (مستقلة عن فصول الكتب)</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="px-4 py-2 rounded-lg bg-stone-900 border border-stone-700 text-sm">+ فصل لعبة</button>
+          <button class="px-4 py-2 rounded-lg btn-amber text-sm font-bold text-white">+ مرحلة جديدة</button>
+        </div>
+      </div>
+
+      <p class="text-xs font-bold text-stone-500 uppercase mb-3">فصول اللعبة (3)</p>
+      <div class="flex gap-3 overflow-x-auto pb-3 mb-6 scrollbar-thin">
+        <div class="chapter-pill flex-shrink-0 p-4 rounded-xl border-2 border-amber-400 bg-amber-500/5 min-w-[220px]">
+          <div class="flex items-center gap-2 mb-2"><span class="text-3xl">⭐</span><span class="font-bold">البدايات</span></div>
+          <p class="text-xs text-stone-500 mb-2">مفردات أساسية للمبتدئين</p>
+          <div class="flex items-center justify-between text-xs"><span class="text-stone-500">5 مراحل</span><span class="badge bg-green-500/20 text-green-400">منشور</span></div>
+        </div>
+        <div class="chapter-pill flex-shrink-0 p-4 rounded-xl border-2 border-stone-700 bg-stone-900 min-w-[220px] cursor-pointer hover:border-stone-500">
+          <div class="flex items-center gap-2 mb-2"><span class="text-3xl">🌿</span><span class="font-bold">الطبيعة</span></div>
+          <p class="text-xs text-stone-500 mb-2">كلمات عن البيئة</p>
+          <div class="flex items-center justify-between text-xs"><span class="text-stone-500">7 مراحل</span><span class="badge bg-green-500/20 text-green-400">منشور</span></div>
+        </div>
+        <div class="chapter-pill flex-shrink-0 p-4 rounded-xl border-2 border-stone-700 bg-stone-900 min-w-[220px] cursor-pointer hover:border-stone-500">
+          <div class="flex items-center gap-2 mb-2"><span class="text-3xl">📜</span><span class="font-bold">التراث</span></div>
+          <p class="text-xs text-stone-500 mb-2">أمثال وحكم</p>
+          <div class="flex items-center justify-between text-xs"><span class="text-stone-500">3 مراحل</span><span class="badge bg-stone-700 text-stone-400">مسودة</span></div>
+        </div>
+      </div>
+
+      <p class="text-xs font-bold text-stone-500 uppercase mb-3">مراحل «البدايات» (5)</p>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="level-card card p-5">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center font-bold display text-amber-400">1</span>
+              <div><p class="font-bold">أول كلمة</p><p class="text-xs text-stone-500">5 كلمات · 50 عملة</p></div>
+            </div>
+            <span class="badge bg-green-500/20 text-green-400">منشور</span>
+          </div>
+          <div class="mb-3">
+            <div class="flex items-center justify-between text-xs mb-1"><span class="text-stone-500">معدّل الإكمال</span><span class="text-green-400 font-bold">87%</span></div>
+            <div class="h-1.5 bg-stone-800 rounded-full overflow-hidden"><div class="h-full progress-bar rounded-full" style="width: 87%"></div></div>
+          </div>
+          <div class="flex gap-2"><button class="flex-1 text-xs px-3 py-2 rounded-lg bg-stone-800 hover:bg-stone-700">✏️ تعديل</button><button class="text-xs px-3 py-2 rounded-lg bg-stone-800">👁️</button></div>
+        </div>
+        <div class="level-card card p-5">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center font-bold display text-amber-400">2</span>
+              <div><p class="font-bold">البيت</p><p class="text-xs text-stone-500">8 كلمات · 75 عملة</p></div>
+            </div>
+            <span class="badge bg-green-500/20 text-green-400">منشور</span>
+          </div>
+          <div class="mb-3">
+            <div class="flex items-center justify-between text-xs mb-1"><span class="text-stone-500">معدّل الإكمال</span><span class="text-amber-400 font-bold">62%</span></div>
+            <div class="h-1.5 bg-stone-800 rounded-full overflow-hidden"><div class="h-full progress-bar rounded-full" style="width: 62%"></div></div>
+          </div>
+          <div class="flex gap-2"><button class="flex-1 text-xs px-3 py-2 rounded-lg bg-stone-800 hover:bg-stone-700">✏️ تعديل</button><button class="text-xs px-3 py-2 rounded-lg bg-stone-800">👁️</button></div>
+        </div>
+        <div class="level-card card p-5 border-dashed">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-10 h-10 rounded-lg bg-stone-700 flex items-center justify-center font-bold display text-stone-400">3</span>
+              <div><p class="font-bold">القمر</p><p class="text-xs text-stone-500">6 كلمات · 60 عملة</p></div>
+            </div>
+            <span class="badge bg-stone-700 text-stone-400">مسودة</span>
+          </div>
+          <div class="mb-3 p-2 rounded-lg bg-amber-500/5 border border-amber-500/20 text-xs text-amber-300">⚠️ مدقّق الجودة: 2 أسئلة تحتاج مراجعة</div>
+          <div class="flex gap-2"><button class="flex-1 text-xs px-3 py-2 rounded-lg btn-amber text-white">✏️ متابعة</button><button class="text-xs px-3 py-2 rounded-lg bg-stone-800">👁️</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========== VIEW: LEVEL EDITOR =========== -->
+    <div id="view-levels" class="view p-8">
+      <div class="flex items-center justify-between mb-6">
+        <div><h3 class="text-xl font-bold display mb-1">🎮 محرر المراحل</h3><p class="text-sm text-stone-500">محرر مرئي للشبكة والكلمات والألغاز</p></div>
+        <div class="flex gap-2"><button class="px-4 py-2 rounded-lg bg-stone-900 border border-stone-700 text-sm">معاينة</button><button class="px-4 py-2 rounded-lg btn-primary text-sm font-bold text-white">💾 حفظ</button></div>
+      </div>
+      <div class="grid grid-cols-3 gap-6">
+        <div class="col-span-2 card p-6">
+          <div class="flex items-center justify-between mb-4"><h4 class="font-bold">شبكة الكلمات المتقاطعة</h4><div class="flex items-center gap-2"><button class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 flex items-center justify-center">+</button><button class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 flex items-center justify-center">−</button><span class="text-xs text-stone-500">8×8</span></div></div>
+          <div class="bg-stone-950 rounded-xl p-6 inline-block">
+            <div class="grid gap-1" style="grid-template-columns: repeat(8, 40px);">
+              <div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-purple-500/30 border border-purple-500 rounded flex items-center justify-center text-sm font-bold text-purple-300">م</div><div class="w-10 h-10 bg-purple-500/30 border border-purple-500 rounded flex items-center justify-center text-sm font-bold text-purple-300">ر</div><div class="w-10 h-10 bg-purple-500/30 border border-purple-500 rounded flex items-center justify-center text-sm font-bold text-purple-300">ح</div><div class="w-10 h-10 bg-purple-500/30 border border-purple-500 rounded flex items-center justify-center text-sm font-bold text-purple-300">ب</div><div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-stone-800 rounded"></div>
+              <div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-amber-500/30 border border-amber-500 rounded flex items-center justify-center text-sm font-bold text-amber-300">ا</div><div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-stone-800 rounded"></div>
+              <div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-amber-500/30 border border-amber-500 rounded flex items-center justify-center text-sm font-bold text-amber-300">ب</div><div class="w-10 h-10 bg-amber-500/30 border border-amber-500 rounded flex items-center justify-center text-sm font-bold text-amber-300">ي</div><div class="w-10 h-10 bg-amber-500/30 border border-amber-500 rounded flex items-center justify-center text-sm font-bold text-amber-300">ت</div><div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-stone-800 rounded"></div><div class="w-10 h-10 bg-stone-800 rounded"></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 mt-4 text-xs"><div class="flex items-center gap-2"><div class="w-4 h-4 bg-purple-500/30 border border-purple-500 rounded"></div><span class="text-stone-500">أفقي</span></div><div class="flex items-center gap-2"><div class="w-4 h-4 bg-amber-500/30 border border-amber-500 rounded"></div><span class="text-stone-500">رأسي</span></div><div class="flex items-center gap-2"><div class="w-4 h-4 bg-stone-800 rounded"></div><span class="text-stone-500">فارغ</span></div></div>
+        </div>
+        <div class="card p-6">
+          <h4 class="font-bold mb-4">📝 الكلمات (3)</h4>
+          <div class="space-y-2">
+            <div class="p-3 rounded-lg bg-purple-500/10 border border-purple-500/30"><div class="flex items-center justify-between mb-1"><p class="font-bold text-purple-300">مرحب</p><span class="text-xs text-stone-500">أفقي</span></div><p class="text-xs text-stone-500">تحية السلام العربية</p></div>
+            <div class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30"><div class="flex items-center justify-between mb-1"><p class="font-bold text-amber-300">بيت</p><span class="text-xs text-stone-500">رأسي</span></div><p class="text-xs text-stone-500">مسكن الإنسان</p></div>
+            <div class="p-3 rounded-lg bg-stone-800 border border-dashed border-stone-600 cursor-pointer hover:border-purple-500"><p class="text-xs text-stone-500 text-center">+ إضافة كلمة</p></div>
+          </div>
+          <h4 class="font-bold mt-6 mb-3">❓ سؤال المرحلة</h4>
+          <div class="p-3 rounded-lg bg-stone-800"><p class="text-xs text-stone-500 mb-2">نص السؤال:</p><p class="text-sm">ما الكلمة التي تعبّر عن مسكن الإنسان؟</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========== PLACEHOLDER VIEWS =========== -->
+    <div id="view-quality" class="view p-8"><h3 class="text-xl font-bold display mb-4">✅ مدقّق الجودة الآلي</h3><div class="card p-12 text-center text-stone-500">فحص آلي للأسئلة والكلمات...</div></div>
+    <div id="view-difficulty" class="view p-8"><h3 class="text-xl font-bold display mb-4">⚖️ موازنة الصعوبة</h3><div class="card p-12 text-center text-stone-500">تحليل آلي لصعوبة المراحل...</div></div>
+    <div id="view-skills" class="view p-8"><h3 class="text-xl font-bold display mb-4">🌳 شجرة المهارات</h3><div class="card p-12 text-center text-stone-500">محرر شجرة المهارات...</div></div>
+    <div id="view-books" class="view p-8"><h3 class="text-xl font-bold display mb-4">📚 الكتب</h3><div class="card p-12 text-center text-stone-500">قائمة الكتب الكاملة...</div></div>
+    <div id="view-categories" class="view p-8"><h3 class="text-xl font-bold display mb-4">📂 التصنيفات</h3><div class="card p-12 text-center text-stone-500">تصنيفات الكتب...</div></div>
+    <div id="view-book-chapters" class="view p-8"><h3 class="text-xl font-bold display mb-4">📑 فصول الكتب</h3><div class="card p-12 text-center text-stone-500">إدارة فصول الكتب ونطاقات الصفحات...</div></div>
+    <div id="view-users" class="view p-8"><h3 class="text-xl font-bold display mb-4">👥 اللاعبون والقرّاء</h3><div class="card p-12 text-center text-stone-500">قائمة المستخدمين...</div></div>
+    <div id="view-reviews" class="view p-8"><h3 class="text-xl font-bold display mb-4">💬 المراجعات</h3><div class="card p-12 text-center text-stone-500">مراجعات اللاعبين والقرّاء...</div></div>
+    <div id="view-messages" class="view p-8"><h3 class="text-xl font-bold display mb-4">📬 الرسائل</h3><div class="card p-12 text-center text-stone-500">صندوق الرسائل...</div></div>
+    <div id="view-roles" class="view p-8"><h3 class="text-xl font-bold display mb-4">🛡️ الأدوار والصلاحيات</h3><div class="card p-12 text-center text-stone-500">إدارة الأدوار...</div></div>
+    <div id="view-audit" class="view p-8"><h3 class="text-xl font-bold display mb-4">📜 سجل التدقيق</h3><div class="card p-12 text-center text-stone-500">سجل العمليات...</div></div>
+    <div id="view-reports" class="view p-8"><h3 class="text-xl font-bold display mb-4">📊 التقارير</h3><div class="card p-12 text-center text-stone-500">التقارير والإحصائيات...</div></div>
+    <div id="view-settings" class="view p-8">
+      <div class="mb-6"><h3 class="text-xl font-bold display mb-1">⚙️ الإعدادات العامة</h3><p class="text-sm text-stone-500">إعدادات شاملة (مكتبة + لعبة)</p></div>
+      <div class="grid grid-cols-2 gap-6">
+        <div class="card p-6"><h4 class="font-bold mb-4">💰 مكافآت اللعبة</h4><div class="space-y-3">
+          <div><label class="text-xs text-stone-500 block mb-1">مكافأة إكمال المرحلة</label><input type="number" value="50" class="w-full bg-stone-900 border border-stone-700 rounded-lg px-3 py-2 text-sm"></div>
+          <div><label class="text-xs text-stone-500 block mb-1">تكلفة التلميح</label><input type="number" value="10" class="w-full bg-stone-900 border border-stone-700 rounded-lg px-3 py-2 text-sm"></div>
+        </div></div>
+        <div class="card p-6"><h4 class="font-bold mb-4">📚 إعدادات المكتبة</h4><div class="space-y-3">
+          <div><label class="text-xs text-stone-500 block mb-1">حد رفع PDF (MB)</label><input type="number" value="50" class="w-full bg-stone-900 border border-stone-700 rounded-lg px-3 py-2 text-sm"></div>
+          <div><label class="text-xs text-stone-500 block mb-1">حد رفع الغلاف (MB)</label><input type="number" value="5" class="w-full bg-stone-900 border border-stone-700 rounded-lg px-3 py-2 text-sm"></div>
+        </div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const viewTitles = {
+    dashboard: { title: 'لوحة التحكم', breadcrumb: 'لوحة التحكم' },
+    library: { title: 'إدارة المكتبة', breadcrumb: 'المكتبة › إدارة المكتبة' },
+    books: { title: 'الكتب', breadcrumb: 'المكتبة › الكتب' },
+    categories: { title: 'تصنيفات الكتب', breadcrumb: 'المكتبة › التصنيفات' },
+    'book-chapters': { title: 'فصول الكتب', breadcrumb: 'المكتبة › فصول الكتب' },
+    chapters: { title: 'فصول اللعبة', breadcrumb: 'اللعبة › الفصول والمراحل' },
+    levels: { title: 'محرر المراحل', breadcrumb: 'اللعبة › محرر المراحل' },
+    quality: { title: 'مدقّق الجودة', breadcrumb: 'اللعبة › مدقّق الجودة' },
+    difficulty: { title: 'موازنة الصعوبة', breadcrumb: 'اللعبة › موازنة الصعوبة' },
+    skills: { title: 'شجرة المهارات', breadcrumb: 'اللعبة › شجرة المهارات' },
+    users: { title: 'اللاعبون والقرّاء', breadcrumb: 'المجتمع › اللاعبون' },
+    reviews: { title: 'المراجعات', breadcrumb: 'المجتمع › المراجعات' },
+    messages: { title: 'الرسائل', breadcrumb: 'المجتمع › الرسائل' },
+    roles: { title: 'الأدوار والصلاحيات', breadcrumb: 'النظام › الأدوار' },
+    audit: { title: 'سجل التدقيق', breadcrumb: 'النظام › سجل التدقيق' },
+    reports: { title: 'التقارير', breadcrumb: 'النظام › التقارير' },
+    settings: { title: 'الإعدادات العامة', breadcrumb: 'النظام › الإعدادات' },
+  }
+
+  function showView(view) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'))
+    document.getElementById('view-' + view)?.classList.add('active')
+
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
+    document.querySelector(`.nav-item[data-view="${view}"]`)?.classList.add('active')
+
+    const info = viewTitles[view] || { title: view, breadcrumb: view }
+    document.getElementById('page-title').textContent = info.title
+    document.getElementById('breadcrumb').textContent = info.breadcrumb
+
+    document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function showLibraryTab(tab) {
+    document.querySelectorAll('.libtab').forEach(t => t.classList.add('hidden'))
+    document.getElementById('libtab-' + tab)?.classList.remove('hidden')
+    document.querySelectorAll('[data-libtab]').forEach(b => {
+      b.classList.remove('active', 'text-stone-300')
+      b.classList.add('text-stone-500')
+    })
+    document.querySelector(`[data-libtab="${tab}"]`)?.classList.add('active', 'text-stone-300')
+    document.querySelector(`[data-libtab="${tab}"]`)?.classList.remove('text-stone-500')
+  }
+</script>
+
+</body>
+</html>
