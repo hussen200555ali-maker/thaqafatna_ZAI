@@ -132,10 +132,11 @@ export default function GameChaptersPage() {
   }
 
   // محرر المراحل (يظهر عند التعديل)
-  if (editingLevelId !== null) {
+  if (editingLevelId !== null && selectedChapterId !== null) {
     return (
       <LevelEditor
         levelId={editingLevelId}
+        chapterId={selectedChapterId}
         onBack={() => setEditingLevelId(null)}
       />
     )
