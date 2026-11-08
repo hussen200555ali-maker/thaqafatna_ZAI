@@ -139,14 +139,12 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
   // 📖 تحديد رابط القراءة — أول فصل لو موجود، أو PDF مباشرة، أو لا شيء
   const getReadUrl = () => {
     if (!book) return '#'
-    // 1. لو عنده فصول → أول فصل (نستخدم order وليس id لأن القارئ يبحث بـ order)
+    // 1. لو عنده فصول → أول فصل
     if (book.chapters && book.chapters.length > 0) {
-      const firstChapter = book.chapters[0]
-      const chapterOrder = firstChapter.order ?? firstChapter.id
-      return `/library/reader/${book.id}/${chapterOrder}`
+      return `/library/reader/${book.id}/${book.chapters[0].id}`
     }
-    // 2. لو عنده PDF بدون فصول → افتح الرابط 1 (سيُنشئ فصل افتراضي)
-    if (book.pdfUrl) {
+    // 2. لو عنده PDF → افتح الـ PDF مباشرة
+        if (book.pdfUrl) {
       return `/library/reader/${book.id}/1`
     }
     // 3. لا يوجد محتوى للقراءة
