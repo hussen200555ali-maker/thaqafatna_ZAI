@@ -45,7 +45,19 @@ export default function AdminReportsPage() {
   useEffect(() => {
     fetch('/api/admin/dashboard')
       .then(r => r.json())
-      .then(d => setData(d))
+      .then(d => {
+        if (d && d.stats) setData(d)
+        else {
+          // Fallback لو فشل الـ API (مثلاً بدون تسجيل دخول)
+          setData({
+            stats: {
+              totalBooks: 0, publishedBooks: 0, totalUsers: 0,
+              totalDownloads: 0, pendingReviews: 0,
+            },
+            recentActivity: [],
+          })
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
