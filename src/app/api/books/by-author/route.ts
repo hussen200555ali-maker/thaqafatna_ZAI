@@ -14,21 +14,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'اسم المؤلف مطلوب' }, { status: 400 })
     }
 
-    // جلب كل كتب المؤلف
-    const books = await db.book.findMany({
-      where: {
-        author: {
-          contains: authorName,
-          mode: 'insensitive',
-        },
-        isPublished: true,
-      },
+    // جلب كل كتب المؤلف (فلترة يدوية لتوافق SQLite + PostgreSQL)
+    const allBooks = await db.book.findMany({
+      where: { isPublished: true },
       include: {
         category: true,
         _count: { select: { chapters: true, reviews: true } },
       },
       orderBy: [{ isFeatured: 'desc' }, { views: 'desc' }],
     })
+    const authorLower = authorName.toLowerCase()
+    const books = allBooks.filter(b =>
+      (b.author || '').toLowerCase().includes(authorLower)
+    )
 
     if (books.length === 0) {
       return NextResponse.json({ error: 'لم يتم العثور على كتب لهذا المؤلف' }, { status: 404 })
