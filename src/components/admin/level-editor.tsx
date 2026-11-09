@@ -82,6 +82,7 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
   const [saving, setSaving] = useState(false);
   const [validation, setValidation] = useState<{ valid: boolean; errors: string[] } | null>(null);
   const [activeTab, setActiveTab] = useState<"editor" | "settings" | "preview">("editor");
+  const [levelNumber, setLevelNumber] = useState<number>(1);  // رقم المرحلة
   const { toast } = useToast();
 
   useEffect(() => {
@@ -98,6 +99,7 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
           setGameMode(level.gameMode || "quiz");
           setTitle(level.title);
           setDifficulty(level.difficulty);
+          setLevelNumber(level.number || 1);  // ✅ حفظ رقم المرحلة
           setGridSizeRows(level.gridSizeRows);
           setGridSizeCols(level.gridSizeCols);
           setAvailableLetters(level.availableLetters || []);
@@ -195,13 +197,14 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
       puzzleType: puzzleType,
       title,
       difficulty,
+      number: levelNumber,  // ✅ أضف رقم المرحلة (مطلوب في API)
       gridSizeRows,
       gridSizeCols,
       availableLetters: lettersToSend,
       bonusWords,
       reward,
       hintCost,
-      words: words.map((w) => ({
+      words: words.map((w, idx) => ({
         text: w.text,
         clue: w.clue,
         category: w.category || "",
@@ -217,10 +220,10 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
         audioUrl: w.audioUrl || "",
         logicData: w.logicData || "",
         sequence: w.sequence || "",
-        direction: w.direction,
-        startRow: w.startRow,
-        startCol: w.startCol,
-        number: w.number,
+        direction: w.direction || "across",
+        startRow: w.startRow || 0,
+        startCol: w.startCol || 0,
+        number: w.number || (idx + 1),  // ✅ رقم الكلمة (إجباري في DB)
         puzzleType: w.puzzleType || puzzleType,
       })),
       cells: gameMode === "crossword" ? cells : [],

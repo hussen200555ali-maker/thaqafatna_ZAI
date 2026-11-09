@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
             direction: w.direction || "across",
             startRow: w.startRow || 0,
             startCol: w.startCol || 0,
-            number: w.number,
+            number: w.number || (words.indexOf(w) + 1),  // ✅ توليد تلقائي لو ناقص
           })),
         },
         cells: mode === "crossword" && cells ? {
