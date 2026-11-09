@@ -116,7 +116,7 @@ export async function PUT(
 
         // إضافة الكلمات الجديدة
         await tx.word.createMany({
-          data: words.map((w: any) => ({
+          data: words.map((w: any, idx: number) => ({
             levelId,
             text: w.text,
             clue: w.clue,
@@ -136,7 +136,7 @@ export async function PUT(
             direction: w.direction || "across",
             startRow: w.startRow || 0,
             startCol: w.startCol || 0,
-            number: w.number,
+            number: w.number || (idx + 1),  // ✅ توليد تلقائي لو ناقص
           })),
         });
       }
