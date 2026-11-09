@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - feat/mobile-app-v2
+      - feat/mobile-app-v3
       - main
     paths:
       - 'mobile-app/**'
+      - 'tsconfig.json'
   workflow_dispatch:
 
 defaults:
