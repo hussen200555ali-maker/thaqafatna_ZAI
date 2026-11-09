@@ -167,10 +167,11 @@ export function BookCover({ coverImage, title, author, pdfUrl, size = 'md', onPr
 }
 
 // ===== Loading =====
-export function Loading({ size = 'large', color = Colors.primary, style }: { size?: 'small' | 'large'; color?: string; style?: ViewStyle }) {
+export function Loading({ size = 'large', color = Colors.primary, style, text }: { size?: 'small' | 'large'; color?: string; style?: ViewStyle; text?: string; fullScreen?: boolean }) {
   return (
     <View style={[styles.loadingContainer, style]}>
       <ActivityIndicator size={size} color={color} />
+      {text ? <Text style={styles.loadingText}>{text}</Text> : null}
     </View>
   );
 }
@@ -333,6 +334,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing.xl,
+    backgroundColor: Colors.background,
+  },
+  loadingText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    marginTop: Spacing.md,
+    fontFamily: 'Tajawal',
   },
   emptyState: {
     alignItems: 'center',

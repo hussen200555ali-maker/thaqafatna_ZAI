@@ -21,7 +21,9 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#9333ea"
       },
-      "package": "com.thaqafatna.app"
+      "package": "com.thaqafatna.app",
+      "versionCode": 1,
+      "permissions": ["INTERNET", "VIBRATE", "NOTIFICATIONS"]
     },
     "web": {
       "bundler": "metro",
@@ -29,16 +31,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router",
       "expo-font",
       "expo-secure-store"
     ],
-    "experiments": {
-      "typedRoutes": false,
-      "tsconfigPaths": false
-    },
     "extra": {
-      "API_BASE_URL": "https://thaqafatna-qr.vercel.app"
+      "API_BASE_URL": "https://thaqafatna-qr.vercel.app",
+      "eas": {
+        "projectId": "thaqafatna"
+      }
     }
   }
 }

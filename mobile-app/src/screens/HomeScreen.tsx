@@ -163,7 +163,6 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
             contentContainerStyle={styles.horizontalList}
             renderItem={({ item }) => (
               <BookCover
-                book={item}
                 coverImage={item.coverImage}
                 title={item.title}
                 author={item.author}

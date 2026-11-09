@@ -4,10 +4,46 @@
  */
 
 import Constants from 'expo-constants';
-import * as SecureStore from 'expo-secure-store';
 
 // ===== Base URL =====
-const API_BASE = Constants?.expoConfig?.extra?.API_BASE_URL || 'https://thaqafatna-qr.vercel.app';
+const API_BASE = (Constants?.expoConfig?.extra as any)?.API_BASE_URL || 'https://thaqafatna-qr.vercel.app';
+
+// ===== SecureStorage Wrapper (متوافق مع ويب + موبايل) =====
+const storage = {
+  async get(key: string): Promise<string | null> {
+    try {
+      // للويب
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
+      // للموبايل
+      const SecureStore = await import('expo-secure-store');
+      return await SecureStore.default.getItemAsync(key);
+    } catch {
+      return null;
+    }
+  },
+  async set(key: string, value: string): Promise<void> {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, value);
+        return;
+      }
+      const SecureStore = await import('expo-secure-store');
+      await SecureStore.default.setItemAsync(key, value);
+    } catch {}
+  },
+  async delete(key: string): Promise<void> {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
+        return;
+      }
+      const SecureStore = await import('expo-secure-store');
+      await SecureStore.default.deleteItemAsync(key);
+    } catch {}
+  },
+};
 
 // ===== Types =====
 export interface Book {
@@ -78,15 +114,15 @@ let authToken: string | null = null;
 export async function setAuthToken(token: string | null) {
   authToken = token;
   if (token) {
-    await SecureStore.setItemAsync('auth_token', token);
+    await storage.set('auth_token', token);
   } else {
-    await SecureStore.deleteItemAsync('auth_token');
+    await storage.delete('auth_token');
   }
 }
 
 export async function loadAuthToken() {
   try {
-    authToken = await SecureStore.getItemAsync('auth_token');
+    authToken = await storage.get('auth_token');
   } catch {}
 }
 
@@ -200,20 +236,20 @@ export const authApi = {
   loginAsGuest: async () => {
     // إنشاء معرف فريد للمستخدم الزائر
     const guestId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-    await SecureStore.setItemAsync('user_id', guestId);
-    await SecureStore.setItemAsync('user_name', 'زائر');
+    await storage.set('user_id', guestId);
+    await storage.set('user_name', 'زائر');
     return { userId: guestId, userName: 'زائر' };
   },
 
   getCurrentUser: async () => {
-    const userId = await SecureStore.getItemAsync('user_id');
-    const userName = await SecureStore.getItemAsync('user_name');
+    const userId = await storage.get('user_id');
+    const userName = await storage.get('user_name');
     return userId ? { userId, userName: userName || 'زائر' } : null;
   },
 
   logout: async () => {
-    await SecureStore.deleteItemAsync('user_id');
-    await SecureStore.deleteItemAsync('user_name');
+    await storage.delete('user_id');
+    await storage.delete('user_name');
     await setAuthToken(null);
   },
 };
