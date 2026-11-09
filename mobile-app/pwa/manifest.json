@@ -1,0 +1,27 @@
+{
+  "name": "ثقافتنا",
+  "short_name": "ثقافتنا",
+  "description": "منصة ثقافية شاملة - مكتبة قراءة ولعبة كلمات عربية",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0a09",
+  "theme_color": "#9333EA",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["education", "books", "games"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

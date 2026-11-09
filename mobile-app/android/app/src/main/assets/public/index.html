@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#9333EA">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>ثقافتنا</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===== CSS Variables ===== */
+    :root {
+      --primary: #9333EA;
+      --primary-light: #C084FC;
+      --primary-dark: #7E22CE;
+      --secondary: #2563EB;
+      --secondary-light: #60A5FA;
+      --accent: #F59E0B;
+      --accent-light: #FBBF24;
+      --background: #0c0a09;
+      --surface: #1C1917;
+      --surface-light: #292524;
+      --card: #1F1B17;
+      --text: #F5F5F4;
+      --text-muted: #A8A29E;
+      --text-dim: #78716C;
+      --border: rgba(68, 64, 60, 0.6);
+      --border-light: rgba(168, 162, 158, 0.2);
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --info: #3B82F6;
+      --purple: #A855F7;
+      --pink: #EC4899;
+      --emerald: #10B981;
+      --teal: #14B8A6;
+      --cyan: #06B6D4;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --radius-pill: 999px;
+      --gradient-primary: linear-gradient(135deg, #9333EA, #2563EB);
+      --gradient-warm: linear-gradient(135deg, #F59E0B, #EC4899, #9333EA);
+      --gradient-success: linear-gradient(135deg, #10B981, #059669);
+      --gradient-dark: linear-gradient(180deg, #1C1917, #0c0a09);
+      --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 8px rgba(0,0,0,0.15);
+      --shadow-lg: 0 8px 16px rgba(0,0,0,0.25);
+    }
+
+    /* ===== Reset ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: var(--background);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+    h1, h2, h3, h4 { font-family: 'Cairo', sans-serif; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+    img { display: block; max-width: 100%; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ===== App Container ===== */
+    #app {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ===== Screens ===== */
+    .screen {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .screen.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== Header ===== */
+    .app-header {
+      background: var(--surface);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .app-header h1 { font-size: 20px; font-weight: 800; }
+    .header-logo { display: flex; align-items: center; gap: 8px; }
+    .header-logo svg { width: 32px; height: 32px; }
+
+    /* ===== Bottom Navigation ===== */
+    .bottom-nav {
+      display: flex;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 6px 0 env(safe-area-inset-bottom, 8px);
+      position: relative;
+      z-index: 100;
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 8px 4px;
+      color: var(--text-dim);
+      transition: color 0.2s;
+    }
+    .nav-item.active { color: var(--primary); }
+    .nav-item svg { width: 24px; height: 24px; }
+    .nav-item span { font-size: 11px; font-weight: 600; }
+
+    /* ===== Cards ===== */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border-light);
+    }
+    .card-gradient { background: var(--gradient-dark); }
+
+    /* ===== Buttons ===== */
+    .btn {
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.15s, opacity 0.15s;
+      text-align: center;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-secondary { background: var(--secondary); color: #fff; }
+    .btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+    .btn-ghost { background: transparent; color: var(--text-muted); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-lg { padding: 16px 28px; font-size: 17px; }
+    .btn-sm { padding: 8px 14px; font-size: 13px; }
+    .btn-block { width: 100%; }
+
+    /* ===== Book Card ===== */
+    .book-card {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border-light);
+      transition: transform 0.15s;
+      cursor: pointer;
+    }
+    .book-card:active { transform: scale(0.97); }
+    .book-cover {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: var(--surface-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .book-cover img { width: 100%; height: 100%; object-fit: cover; }
+    .book-cover-placeholder {
+      font-size: 48px;
+      color: var(--text-dim);
+    }
+    .book-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--accent);
+      color: #000;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .book-info { padding: 12px; }
+    .book-title { font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 700; line-height: 1.4; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .book-author { font-size: 12px; color: var(--text-muted); }
+    .book-meta { display: flex; gap: 12px; margin-top: 6px; font-size: 11px; color: var(--text-dim); }
+
+    /* ===== Grid ===== */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .scroll-x { display: flex; gap: 12px; overflow-x: auto; padding: 0 16px 4px; scroll-snap-type: x mandatory; }
+    .scroll-x > * { flex-shrink: 0; scroll-snap-align: start; }
+
+    /* ===== Section ===== */
+    .section { padding: 16px; }
+    .section-title { font-family: 'Cairo', sans-serif; font-size: 18px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+    .section-title .more { font-size: 13px; color: var(--primary); font-weight: 600; }
+
+    /* ===== Stat Card ===== */
+    .stat-card {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      text-align: center;
+      border: 1px solid var(--border-light);
+    }
+    .stat-value { font-family: 'Cairo', sans-serif; font-size: 24px; font-weight: 900; color: var(--primary); }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ===== Chips ===== */
+    .chips { display: flex; gap: 8px; overflow-x: auto; padding: 0 16px 8px; }
+    .chip {
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      background: var(--surface-light);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .chip.active { background: var(--primary); color: #fff; }
+
+    /* ===== Loading ===== */
+    .loading { display: flex; align-items: center; justify-content: center; padding: 40px; }
+    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== Empty State ===== */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-state svg { width: 64px; height: 64px; margin: 0 auto 12px; opacity: 0.5; }
+    .empty-state h3 { font-size: 16px; color: var(--text); margin-bottom: 4px; }
+
+    /* ===== Onboarding ===== */
+    .onboarding {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      text-align: center;
+      background: var(--gradient-dark);
+    }
+    .onboarding-icon { width: 120px; height: 120px; margin-bottom: 24px; }
+    .onboarding h2 { font-size: 26px; font-weight: 800; margin-bottom: 12px; background: var(--gradient-warm); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .onboarding p { font-size: 16px; color: var(--text-muted); line-height: 1.6; margin-bottom: 32px; max-width: 300px; }
+    .onboarding-dots { display: flex; gap: 8px; margin-bottom: 32px; }
+    .onboarding-dot { width: 8px; height: 8px; border-radius: 4px; background: var(--border); transition: all 0.3s; }
+    .onboarding-dot.active { width: 24px; background: var(--primary); }
+
+    /* ===== Reader ===== */
+    .reader-content {
+      padding: 20px 16px 40px;
+      font-size: 17px;
+      line-height: 2;
+      color: var(--text);
+    }
+    .reader-content p { margin-bottom: 16px; }
+    .reader-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .reader-toolbar button { padding: 8px; color: var(--text-muted); }
+    .reader-toolbar .font-size { display: flex; align-items: center; gap: 8px; }
+
+    /* ===== Leaderboard Podium ===== */
+    .podium { display: flex; align-items: flex-end; justify-content: center; gap: 8px; padding: 20px 16px; }
+    .podium-item { text-align: center; flex: 1; max-width: 100px; }
+    .podium-avatar { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-family: 'Cairo', sans-serif; font-size: 22px; font-weight: 800; }
+    .podium-name { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+    .podium-score { font-size: 11px; color: var(--accent); font-weight: 700; }
+    .podium-bar { border-radius: var(--radius-md) var(--radius-md) 0 0; margin-top: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Cairo', sans-serif; font-size: 20px; font-weight: 900; }
+    .podium-1 .podium-avatar { background: linear-gradient(135deg, #FCD34D, #F59E0B); color: #000; }
+    .podium-1 .podium-bar { background: linear-gradient(180deg, #FCD34D, #F59E0B); height: 80px; color: #000; }
+    .podium-2 .podium-avatar { background: linear-gradient(135deg, #E5E7EB, #9CA3AF); color: #000; }
+    .podium-2 .podium-bar { background: linear-gradient(180deg, #E5E7EB, #9CA3AF); height: 60px; color: #000; }
+    .podium-3 .podium-avatar { background: linear-gradient(135deg, #FB923C, #C2410C); color: #fff; }
+    .podium-3 .podium-bar { background: linear-gradient(180deg, #FB923C, #C2410C); height: 45px; color: #fff; }
+
+    /* ===== Game Chapter ===== */
+    .game-chapter {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border: 1px solid var(--border-light);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .game-chapter:active { transform: scale(0.98); }
+    .chapter-icon { width: 48px; height: 48px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+    .chapter-info { flex: 1; }
+    .chapter-title { font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+    .chapter-meta { font-size: 12px; color: var(--text-muted); }
+
+    /* ===== Game Level ===== */
+    .level-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--card);
+      border-radius: var(--radius-md);
+      margin-bottom: 8px;
+      border: 1px solid var(--border-light);
+    }
+    .level-number {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 14px;
+      flex-shrink: 0;
+    }
+    .level-info { flex: 1; }
+    .level-title { font-weight: 700; font-size: 14px; }
+    .level-difficulty { font-size: 11px; color: var(--text-muted); }
+    .level-reward { font-size: 12px; color: var(--accent); font-weight: 700; }
+
+    /* ===== Profile ===== */
+    .profile-header { text-align: center; padding: 32px 16px 20px; background: var(--gradient-dark); }
+    .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--gradient-primary); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-family: 'Cairo', sans-serif; font-size: 32px; font-weight: 900; color: #fff; }
+    .profile-name { font-family: 'Cairo', sans-serif; font-size: 20px; font-weight: 800; }
+    .profile-level { font-size: 14px; color: var(--accent); font-weight: 700; margin-top: 4px; }
+    .profile-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 16px; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: var(--surface-light); border-radius: var(--radius-md); font-size: 13px; }
+
+    /* ===== Toast ===== */
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border);
+      font-size: 14px;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ===== Search ===== */
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      margin: 0 16px 12px;
+      background: var(--surface-light);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+    }
+    .search-bar input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 15px;
+      outline: none;
+    }
+    .search-bar input::placeholder { color: var(--text-dim); }
+
+    /* ===== Difficulty Badge ===== */
+    .difficulty-badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700; }
+    .difficulty-easy { background: rgba(16,185,129,0.15); color: var(--success); }
+    .difficulty-medium { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .difficulty-hard { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+    /* ===== Safe Area ===== */
+    .safe-top { padding-top: env(safe-area-inset-top); }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== ONBOARDING SCREEN ===== -->
+  <div class="screen active" id="screen-onboarding">
+    <div class="onboarding" id="onboarding-content">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <!-- ===== HOME SCREEN ===== -->
+  <div class="screen" id="screen-home">
+    <div class="app-header safe-top">
+      <div class="header-logo">
+        <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#9333EA"/><text x="16" y="22" text-anchor="middle" fill="#fff" font-family="Cairo" font-size="16" font-weight="900">ث</text></svg>
+        <h1>ثقافتنا</h1>
+      </div>
+      <button onclick="navigateTo('profile')" style="color: var(--text-muted);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      </button>
+    </div>
+    <div id="home-content"></div>
+  </div>
+
+  <!-- ===== LIBRARY SCREEN ===== -->
+  <div class="screen" id="screen-library">
+    <div class="app-header safe-top">
+      <h1>المكتبة</h1>
+      <button onclick="navigateTo('profile')" style="color: var(--text-muted);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      </button>
+    </div>
+    <div class="search-bar" style="margin-top: 12px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-dim)"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input type="text" id="library-search" placeholder="ابحث عن كتاب..." oninput="filterLibrary(this.value)">
+    </div>
+    <div class="chips" id="library-chips"></div>
+    <div id="library-content"></div>
+  </div>
+
+  <!-- ===== BOOK DETAIL SCREEN ===== -->
+  <div class="screen" id="screen-book-detail">
+    <div class="app-header safe-top">
+      <button onclick="goBack()" style="color: var(--text);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" transform="scale(-1,1) translate(-24,0)"/></svg>
+      </button>
+      <h1 id="book-detail-title">تفاصيل الكتاب</h1>
+      <button onclick="toggleBookmark()" id="bookmark-btn" style="color: var(--text-muted);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+      </button>
+    </div>
+    <div id="book-detail-content"></div>
+  </div>
+
+  <!-- ===== BOOK READER SCREEN ===== -->
+  <div class="screen" id="screen-book-reader">
+    <div class="app-header safe-top">
+      <button onclick="goBack()" style="color: var(--text);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" transform="scale(-1,1) translate(-24,0)"/></svg>
+      </button>
+      <h1 id="reader-title">القارئ</h1>
+      <div style="width: 24px;"></div>
+    </div>
+    <div class="reader-toolbar">
+      <button onclick="prevChapter()" id="prev-chapter-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+      </button>
+      <span id="reader-chapter-info" style="font-size: 13px; color: var(--text-muted);">الفصل 1</span>
+      <div class="font-size">
+        <button onclick="decreaseFont()" style="font-size: 12px; color: var(--text-muted);">أ−</button>
+        <button onclick="increaseFont()" style="font-size: 16px; color: var(--text-muted);">أ+</button>
+      </div>
+      <button onclick="nextChapter()" id="next-chapter-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
+    </div>
+    <div class="reader-content" id="reader-content"></div>
+  </div>
+
+  <!-- ===== GAME SCREEN ===== -->
+  <div class="screen" id="screen-game">
+    <div class="app-header safe-top">
+      <h1>اللعبة</h1>
+    </div>
+    <div id="game-content"></div>
+  </div>
+
+  <!-- ===== LEADERBOARD SCREEN ===== -->
+  <div class="screen" id="screen-leaderboard">
+    <div class="app-header safe-top">
+      <h1>المتصدرون</h1>
+    </div>
+    <div class="chips" style="margin-top: 12px;">
+      <div class="chip active" onclick="loadLeaderboard('weekly', this)">الأسبوع</div>
+      <div class="chip" onclick="loadLeaderboard('monthly', this)">الشهر</div>
+      <div class="chip" onclick="loadLeaderboard('all', this)">الكل</div>
+    </div>
+    <div id="leaderboard-content"></div>
+  </div>
+
+  <!-- ===== PROFILE SCREEN ===== -->
+  <div class="screen" id="screen-profile">
+    <div class="app-header safe-top">
+      <h1>الملف الشخصي</h1>
+    </div>
+    <div id="profile-content"></div>
+  </div>
+
+  <!-- ===== BOTTOM NAVIGATION ===== -->
+  <div class="bottom-nav" id="bottom-nav">
+    <div class="nav-item active" data-screen="home" onclick="navigateTo('home')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>الرئيسية</span>
+    </div>
+    <div class="nav-item" data-screen="library" onclick="navigateTo('library')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+      <span>المكتبة</span>
+    </div>
+    <div class="nav-item" data-screen="game" onclick="navigateTo('game')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+      <span>اللعبة</span>
+    </div>
+    <div class="nav-item" data-screen="leaderboard" onclick="navigateTo('leaderboard')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.21 5l-1.2 5h2.12L9.5 5h6l1.2 5h2.12L17.71 5H21v2h-1.65l-2.7 11.25c-.15.65-.73 1.25-1.4 1.25H8.75c-.67 0-1.25-.6-1.4-1.25L4.65 7H3V5h4.21z"/></svg>
+      <span>المتصدرون</span>
+    </div>
+    <div class="nav-item" data-screen="profile" onclick="navigateTo('profile')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span>حسابي</span>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<script>
+// ===== API =====
+const API_BASE = 'https://thaqafatna-qr.vercel.app';
+let authToken = null;
+let userId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+let userName = 'زائر';
+
+// ===== State =====
+let allBooks = [];
+let allChapters = [];
+let currentBook = null;
+let currentChapterOrder = 1;
+let totalChapters = 0;
+let fontSize = 17;
+let screenHistory = ['onboarding'];
+let onboardingStep = 0;
+
+// ===== Onboarding Data =====
+const onboardingData = [
+  { icon: '📚', title: 'اقرأ وتعلّم', desc: 'مكتبة غنية بالكتب العربية في مختلف المجالات' },
+  { icon: '🎮', title: 'العب وتحدي', desc: 'لعبة كلمات عربية ممتعة وتعليمية' },
+  { icon: '🏆', title: 'تنافس واربح', desc: 'نافس المتصدرون واجمع النقاط' },
+];
+
+// ===== API Functions =====
+async function apiGet(endpoint) {
+  const res = await fetch(API_BASE + endpoint, {
+    headers: { 'Content-Type': 'application/json', ...(authToken ? { 'Authorization': 'Bearer ' + authToken } : {}) }
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+  return data;
+}
+
+async function apiPost(endpoint, body) {
+  const res = await fetch(API_BASE + endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(authToken ? { 'Authorization': 'Bearer ' + authToken } : {}) },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+  return data;
+}
+
+// ===== Navigation =====
+function navigateTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navItem = document.querySelector(`.nav-item[data-screen="${screen}"]`);
+  if (navItem) navItem.classList.add('active');
+  
+  if (screen !== 'onboarding' && screen !== 'book-detail' && screen !== 'book-reader') {
+    screenHistory.push(screen);
+  }
+  
+  // Load data for screens
+  if (screen === 'home') loadHome();
+  if (screen === 'library') loadLibrary();
+  if (screen === 'game') loadGame();
+  if (screen === 'leaderboard') loadLeaderboard('weekly');
+  if (screen === 'profile') loadProfile();
+  
+  window.scrollTo(0, 0);
+}
+
+function goBack() {
+  screenHistory.pop();
+  const prev = screenHistory[screenHistory.length - 1] || 'home';
+  navigateTo(prev);
+}
+
+// ===== Toast =====
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ===== Onboarding =====
+function renderOnboarding() {
+  const data = onboardingData[onboardingStep];
+  const container = document.getElementById('onboarding-content');
+  container.innerHTML = `
+    <div class="onboarding-icon" style="font-size: 80px; display:flex; align-items:center; justify-content:center;">${data.icon}</div>
+    <h2>${data.title}</h2>
+    <p>${data.desc}</p>
+    <div class="onboarding-dots">
+      ${onboardingData.map((_, i) => `<div class="onboarding-dot ${i === onboardingStep ? 'active' : ''}"></div>`).join('')}
+    </div>
+    <button class="btn btn-primary btn-lg btn-block" style="max-width: 280px;" onclick="nextOnboarding()">
+      ${onboardingStep === onboardingData.length - 1 ? 'ابدأ الآن' : 'التالي'}
+    </button>
+    ${onboardingStep < onboardingData.length - 1 ? '<button class="btn btn-ghost" style="margin-top: 8px;" onclick="skipOnboarding()">تخطّي</button>' : ''}
+  `;
+}
+
+function nextOnboarding() {
+  if (onboardingStep < onboardingData.length - 1) {
+    onboardingStep++;
+    renderOnboarding();
+  } else {
+    skipOnboarding();
+  }
+}
+
+function skipOnboarding() {
+  localStorage.setItem('onboarding_done', '1');
+  navigateTo('home');
+}
+
+// ===== Home Screen =====
+async function loadHome() {
+  const container = document.getElementById('home-content');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  
+  try {
+    const [booksRes, chaptersRes] = await Promise.all([
+      apiGet('/api/books?limit=10'),
+      apiGet('/api/chapters').catch(() => ({ chapters: [] })),
+    ]);
+    
+    allBooks = booksRes.books || [];
+    allChapters = chaptersRes.chapters || [];
+    const featured = allBooks.filter(b => b.isFeatured).slice(0, 6);
+    const display = featured.length >= 3 ? featured : allBooks.slice(0, 6);
+    
+    container.innerHTML = `
+      <!-- Hero -->
+      <div class="card card-gradient" style="margin: 16px; background: linear-gradient(135deg, #1C1917, #0c0a09); border: 1px solid rgba(147,51,234,0.2);">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">أهلاً ${userName} 👋</div>
+            <h2 style="font-size: 22px; font-weight: 800;">تعلّم واقرأ والعب</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">منصة ثقافية شاملة للعالم العربي</p>
+          </div>
+          <div style="font-size: 48px;">📖</div>
+        </div>
+      </div>
+      
+      <!-- Stats -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 0 16px 16px;">
+        <div class="stat-card"><div class="stat-value">${allBooks.length}</div><div class="stat-label">كتاب</div></div>
+        <div class="stat-card"><div class="stat-value">${allChapters.length}</div><div class="stat-label">فصول</div></div>
+        <div class="stat-card"><div class="stat-value">⚖️</div><div class="stat-label">تحدي يومي</div></div>
+      </div>
+      
+      <!-- Featured Books -->
+      <div class="section-title" style="padding: 0 16px;">📚 كتب مميزة <span class="more" onclick="navigateTo('library')">عرض الكل</span></div>
+      <div class="scroll-x">
+        ${display.map(book => bookCardHTML(book, 140)).join('')}
+      </div>
+      
+      <!-- Game Chapters -->
+      ${allChapters.length > 0 ? `
+        <div class="section-title" style="padding: 16px 16px 0;">🎮 فصول اللعبة <span class="more" onclick="navigateTo('game')">عرض الكل</span></div>
+        <div style="padding: 0 16px 16px;">
+          ${allChapters.slice(0, 3).map(ch => `
+            <div class="game-chapter" onclick="navigateTo('game')">
+              <div class="chapter-icon" style="background: ${ch.color || '#9333EA'}22;">${ch.icon || '🎮'}</div>
+              <div class="chapter-info">
+                <div class="chapter-title">${ch.title}</div>
+                <div class="chapter-meta">${ch._count?.levels || 0} مراحل</div>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-dim)"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" transform="scale(-1,1) translate(-24,0)"/></svg>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      
+      <!-- Daily Challenge -->
+      <div style="padding: 0 16px 80px;">
+        <div class="card" style="background: linear-gradient(135deg, #9333EA, #2563EB); text-align: center;">
+          <div style="font-size: 32px; margin-bottom: 8px;">🎯</div>
+          <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">تحدي اليوم</h3>
+          <p style="font-size: 13px; opacity: 0.9; margin-bottom: 12px;">اكمل 3 مراحل واربح 100 نقطة</p>
+          <button class="btn btn-block" style="background: rgba(255,255,255,0.2); color: #fff;" onclick="navigateTo('game')">ابدأ التحدي</button>
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><h3>تعذّر التحميل</h3><p>${e.message}</p><button class="btn btn-primary" style="margin-top: 12px;" onclick="loadHome()">إعادة</button></div>`;
+  }
+}
+
+// ===== Library Screen =====
+async function loadLibrary() {
+  const container = document.getElementById('library-content');
+  if (allBooks.length === 0) {
+    container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    try {
+      const res = await apiGet('/api/books?limit=50');
+      allBooks = res.books || [];
+    } catch (e) {
+      container.innerHTML = `<div class="empty-state"><h3>تعذّر التحميل</h3></div>`;
+      return;
+    }
+  }
+  renderLibrary(allBooks);
+  renderChips();
+}
+
+function renderChips() {
+  const categories = [...new Set(allBooks.map(b => b.category?.name).filter(Boolean))];
+  const chips = document.getElementById('library-chips');
+  chips.innerHTML = `<div class="chip active" onclick="filterByCategory(null, this)">الكل</div>` +
+    categories.map(c => `<div class="chip" onclick="filterByCategory('${c}', this)">${c}</div>`).join('');
+}
+
+function filterByCategory(cat, el) {
+  document.querySelectorAll('#library-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  const filtered = cat ? allBooks.filter(b => b.category?.name === cat) : allBooks;
+  renderLibrary(filtered);
+}
+
+function filterLibrary(query) {
+  const filtered = allBooks.filter(b => 
+    b.title.includes(query) || b.author.includes(query)
+  );
+  renderLibrary(filtered);
+}
+
+function renderLibrary(books) {
+  const container = document.getElementById('library-content');
+  if (books.length === 0) {
+    container.innerHTML = '<div class="empty-state"><h3>لا توجد كتب</h3></div>';
+    return;
+  }
+  container.innerHTML = `<div class="grid-2" style="padding: 0 16px 80px;">` +
+    books.map(b => bookCardHTML(b, 0, true)).join('') + `</div>`;
+}
+
+// ===== Book Card HTML =====
+function bookCardHTML(book, fixedWidth, fullInfo) {
+  const cover = book.coverImage 
+    ? `<img src="${book.coverImage}" alt="${book.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><div class="book-cover-placeholder" style="display:none;">📖</div>`
+    : `<div class="book-cover-placeholder">📖</div>`;
+  
+  const diff = book.difficulty || 'medium';
+  const diffLabel = diff === 'easy' ? 'سهل' : diff === 'hard' ? 'صعب' : 'متوسط';
+  
+  const style = fixedWidth ? `style="width: ${fixedWidth}px;"` : '';
+  
+  return `
+    <div class="book-card" ${style} onclick="openBook(${book.id})">
+      <div class="book-cover">
+        ${cover}
+        ${book.isFeatured ? '<div class="book-badge">مميز</div>' : ''}
+      </div>
+      <div class="book-info">
+        <div class="book-title">${book.title}</div>
+        <div class="book-author">${book.author}</div>
+        ${fullInfo ? `
+          <div class="book-meta">
+            <span>⏱ ${book.readingTimeMin || 15} د</span>
+            <span class="difficulty-badge difficulty-${diff}">${diffLabel}</span>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ===== Book Detail =====
+async function openBook(id) {
+  const container = document.getElementById('book-detail-content');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  navigateTo('book-detail');
+  
+  try {
+    const [bookRes, chaptersRes] = await Promise.all([
+      apiGet('/api/books/' + id),
+      apiGet('/api/books/' + id + '/chapters'),
+    ]);
+    
+    currentBook = bookRes.book;
+    const chapters = chaptersRes.chapters || [];
+    
+    document.getElementById('book-detail-title').textContent = currentBook.title;
+    
+    const cover = currentBook.coverImage 
+      ? `<img src="${currentBook.coverImage}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><div style="display:none; width:100%; height:100%; align-items:center; justify-content:center; font-size: 48px;">📖</div>`
+      : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size: 48px;">📖</div>`;
+    
+    const diff = currentBook.difficulty || 'medium';
+    const diffLabel = diff === 'easy' ? 'سهل' : diff === 'hard' ? 'صعب' : 'متوسط';
+    
+    container.innerHTML = `
+      <div style="padding: 20px 16px;">
+        <!-- Book Header -->
+        <div style="display: flex; gap: 16px; margin-bottom: 20px;">
+          <div style="width: 120px; height: 160px; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-light); flex-shrink: 0; border: 1px solid var(--border-light);">
+            ${cover}
+          </div>
+          <div style="flex: 1;">
+            <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">${currentBook.title}</h2>
+            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">✍️ ${currentBook.author}</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+              <span class="difficulty-badge difficulty-${diff}">${diffLabel}</span>
+              <span style="font-size: 12px; color: var(--text-muted);">⏱ ${currentBook.readingTimeMin || 15} دقيقة</span>
+              <span style="font-size: 12px; color: var(--text-muted);">📄 ${chapters.length} فصل</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted);">👁 ${currentBook.views || 0} مشاهدة</div>
+          </div>
+        </div>
+        
+        <!-- Description -->
+        <div style="margin-bottom: 20px;">
+          <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">نبذة</h3>
+          <p style="font-size: 14px; color: var(--text-muted); line-height: 1.7;">${currentBook.description || 'لا يوجد وصف'}</p>
+        </div>
+        
+        <!-- Start Reading -->
+        <button class="btn btn-primary btn-lg btn-block" style="margin-bottom: 16px;" onclick="startReading(${id}, 1)">
+          📖 ابدأ القراءة
+        </button>
+        
+        <!-- Chapters -->
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">الفصول</h3>
+        ${chapters.map(ch => `
+          <div class="level-item" onclick="startReading(${id}, ${ch.order})">
+            <div class="level-number">${ch.order}</div>
+            <div class="level-info">
+              <div class="level-title">${ch.title}</div>
+              <div class="level-difficulty">⏱ ${ch.estimatedMinutes || 5} دقيقة</div>
+            </div>
+            ${ch.isFree ? '<span style="font-size: 11px; color: var(--success);">مجاني</span>' : ''}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><h3>تعذّر التحميل</h3><p>${e.message}</p></div>`;
+  }
+}
+
+// ===== Book Reader =====
+async function startReading(bookId, chapterOrder) {
+  currentChapterOrder = chapterOrder;
+  navigateTo('book-reader');
+  loadChapter(bookId, chapterOrder);
+}
+
+async function loadChapter(bookId, order) {
+  const container = document.getElementById('reader-content');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  
+  try {
+    const res = await apiGet(`/api/books/${bookId}/chapters/${order}`);
+    const chapter = res.chapter;
+    totalChapters = res.totalChapters || 1;
+    
+    document.getElementById('reader-title').textContent = chapter.title || 'الفصل ' + order;
+    document.getElementById('reader-chapter-info').textContent = `الفصل ${order} من ${totalChapters}`;
+    document.getElementById('reader-content').style.fontSize = fontSize + 'px';
+    
+    const content = chapter.content || 'لا يوجد محتوى لهذا الفصل بعد.';
+    
+    container.innerHTML = `<p>${content.split('\n').join('</p><p>')}</p>`;
+    
+    // Update nav buttons
+    document.getElementById('prev-chapter-btn').style.opacity = order > 1 ? '1' : '0.3';
+    document.getElementById('next-chapter-btn').style.opacity = order < totalChapters ? '1' : '0.3';
+    
+    // Save progress
+    apiPost(`/api/books/${bookId}/progress`, { userId, currentChapter: order }).catch(() => {});
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><h3>تعذّر تحميل الفصل</h3><p>${e.message}</p></div>`;
+  }
+}
+
+function prevChapter() {
+  if (currentChapterOrder > 1 && currentBook) {
+    loadChapter(currentBook.id, currentChapterOrder - 1);
+    currentChapterOrder--;
+  }
+}
+
+function nextChapter() {
+  if (currentChapterOrder < totalChapters && currentBook) {
+    loadChapter(currentBook.id, currentChapterOrder + 1);
+    currentChapterOrder++;
+  }
+}
+
+function increaseFont() { fontSize = Math.min(fontSize + 2, 24); document.getElementById('reader-content').style.fontSize = fontSize + 'px'; }
+function decreaseFont() { fontSize = Math.max(fontSize - 2, 13); document.getElementById('reader-content').style.fontSize = fontSize + 'px'; }
+
+// ===== Bookmark =====
+function toggleBookmark() {
+  if (!currentBook) return;
+  apiPost(`/api/books/${currentBook.id}/bookmark`, { userId, action: 'toggle' })
+    .then(() => showToast('تم تحديث الإشارة المرجعية'))
+    .catch(() => showToast('تعذّر تحديث الإشارة'));
+}
+
+// ===== Game Screen =====
+async function loadGame() {
+  const container = document.getElementById('game-content');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  
+  try {
+    if (allChapters.length === 0) {
+      const res = await apiGet('/api/chapters');
+      allChapters = res.chapters || [];
+    }
+    
+    container.innerHTML = `
+      <div style="padding: 16px 16px 80px;">
+        <div class="card" style="background: linear-gradient(135deg, #9333EA, #EC4899); text-align: center; margin-bottom: 16px;">
+          <div style="font-size: 32px; margin-bottom: 8px;">🎮</div>
+          <h3 style="font-size: 18px; font-weight: 800;">لعبة الكلمات</h3>
+          <p style="font-size: 13px; opacity: 0.9;">اختر فصلاً وابدأ التحدي</p>
+        </div>
+        ${allChapters.map(ch => `
+          <div class="game-chapter" onclick="loadLevels(${ch.id})">
+            <div class="chapter-icon" style="background: ${ch.color || '#9333EA'}22;">${ch.icon || '🎮'}</div>
+            <div class="chapter-info">
+              <div class="chapter-title">${ch.title}</div>
+              <div class="chapter-meta">${ch.description || ''} • ${ch._count?.levels || 0} مراحل</div>
+            </div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-dim)"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" transform="scale(-1,1) translate(-24,0)"/></svg>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><h3>تعذّر التحميل</h3></div>`;
+  }
+}
+
+async function loadLevels(chapterId) {
+  const container = document.getElementById('game-content');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  
+  try {
+    const res = await apiGet(`/api/levels?chapterId=${chapterId}`);
+    const levels = res.levels || [];
+    const chapter = allChapters.find(c => c.id === chapterId);
+    
+    container.innerHTML = `
+      <div style="padding: 16px 16px 80px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+          <button onclick="loadGame()" style="color: var(--text);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" transform="scale(-1,1) translate(-24,0)"/></svg>
+          </button>
+          <h2 style="font-size: 20px; font-weight: 800;">${chapter?.icon || ''} ${chapter?.title || 'الفصول'}</h2>
+        </div>
+        ${levels.length === 0 ? '<div class="empty-state"><h3>لا توجد مراحل</h3></div>' :
+          levels.map(lv => {
+            const diff = lv.difficulty || 'medium';
+            const diffLabel = diff === 'easy' ? 'سهل' : diff === 'hard' ? 'صعب' : 'متوسط';
+            return `
+              <div class="level-item" onclick="showToast('المرحلة ${lv.number}: قريباً!')">
+                <div class="level-number">${lv.number}</div>
+                <div class="level-info">
+                  <div class="level-title">${lv.title || 'مرحلة ' + lv.number}</div>
+                  <div class="level-difficulty"><span class="difficulty-badge difficulty-${diff}">${diffLabel}</span> • ${lv._count?.words || 0} كلمة</div>
+                </div>
+                <div class="level-reward">+${lv.reward || 10}</div>
+              </div>
+            `;
+          }).join('')
+        }
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><h3>تعذّر التحميل</h3></div>`;
+  }
+}
+
+// ===== Leaderboard =====
+async function loadLeaderboard(period, el) {
+  if (el) {
+    document.querySelectorAll('#screen-leaderboard .chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
+  
+  const container = document.getElementById('leaderboard-content');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  
+  try {
+    const res = await apiGet(`/api/leaderboard?period=${period}`);
+    const entries = res.leaderboard || [];
+    
+    if (entries.length === 0) {
+      container.innerHTML = '<div class="empty-state"><h3>لا يوجد متصدرون</h3><p>كن أول من يتصدر القائمة!</p></div>';
+      return;
+    }
+    
+    const top3 = entries.slice(0, 3);
+    const rest = entries.slice(3);
+    
+    // Order: 2nd, 1st, 3rd
+    const podiumOrder = [top3[1], top3[0], top3[2]].filter(Boolean);
+    
+    container.innerHTML = `
+      ${top3.length >= 2 ? `
+        <div class="podium">
+          ${podiumOrder.map((e, i) => {
+            const rank = i === 0 ? 2 : i === 1 ? 1 : 3;
+            return `
+              <div class="podium-item podium-${rank}">
+                <div class="podium-avatar">${(e.userName || '?')[0]}</div>
+                <div class="podium-name">${e.userName || 'مستخدم'}</div>
+                <div class="podium-score">${e.score || 0} نقطة</div>
+                <div class="podium-bar">${rank}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      ` : ''}
+      <div style="padding: 0 16px 80px;">
+        ${rest.map((e, i) => `
+          <div class="level-item">
+            <div class="level-number" style="background: var(--surface-light); color: var(--text-muted);">${i + 4}</div>
+            <div class="level-info">
+              <div class="level-title">${e.userName || 'مستخدم'}</div>
+              <div class="level-difficulty">${e.completedLevels || 0} مرحلة مكتملة</div>
+            </div>
+            <div class="level-reward">${e.score || 0} نقطة</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><h3>تعذّر التحميل</h3></div>`;
+  }
+}
+
+// ===== Profile =====
+function loadProfile() {
+  const container = document.getElementById('profile-content');
+  const initial = (userName || 'ز')[0];
+  
+  container.innerHTML = `
+    <div class="profile-header safe-top" style="margin-top: -56px; padding-top: calc(env(safe-area-inset-top, 0px) + 76px);">
+      <div class="profile-avatar">${initial}</div>
+      <div class="profile-name">${userName}</div>
+      <div class="profile-level">المستوى 1 • مبتدئ</div>
+    </div>
+    <div class="profile-stats">
+      <div class="stat-card"><div class="stat-value">0</div><div class="stat-label">نقطة</div></div>
+      <div class="stat-card"><div class="stat-value">0</div><div class="stat-label">كتاب</div></div>
+      <div class="stat-card"><div class="stat-value">0</div><div class="stat-label">مرحلة</div></div>
+    </div>
+    <div style="padding: 0 16px 80px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">الشارات</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px;">
+        <div class="badge">📖 قارئ جديد</div>
+        <div class="badge" style="opacity: 0.4;">🎮 لاعب</div>
+        <div class="badge" style="opacity: 0.4;">🔥 7 أيام</div>
+        <div class="badge" style="opacity: 0.4;">🏆 متصدر</div>
+      </div>
+      
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">الإعدادات</h3>
+      <div class="card" style="padding: 0;">
+        <div onclick="showToast('قريباً')" style="padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-light);">
+          <span>الإشعارات</span>
+          <span style="color: var(--text-dim);">إيقاف</span>
+        </div>
+        <div onclick="showToast('قريباً')" style="padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-light);">
+          <span>اللغة</span>
+          <span style="color: var(--text-dim);">العربية</span>
+        </div>
+        <div onclick="showToast('قريباً')" style="padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;">
+          <span>عن التطبيق</span>
+          <span style="color: var(--text-dim);">v1.0</span>
+        </div>
+      </div>
+      
+      <button class="btn btn-outline btn-block" style="margin-top: 16px;" onclick="logout()">تسجيل الخروج</button>
+    </div>
+  `;
+}
+
+function logout() {
+  userName = 'زائر';
+  userId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+  showToast('تم تسجيل الخروج');
+  navigateTo('home');
+}
+
+// ===== Init =====
+function init() {
+  // Check onboarding
+  if (localStorage.getItem('onboarding_done')) {
+    navigateTo('home');
+  } else {
+    renderOnboarding();
+  }
+  
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+}
+
+init();
+</script>
+</body>
+</html>
