@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0c0a09">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ثقافتنا">
+<title>ثقافتنا - لعبة الكلمات المتقاطعة</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============ THEME & RESET ============ */
+:root{
+  --primary:#9333EA; --secondary:#2563EB; --accent:#F59E0B;
+  --bg:#0c0a09; --surface:#1C1917; --card:#1F1B17; --card-2:#2A241F;
+  --text:#F5F5F4; --muted:#A8A29E; --border:#3A332E;
+  --success:#22C55E; --danger:#EF4444; --info:#3B82F6;
+  --radius:16px; --radius-sm:10px; --radius-lg:24px;
+  --shadow:0 8px 24px rgba(0,0,0,.4);
+  --font-head:'Cairo',sans-serif; --font-body:'Tajawal',sans-serif;
+  --font-scale:1;
+}
+[data-theme="light"]{
+  --bg:#FAF8F5; --surface:#FFFFFF; --card:#FFFFFF; --card-2:#F3EFE9;
+  --text:#1C1917; --muted:#78716C; --border:#E7E1D8;
+  --shadow:0 8px 24px rgba(60,40,20,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overscroll-behavior:none}
+body{
+  font-family:var(--font-body); background:var(--bg); color:var(--text);
+  font-size:calc(15px * var(--font-scale)); line-height:1.55;
+  transition:background .25s,color .25s;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+h1,h2,h3,h4,h5{font-family:var(--font-head);font-weight:700;line-height:1.3}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:inherit}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px}
+
+/* ============ APP SHELL ============ */
+#app{max-width:520px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;position:relative;background:var(--bg)}
+
+/* Top bar */
+.topbar{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  gap:8px;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;
+  background:linear-gradient(180deg,var(--surface),rgba(28,25,23,.92));
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+}
+.topbar-title{display:flex;align-items:center;gap:8px;font-family:var(--font-head);font-weight:900;font-size:18px;color:var(--primary);cursor:pointer}
+.topbar-title .logo-dot{width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:900}
+.topbar-actions{display:flex;align-items:center;gap:6px}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;
+  background:var(--card-2);border:1px solid var(--border);font-weight:700;font-size:13px;font-family:var(--font-head);cursor:pointer;
+}
+.chip .ico{font-size:14px}
+.chip.coins{color:var(--accent)}
+.chip.level{color:var(--primary)}
+
+/* Screens */
+main{flex:1;overflow-x:hidden;padding-bottom:90px}
+.screen{display:none;animation:fade .3s ease;padding:14px}
+.screen.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Section card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.section-title{font-size:16px;margin:4px 2px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.section-title .more{font-size:12px;color:var(--muted);font-weight:500;font-family:var(--font-body);cursor:pointer}
+
+/* Hero */
+.hero{position:relative;border-radius:var(--radius-lg);overflow:hidden;padding:20px 18px;background:linear-gradient(135deg,#9333EA,#2563EB);color:#fff;box-shadow:0 12px 30px rgba(147,51,234,.35)}
+.hero h1{font-size:24px;margin-bottom:6px}
+.hero p{opacity:.9;font-size:14px}
+.hero .streak-badge{position:absolute;top:14px;left:14px;background:rgba(255,255,255,.2);padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;backdrop-filter:blur(6px)}
+
+/* Quick grid */
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.quick-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:transform .15s,background .2s}
+.quick-item:active{transform:scale(.95)}
+.quick-item .qi-ico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--card-2)}
+.quick-item .qi-label{font-size:12px;font-weight:700;font-family:var(--font-head)}
+
+/* Book list */
+.book-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.book-row:last-child{border-bottom:none}
+.book-cover{width:60px;height:84px;border-radius:8px;object-fit:cover;background:var(--card-2);flex-shrink:0}
+.book-meta{flex:1;min-width:0}
+.book-meta h4{font-size:15px;margin-bottom:3px}
+.book-meta .author{font-size:12px;color:var(--muted);margin-bottom:6px}
+.book-meta .tags{display:flex;gap:5px;flex-wrap:wrap}
+.book-meta .tag{font-size:11px;padding:2px 8px;border-radius:6px;background:var(--card-2);color:var(--muted)}
+.book-meta .progress{margin-top:6px;height:4px;background:var(--card-2);border-radius:4px;overflow:hidden}
+.book-meta .progress span{display:block;height:100%;background:linear-gradient(90deg,var(--primary),var(--secondary))}
+
+/* Horizontal scroll */
+.hscroll{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.hscroll::-webkit-scrollbar{display:none}
+.hscroll>*{flex:0 0 130px;scroll-snap-align:start}
+
+/* Bottom nav */
+.bottomnav{
+  position:fixed;bottom:0;left:50%;transform:translateX(50%);width:100%;max-width:520px;
+  display:flex;justify-content:space-around;align-items:center;
+  background:rgba(28,25,23,.96);backdrop-filter:blur(16px);
+  border-top:1px solid var(--border);padding:6px 4px calc(env(safe-area-inset-bottom) + 6px);z-index:60;
+}
+[data-theme="light"] .bottomnav{background:rgba(255,255,255,.96)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;color:var(--muted);font-size:10px;font-weight:600;font-family:var(--font-head);position:relative;transition:color .2s;background:none;cursor:pointer}
+.nav-btn .nav-ico{font-size:22px;line-height:1}
+.nav-btn.active{color:var(--primary)}
+.nav-btn.active .nav-ico{transform:translateY(-1px)}
+.nav-btn .badge{position:absolute;top:2px;left:50%;margin-left:8px;background:var(--danger);color:#fff;font-size:9px;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;font-weight:700}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:var(--radius-sm);font-family:var(--font-head);font-weight:700;font-size:14px;transition:transform .12s,filter .2s;background:var(--card-2);color:var(--text);border:1px solid var(--border);cursor:pointer}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(135deg,var(--primary),#B453E8);color:#fff;border:none}
+.btn.secondary{background:linear-gradient(135deg,var(--secondary),#3B82F6);color:#fff;border:none}
+.btn.accent{background:linear-gradient(135deg,var(--accent),#FBBF24);color:#1C1917;border:none}
+.btn.ghost{background:transparent}
+.btn.danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+.btn.full{width:100%;padding:14px}
+.btn.sm{padding:7px 12px;font-size:12px}
+.btn:disabled{opacity:.5;pointer-events:none}
+
+/* Inputs */
+.input,select,textarea{width:100%;padding:11px 14px;border-radius:var(--radius-sm);background:var(--card-2);border:1px solid var(--border);color:var(--text);font-size:14px;outline:none;transition:border .2s}
+.input:focus,select:focus,textarea:focus{border-color:var(--primary)}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px;font-family:var(--font-head)}
+
+/* List rows */
+.row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer}
+.row:last-child{border-bottom:none}
+.row-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--card-2);font-size:18px;flex-shrink:0}
+.row-main{flex:1;min-width:0}
+.row-main h4{font-size:14px;margin-bottom:2px}
+.row-main p{font-size:12px;color:var(--muted)}
+.row-action{color:var(--muted);font-size:18px}
+
+/* Toggle */
+.toggle{position:relative;width:44px;height:24px;background:var(--card-2);border:1px solid var(--border);border-radius:999px;flex-shrink:0;cursor:pointer;transition:background .2s}
+.toggle::after{content:'';position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+.toggle.on{background:var(--primary);border-color:var(--primary)}
+.toggle.on::after{transform:translateX(-20px);background:#fff}
+
+/* ============ CROSSWORD ============ */
+.cw-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.cw-stats{display:flex;gap:8px;flex-wrap:wrap}
+.cw-stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;font-family:var(--font-head)}
+.cw-stat .lbl{color:var(--muted);font-weight:500;font-size:11px;font-family:var(--font-body)}
+
+.cw-wrap{display:flex;flex-direction:column;gap:12px}
+.cw-grid-container{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:4px}
+.cw-grid{display:grid;gap:2px;background:var(--border);padding:2px;border-radius:8px;width:fit-content;margin:0 auto;direction:rtl}
+.cw-cell{
+  width:34px;height:34px;background:var(--bg);position:relative;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-head);font-weight:700;font-size:18px;color:var(--text);user-select:none;cursor:pointer;
+  transition:background .15s,color .15s;
+}
+[data-theme="light"] .cw-cell{background:#F3EFE9}
+.cw-cell.block{background:#0a0a0a;cursor:default}
+[data-theme="light"] .cw-cell.block{background:#3A332E}
+.cw-cell .num{position:absolute;top:1px;right:2px;font-size:9px;font-weight:600;color:var(--muted);font-family:var(--font-body);line-height:1;z-index:2}
+.cw-cell .letter{position:relative;z-index:1}
+.cw-cell.selected{background:var(--primary);color:#fff}
+.cw-cell.selected .num{color:rgba(255,255,255,.8)}
+.cw-cell.highlight{background:rgba(147,51,234,.25)}
+.cw-cell.correct{background:rgba(34,197,94,.3);color:var(--success)}
+.cw-cell.incorrect{background:rgba(239,68,68,.3);color:var(--danger)}
+.cw-cell.revealed{background:rgba(245,158,11,.35);color:var(--accent)}
+
+.cw-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.cw-clue-bar{background:var(--card-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:13px;min-height:48px}
+.cw-clue-bar .clue-num{background:var(--primary);color:#fff;width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;font-family:var(--font-head);flex-shrink:0}
+.cw-clue-bar .clue-text{flex:1}
+.cw-clue-bar .clue-dir{font-size:11px;color:var(--muted);font-weight:600}
+
+.cw-clues{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.cw-clue-list h4{font-size:13px;color:var(--primary);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);font-family:var(--font-head)}
+.cw-clue-item{padding:6px 8px;border-radius:6px;font-size:12px;cursor:pointer;margin-bottom:4px;display:flex;gap:6px;line-height:1.4}
+.cw-clue-item:hover,.cw-clue-item.active{background:var(--card-2)}
+.cw-clue-item .n{color:var(--primary);font-weight:700;flex-shrink:0;font-family:var(--font-head)}
+.cw-clue-item.solved{opacity:.5;text-decoration:line-through}
+
+/* On-screen keyboard */
+.osk{position:fixed;bottom:0;left:50%;transform:translateX(50%);width:100%;max-width:520px;background:var(--surface);border-top:1px solid var(--border);padding:8px 6px calc(env(safe-area-inset-bottom) + 8px);z-index:70;display:none}
+.osk.show{display:block}
+.osk-row{display:flex;gap:4px;justify-content:center;margin-bottom:4px}
+.osk-key{flex:1;min-width:0;height:40px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-family:var(--font-head);font-weight:700;font-size:16px;color:var(--text);display:flex;align-items:center;justify-content:center;transition:background .1s;cursor:pointer}
+.osk-key:active{background:var(--primary);color:#fff}
+.osk-key.special{flex:1.5;font-size:13px;background:var(--card-2)}
+body.osk-open main{padding-bottom:280px}
+body.osk-open .bottomnav{display:none}
+
+/* ============ PROFILE ============ */
+.profile-head{display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 14px;background:linear-gradient(135deg,rgba(147,51,234,.15),rgba(37,99,235,.1));border-radius:var(--radius-lg);border:1px solid var(--border);margin-bottom:12px}
+.avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;color:#fff;font-family:var(--font-head);margin-bottom:10px;border:3px solid var(--surface)}
+.profile-name{font-size:20px;font-weight:900;margin-bottom:2px}
+.profile-title{color:var(--primary);font-size:13px;font-weight:700;font-family:var(--font-head);margin-bottom:12px}
+.level-bar{width:100%;max-width:280px;height:8px;background:var(--card-2);border-radius:4px;overflow:hidden;margin-top:4px}
+.level-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--primary));transition:width .4s}
+.level-info{font-size:11px;color:var(--muted);margin-top:6px;font-family:var(--font-body)}
+
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
+.stat-card .v{font-size:22px;font-weight:900;color:var(--primary);font-family:var(--font-head)}
+.stat-card .l{font-size:11px;color:var(--muted);margin-top:2px}
+
+.badges-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.badge{aspect-ratio:1;background:var(--card-2);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px;text-align:center;position:relative;cursor:pointer}
+.badge .b-ico{font-size:24px;filter:grayscale(1) opacity(.4)}
+.badge .b-name{font-size:9px;color:var(--muted);font-weight:600;line-height:1.2;font-family:var(--font-head)}
+.badge.earned{background:linear-gradient(135deg,rgba(147,51,234,.2),rgba(37,99,235,.15));border-color:var(--primary)}
+.badge.earned .b-ico{filter:none}
+.badge.earned .b-name{color:var(--text)}
+
+/* ============ LEADERBOARD ============ */
+.lb-tabs{display:flex;gap:6px;margin-bottom:12px;background:var(--card-2);padding:4px;border-radius:var(--radius-sm)}
+.lb-tab{flex:1;padding:8px;text-align:center;border-radius:8px;font-size:13px;font-weight:700;color:var(--muted);font-family:var(--font-head);cursor:pointer}
+.lb-tab.active{background:var(--primary);color:#fff}
+.lb-item{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--border)}
+.lb-rank{width:32px;height:32px;border-radius:8px;background:var(--card-2);display:flex;align-items:center;justify-content:center;font-weight:900;font-family:var(--font-head);font-size:14px;flex-shrink:0}
+.lb-rank.r1{background:linear-gradient(135deg,#FBBF24,#F59E0B);color:#1C1917}
+.lb-rank.r2{background:linear-gradient(135deg,#D1D5DB,#9CA3AF);color:#1C1917}
+.lb-rank.r3{background:linear-gradient(135deg,#D97706,#92400E);color:#fff}
+.lb-item.me{background:rgba(147,51,234,.1);border-radius:var(--radius-sm);padding:10px;margin:4px 0;border:1px solid var(--primary)}
+.lb-item .row-main{flex:1}
+
+/* ============ SETTINGS ============ */
+.settings-section{margin-bottom:14px}
+.settings-section h3{font-size:13px;color:var(--muted);margin:8px 4px;text-transform:uppercase;letter-spacing:.5px;font-family:var(--font-head)}
+.range-row{display:flex;align-items:center;gap:10px;padding:8px 0}
+.range-row input[type=range]{flex:1;accent-color:var(--primary)}
+.range-row .rv{min-width:50px;text-align:center;font-weight:700;color:var(--primary);font-size:13px;font-family:var(--font-head)}
+
+/* ============ STORE ============ */
+.sub-card{border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;background:var(--card);position:relative;overflow:hidden}
+.sub-card.featured{border-color:var(--accent);background:linear-gradient(135deg,rgba(245,158,11,.12),var(--card))}
+.sub-card .pill{position:absolute;top:10px;left:10px;background:var(--accent);color:#1C1917;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;font-family:var(--font-head)}
+.sub-card h4{font-size:16px;margin-bottom:4px;font-family:var(--font-head)}
+.sub-card .price{font-size:22px;font-weight:900;color:var(--primary);font-family:var(--font-head);margin:6px 0}
+.sub-card .price small{font-size:12px;color:var(--muted);font-weight:500}
+.sub-card ul{list-style:none;margin:8px 0}
+.sub-card li{font-size:12px;padding:3px 0;display:flex;gap:6px;align-items:center}
+.sub-card li::before{content:'✓';color:var(--success);font-weight:700}
+
+.iap-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.iap-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
+.iap-card .ico{font-size:28px;margin-bottom:4px}
+.iap-card .amt{font-size:18px;font-weight:900;color:var(--accent);font-family:var(--font-head)}
+.iap-card .pr{font-size:13px;color:var(--muted);margin:4px 0}
+.iap-card .btn{width:100%;padding:7px;font-size:12px;margin-top:4px}
+
+/* ============ MODALS / TOAST ============ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex;animation:fade .25s}
+.modal{background:var(--surface);width:100%;max-width:520px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:20px 16px calc(env(safe-area-inset-bottom) + 20px);max-height:88vh;overflow-y:auto;animation:slideup .3s;position:relative}
+@keyframes slideup{from{transform:translateY(100%)}to{transform:none}}
+.modal h3{font-size:18px;margin-bottom:14px;text-align:center;font-family:var(--font-head)}
+.modal .close-x{position:absolute;top:14px;left:14px;width:32px;height:32px;border-radius:50%;background:var(--card-2);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;z-index:5}
+
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--surface);color:var(--text);padding:11px 18px;border-radius:999px;border:1px solid var(--border);box-shadow:var(--shadow);z-index:200;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+.toast.success{border-color:var(--success);color:var(--success)}
+.toast.error{border-color:var(--danger);color:var(--danger)}
+
+/* Success overlay */
+.success-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
+.success-overlay.show{display:flex;animation:fade .3s}
+.success-card{background:var(--surface);border-radius:var(--radius-lg);padding:28px 20px;text-align:center;max-width:340px;width:100%;border:1px solid var(--border)}
+.success-card .emoji{font-size:60px;margin-bottom:8px;animation:bounce 1s ease infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.success-card h2{font-size:22px;margin-bottom:6px;color:var(--success)}
+.success-card p{color:var(--muted);font-size:13px;margin-bottom:14px}
+.points-display{background:var(--card-2);border-radius:var(--radius);padding:14px;margin:12px 0}
+.points-display .big{font-size:36px;font-weight:900;color:var(--accent);font-family:var(--font-head)}
+.points-display .prow{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border:none}
+.confetti{position:fixed;width:8px;height:14px;top:-20px;z-index:149;pointer-events:none;animation:fall 3s linear infinite}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+/* Splash */
+.splash{position:fixed;inset:0;background:var(--bg);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;text-align:center}
+.splash.hide{opacity:0;pointer-events:none;transition:opacity .4s}
+.splash .logo-big{width:96px;height:96px;border-radius:24px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:48px;color:#fff;font-weight:900;font-family:var(--font-head);box-shadow:0 20px 60px rgba(147,51,234,.5)}
+.splash h1{font-size:32px;color:var(--primary)}
+.splash p{color:var(--muted);font-size:14px}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Onboarding */
+.onboard{padding:20px}
+.onboard .avatar-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.onboard .avatar-opt{aspect-ratio:1;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;font-family:var(--font-head);cursor:pointer;border:2px solid transparent}
+.onboard .avatar-opt.selected{border-color:var(--accent);transform:scale(.95)}
+
+/* Daily challenge */
+.daily-hero{background:linear-gradient(135deg,#F59E0B,#EF4444);color:#fff;padding:18px;border-radius:var(--radius-lg);text-align:center;margin-bottom:12px}
+.daily-hero h2{font-size:20px;margin-bottom:4px}
+.daily-hero .countdown{font-size:14px;opacity:.95;margin-top:8px;font-family:var(--font-head);font-weight:700}
+.daily-hero .streak{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:999px;font-size:12px;margin-top:8px}
+
+/* Empty state */
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .ico{font-size:48px;margin-bottom:10px;opacity:.5}
+
+/* Reader */
+.reader{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;line-height:2;font-size:15px}
+.reader h2{font-size:20px;margin-bottom:12px;color:var(--primary)}
+.reader p{margin-bottom:14px;text-align:justify}
+
+/* Utility */
+.hidden{display:none!important}
+.flex{display:flex}
+.between{justify-content:space-between}
+.center{align-items:center}
+.gap-4{gap:4px}.gap-8{gap:8px}.gap-12{gap:12px}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mb-12{margin-bottom:12px}
+.text-center{text-align:center}
+.text-muted{color:var(--muted)}
+.text-sm{font-size:12px}
+.text-primary{color:var(--primary)}
+.text-accent{color:var(--accent)}
+.text-success{color:var(--success)}
+.fw-700{font-weight:700}
+.py-8{padding:8px 0}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Splash -->
+  <div class="splash" id="splash">
+    <div class="logo-big">ث</div>
+    <h1>ثقافتنا</h1>
+    <p>لعبة الكلمات المتقاطعة والقراءة</p>
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar-title" onclick="navTo('home')">
+      <span class="logo-dot">ث</span>
+      <span>ثقافتنا</span>
+    </div>
+    <div class="topbar-actions">
+      <div class="chip coins" onclick="navTo('store')">
+        <span class="ico">🪙</span><span id="coinsDisplay">100</span>
+      </div>
+      <div class="chip level" onclick="navTo('profile')">
+        <span class="ico">⭐</span><span id="levelDisplay">1</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ HOME ============ -->
+    <section class="screen" id="screen-home">
+      <div class="hero">
+        <div class="streak-badge" id="homeStreak">🔥 0 يوم</div>
+        <h1 id="greetUser">أهلاً بك</h1>
+        <p>تعلّم، العب، واقرأ في رحلة المعرفة اليومية</p>
+      </div>
+
+      <div class="quick-grid">
+        <div class="quick-item" onclick="navTo('daily')">
+          <div class="qi-ico">🎯</div><div class="qi-label">تحدّي اليوم</div>
+        </div>
+        <div class="quick-item" onclick="navTo('game')">
+          <div class="qi-ico">🧩</div><div class="qi-label">الكلمات</div>
+        </div>
+        <div class="quick-item" onclick="navTo('library')">
+          <div class="qi-ico">📚</div><div class="qi-label">المكتبة</div>
+        </div>
+        <div class="quick-item" onclick="navTo('leaderboard')">
+          <div class="qi-ico">🏆</div><div class="qi-label">المتصدرون</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">
+          <span>📚 كتب مقترحة لك</span>
+          <span class="more" onclick="navTo('library')">عرض الكل</span>
+        </div>
+        <div class="hscroll" id="homeRecommend"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">
+          <span>🧩 مراحل اللعب</span>
+          <span class="more" onclick="navTo('game')">عرض الكل</span>
+        </div>
+        <div id="homeLevels"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><span>📖 تابع القراءة</span></div>
+        <div id="homeReadingList"></div>
+      </div>
+    </section>
+
+    <!-- ============ LIBRARY ============ -->
+    <section class="screen" id="screen-library">
+      <div class="card">
+        <div class="section-title"><span>📚 المكتبة</span></div>
+        <input class="input" id="bookSearch" placeholder="ابحث عن كتاب أو مؤلف..." oninput="renderLibrary()">
+        <div id="libraryList" class="mt-12"></div>
+      </div>
+    </section>
+
+    <!-- ============ GAME (puzzle list) ============ -->
+    <section class="screen" id="screen-game">
+      <div class="card">
+        <div class="section-title"><span>🧩 مراحل الكلمات المتقاطعة</span></div>
+        <p class="text-muted text-sm mb-12">أكمل المراحل لكسب العملات والخبرة. كل مرحلة أصعب من سابقتها.</p>
+        <div id="puzzleList"></div>
+      </div>
+    </section>
+
+    <!-- ============ CROSSWORD ============ -->
+    <section class="screen" id="screen-crossword">
+      <div class="cw-header">
+        <button class="btn ghost sm" onclick="exitCrossword()">← رجوع</button>
+        <div class="cw-stats">
+          <div class="cw-stat"><span class="lbl">الوقت</span><span id="cwTimer">00:00</span></div>
+          <div class="cw-stat"><span class="lbl">تلميحات</span><span id="cwHints">0</span></div>
+          <div class="cw-stat"><span class="lbl">كلمات</span><span id="cwSolved">0/0</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 id="cwTitle" style="margin-bottom:8px"></h3>
+        <div class="cw-clue-bar" id="cwClueBar">
+          <div class="clue-num">-</div>
+          <div class="clue-text">اختر خلية للبدء</div>
+        </div>
+        <div class="cw-wrap mt-12">
+          <div class="cw-grid-container">
+            <div class="cw-grid" id="cwGrid"></div>
+          </div>
+          <div class="cw-controls">
+            <button class="btn primary sm" onclick="checkPuzzle()">✓ تحقق</button>
+            <button class="btn accent sm" onclick="useHint()">💡 تلميح (10)</button>
+            <button class="btn sm" onclick="revealWord()">👁️ كشف (30)</button>
+            <button class="btn sm" onclick="resetPuzzle()">🔄 إعادة</button>
+          </div>
+        </div>
+        <div class="cw-clues mt-12">
+          <div class="cw-clue-list">
+            <h4>↔ أفقي</h4>
+            <div id="cwAcross"></div>
+          </div>
+          <div class="cw-clue-list">
+            <h4>↕ عمودي</h4>
+            <div id="cwDown"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DAILY ============ -->
+    <section class="screen" id="screen-daily">
+      <div class="daily-hero">
+        <h2>🎯 تحدّي اليوم</h2>
+        <p>لغز خاص بمكافآت مضاعفة!</p>
+        <div class="streak" id="dailyStreak">🔥 0 يوم متتالي</div>
+        <div class="countdown" id="dailyCountdown">الوقت المتبقي: --:--:--</div>
+      </div>
+      <div class="card">
+        <div class="section-title"><span>🎁 المكافآت</span></div>
+        <div class="row"><div class="row-ico">🪙</div><div class="row-main"><h4>عملات مضاعفة ×2</h4><p>اربح ضعف عملات اللغز العادي</p></div></div>
+        <div class="row"><div class="row-ico">⭐</div><div class="row-main"><h4>خبرة ×1.5</h4><p>اربح خبرة أكثر بنسبة 50%</p></div></div>
+        <div class="row"><div class="row-ico">🔥</div><div class="row-main"><h4>الحفاظ على السلسلة</h4><p>حافظ على سلسلة أيامك المتتالية</p></div></div>
+      </div>
+      <button class="btn accent full" id="dailyStartBtn" onclick="startDaily()">ابدأ تحدّي اليوم</button>
+    </section>
+
+    <!-- ============ LEADERBOARD ============ -->
+    <section class="screen" id="screen-leaderboard">
+      <div class="card">
+        <div class="section-title"><span>🏆 لوحة المتصدرين</span></div>
+        <div class="lb-tabs">
+          <div class="lb-tab active" onclick="setLbTab('weekly',this)">أسبوعي</div>
+          <div class="lb-tab" onclick="setLbTab('monthly',this)">شهري</div>
+          <div class="lb-tab" onclick="setLbTab('alltime',this)">الكل</div>
+        </div>
+        <div id="leaderboardList"></div>
+      </div>
+    </section>
+
+    <!-- ============ PROFILE ============ -->
+    <section class="screen" id="screen-profile">
+      <div class="profile-head">
+        <div class="avatar" id="profileAvatar">ع</div>
+        <div class="profile-name" id="profileName">زائر</div>
+        <div class="profile-title" id="profileLevelTitle">مبتدئ</div>
+        <div class="level-bar"><span id="profileLevelBar" style="width:0%"></span></div>
+        <div class="level-info" id="profileLevelInfo">0 / 100 XP</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="v" id="statPuzzles">0</div><div class="l">ألغاز محلولة</div></div>
+        <div class="stat-card"><div class="v" id="statBooks">0</div><div class="l">كتب مقروءة</div></div>
+        <div class="stat-card"><div class="v" id="statXp">0</div><div class="l">إجمالي XP</div></div>
+        <div class="stat-card"><div class="v" id="statCoins">100</div><div class="l">عملات</div></div>
+        <div class="stat-card"><div class="v" id="statStreak">0</div><div class="l">أيام متتالية</div></div>
+        <div class="stat-card"><div class="v" id="statBadges">0/15</div><div class="l">أوسمة</div></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><span>🏅 الأوسمة</span><span class="more" id="badgesCount">0/15</span></div>
+        <div class="badges-grid" id="badgesGrid"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><span>📜 سجل النشاط</span></div>
+        <div id="activityLog"></div>
+      </div>
+
+      <div class="card">
+        <div class="row" onclick="navTo('settings')"><div class="row-ico">⚙️</div><div class="row-main"><h4>الإعدادات</h4><p>الحساب، الإشعارات، المظهر</p></div><div class="row-action">‹</div></div>
+        <div class="row" onclick="navTo('store')"><div class="row-ico">💎</div><div class="row-main"><h4>المتجر</h4><p>الاشتراكات، العملات، إزالة الإعلانات</p></div><div class="row-action">‹</div></div>
+        <div class="row" onclick="navTo('daily')"><div class="row-ico">🎯</div><div class="row-main"><h4>تحدّي اليوم</h4><p>سلسلة الأيام والمكافآت</p></div><div class="row-action">‹</div></div>
+      </div>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section class="screen" id="screen-settings">
+      <div class="cw-header">
+        <button class="btn ghost sm" onclick="navTo('profile')">← رجوع</button>
+        <h3>الإعدادات</h3>
+      </div>
+
+      <div class="settings-section">
+        <h3>الحساب</h3>
+        <div class="card">
+          <label>الاسم</label>
+          <input class="input" id="setName" placeholder="اسمك" oninput="saveSettings()">
+          <label class="mt-12">حرف الصورة الرمزية</label>
+          <div class="avatar-pick" style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px" id="avatarPicker"></div>
+          <button class="btn danger full mt-12" onclick="deleteAccount()">🗑️ حذف الحساب</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>الإشعارات</h3>
+        <div class="card">
+          <div class="row"><div class="row-ico">🔔</div><div class="row-main"><h4>تذكير يومي</h4><p>تذكير بالتحدّي اليومي</p></div><div class="toggle" id="setDailyReminder" onclick="toggleSetting(this,'dailyReminder')"></div></div>
+          <div class="row"><div class="row-ico">🏆</div><div class="row-main"><h4>تنبيه الإنجازات</h4><p>عند فتح وسام جديد</p></div><div class="toggle on" id="setAchievements" onclick="toggleSetting(this,'achievements')"></div></div>
+          <label class="mt-12">وقت التذكير</label>
+          <input type="time" class="input" id="setReminderTime" onchange="saveSettings()">
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>المظهر</h3>
+        <div class="card">
+          <div class="row"><div class="row-ico">🌙</div><div class="row-main"><h4>الوضع الداكن</h4><p>تبديل بين الفاتح والداكن</p></div><div class="toggle on" id="setDark" onclick="toggleTheme()"></div></div>
+          <div class="range-row"><div class="row-ico" style="font-size:14px">Aa</div><input type="range" min="0" max="2" value="1" id="setFont" oninput="setFontSize(this.value)"><div class="rv" id="fontVal">متوسط</div></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>اللغة</h3>
+        <div class="card">
+          <div class="row"><div class="row-ico">🇸🇦</div><div class="row-main"><h4>العربية</h4><p>اللغة الحالية</p></div><div class="row-action">✓</div></div>
+          <div class="row" style="opacity:.5"><div class="row-ico">🇬🇧</div><div class="row-main"><h4>English</h4><p>قريباً</p></div><div class="row-action">🔒</div></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>البيانات</h3>
+        <div class="card">
+          <div class="row" onclick="clearCache()"><div class="row-ico">🗑️</div><div class="row-main"><h4>مسح الذاكرة المؤقتة</h4><p>تحرير مساحة التخزين</p></div><div class="row-action">‹</div></div>
+          <div class="row" onclick="downloadOffline()"><div class="row-ico">📥</div><div class="row-main"><h4>تحميل كتب للقراءة بدون اتصال</h4><p>حفظ الكتب على الجهاز</p></div><div class="row-action">‹</div></div>
+          <div class="row" onclick="syncProgress()"><div class="row-ico">☁️</div><div class="row-main"><h4>مزامنة التقدّم</h4><p>رفع تقدّمك للسحابة</p></div><div class="row-action">‹</div></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>حول</h3>
+        <div class="card">
+          <div class="row"><div class="row-ico">ℹ️</div><div class="row-main"><h4>الإصدار</h4><p>1.0.0</p></div></div>
+          <div class="row" onclick="toast('قريباً')"><div class="row-ico">🔒</div><div class="row-main"><h4>سياسة الخصوصية</h4></div><div class="row-action">‹</div></div>
+          <div class="row" onclick="toast('قريباً')"><div class="row-ico">📋</div><div class="row-main"><h4>الشروط والأحكام</h4></div><div class="row-action">‹</div></div>
+          <div class="row" onclick="toast('support@thaqafatna.app')"><div class="row-ico">✉️</div><div class="row-main"><h4>تواصل معنا</h4></div><div class="row-action">‹</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STORE ============ -->
+    <section class="screen" id="screen-store">
+      <div class="cw-header">
+        <button class="btn ghost sm" onclick="navTo('profile')">← رجوع</button>
+        <h3>المتجر</h3>
+      </div>
+
+      <div class="card text-center" style="background:linear-gradient(135deg,rgba(147,51,234,.2),rgba(37,99,235,.15))">
+        <div style="font-size:32px">💎</div>
+        <h3>ثقافتنا بريميوم</h3>
+        <p class="text-muted text-sm">افتح كل الميزات وادعم التطبيق</p>
+      </div>
+
+      <div class="settings-section">
+        <h3>الاشتراكات</h3>
+        <div class="sub-card featured">
+          <span class="pill">الأكثر شعبية</span>
+          <h4>بريميوم شهري</h4>
+          <div class="price">9.99$ <small>/ شهرياً</small></div>
+          <ul>
+            <li>ألغاز غير محدودة</li>
+            <li>كتب كاملة بدون إعلانات</li>
+            <li>تلميحات إضافية يومياً</li>
+            <li>دعم الأولوية</li>
+          </ul>
+          <button class="btn primary full" onclick="simulatePurchase('بريميوم شهري')">اشترك الآن</button>
+        </div>
+        <div class="sub-card">
+          <h4>بريميوم سنوي</h4>
+          <div class="price">79.99$ <small>/ سنوياً (وفّر 33%)</small></div>
+          <ul>
+            <li>كل مزايا الشهري</li>
+            <li>شهرين مجاناً</li>
+            <li>وصول مبكر للميزات الجديدة</li>
+            <li>500 عملة مجانية شهرياً</li>
+          </ul>
+          <button class="btn accent full" onclick="simulatePurchase('بريميوم سنوي')">اشترك الآن</button>
+        </div>
+        <div class="sub-card">
+          <h4>اشتراك العائلة</h4>
+          <div class="price">14.99$ <small>/ شهرياً</small></div>
+          <ul>
+            <li>حتى 6 أعضاء</li>
+            <li>تحكم أبوي متقدم</li>
+            <li>مكافآت جماعية</li>
+            <li>لوحة متصدّرين خاصة</li>
+          </ul>
+          <button class="btn secondary full" onclick="simulatePurchase('العائلة')">اشترك الآن</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>عملات وميزات</h3>
+        <div class="iap-grid">
+          <div class="iap-card"><div class="ico">🪙</div><div class="amt">100</div><div class="pr">عملة</div><div class="pr" style="font-weight:700">0.99$</div><button class="btn primary" onclick="simulatePurchase('100 عملة')">شراء</button></div>
+          <div class="iap-card"><div class="ico">💰</div><div class="amt">600</div><div class="pr">عملة</div><div class="pr" style="font-weight:700">4.99$</div><button class="btn primary" onclick="simulatePurchase('600 عملة')">شراء</button></div>
+          <div class="iap-card" style="border-color:var(--accent)"><div class="ico">💎</div><div class="amt">1500</div><div class="pr">عملة + 200</div><div class="pr" style="font-weight:700">9.99$</div><button class="btn accent" onclick="simulatePurchase('1500 عملة')">شراء</button></div>
+          <div class="iap-card"><div class="ico">🚫</div><div class="amt" style="font-size:14px">بدون إعلانات</div><div class="pr">دائم</div><div class="pr" style="font-weight:700">2.99$</div><button class="btn secondary" onclick="simulatePurchase('إزالة الإعلانات')">شراء</button></div>
+        </div>
+      </div>
+
+      <button class="btn ghost full mt-12" onclick="toast('قريباً - سيتم تفعيل هذه الميزة لاحقاً')">↻ استعادة المشتريات</button>
+    </section>
+  </main>
+
+  <!-- Bottom nav -->
+  <nav class="bottomnav">
+    <button class="nav-btn" data-screen="home" onclick="navTo('home')"><span class="nav-ico">🏠</span><span>الرئيسية</span></button>
+    <button class="nav-btn" data-screen="library" onclick="navTo('library')"><span class="nav-ico">📚</span><span>المكتبة</span></button>
+    <button class="nav-btn" data-screen="game" onclick="navTo('game')"><span class="nav-ico">🧩</span><span>اللعبة</span></button>
+    <button class="nav-btn" data-screen="leaderboard" onclick="navTo('leaderboard')"><span class="nav-ico">🏆</span><span>المتصدرون</span></button>
+    <button class="nav-btn" data-screen="profile" onclick="navTo('profile')"><span class="nav-ico">👤</span><span>الملف</span></button>
+  </nav>
+
+  <!-- On-screen keyboard -->
+  <div class="osk" id="osk"></div>
+
+  <!-- Modal -->
+  <div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+    <div class="modal" id="modal"></div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Success overlay -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-card">
+      <div class="emoji">🎉</div>
+      <h2 id="successTitle">أحسنت!</h2>
+      <p id="successMsg">لقد أكملت اللغز بنجاح</p>
+      <div class="points-display">
+        <div class="big" id="successPoints">0</div>
+        <div class="text-muted text-sm">نقطة</div>
+        <div class="prow"><span class="text-muted">أساس</span><span id="spBase">0</span></div>
+        <div class="prow"><span class="text-muted">مكافأة الوقت</span><span id="spTime">0</span></div>
+        <div class="prow"><span class="text-muted">عقوبة التلميحات</span><span id="spHint">0</span></div>
+        <div class="prow"><span class="text-muted">عملات مكتسبة</span><span id="spCoins">0</span></div>
+        <div class="prow"><span class="text-muted">خبرة مكتسبة</span><span id="spXp">0</span></div>
+      </div>
+      <button class="btn primary full" onclick="closeSuccess()">متابعة</button>
+    </div>
+  </div>
+
+  <!-- Onboarding -->
+  <div class="modal-bg" id="onboardBg">
+    <div class="modal onboard">
+      <h3>أهلاً بك في ثقافتنا! 👋</h3>
+      <p class="text-muted text-center mb-12">لنبدأ بإعداد حسابك</p>
+      <label>ما اسمك؟</label>
+      <input class="input" id="onboardName" placeholder="اكتب اسمك هنا" maxlength="20">
+      <label class="mt-12">اختر حرفك</label>
+      <div class="avatar-pick" id="onboardAvatars"></div>
+      <button class="btn primary full mt-12" onclick="finishOnboarding()">ابدأ الرحلة 🚀</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   STATE MANAGEMENT (localStorage)
+============================================================ */
+const API = 'https://thaqafatna-qr.vercel.app';
+const STORE_KEY = 'thaqafatna_v1';
+
+const DEFAULT_STATE = {
+  user: { name: 'زائر', avatar: 'ع', createdAt: Date.now() },
+  coins: 100, xp: 0, level: 1,
+  puzzlesSolved: [],
+  booksRead: [],
+  readingProgress: {},
+  bookmarks: [],
+  badges: [],
+  activity: [],
+  streak: 0, lastDailyDate: null, dailyHistory: [],
+  settings: { dailyReminder: false, achievements: true, reminderTime: '20:00', dark: true, fontSize: 1, lang: 'ar' },
+  bestTimes: {},
+  hintsUsed: 0
+};
+
+let S = loadState();
+function loadState(){
+  try{ const s = JSON.parse(localStorage.getItem(STORE_KEY)); if(s) return Object.assign({}, DEFAULT_STATE, s, {settings: Object.assign({}, DEFAULT_STATE.settings, s.settings||{})}); }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
+function saveState(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }catch(e){} }
+
+const LEVELS = [
+  {lvl:1,xp:0,title:'مبتدئ'},{lvl:2,xp:100,title:'متعلم'},
+  {lvl:3,xp:300,title:'مثقف'},{lvl:4,xp:600,title:'عالم'},
+  {lvl:5,xp:1000,title:'خبير'},{lvl:6,xp:1500,title:'فقيه'},
+  {lvl:7,xp:2200,title:'علامة'},{lvl:8,xp:3000,title:'إمام'}
+];
+function levelInfo(xp){
+  let cur = LEVELS[0], next = LEVELS[1];
+  for(let i=0;i<LEVELS.length;i++){
+    if(xp >= LEVELS[i].xp){ cur = LEVELS[i]; next = LEVELS[i+1] || LEVELS[i]; }
+  }
+  const progress = next===cur ? 100 : Math.min(100, ((xp - cur.xp)/(next.xp - cur.xp))*100);
+  return {cur, next, progress, toNext: Math.max(0, next.xp - xp)};
+}
+function addXp(amount){
+  const oldLvl = S.level;
+  S.xp += amount;
+  const li = levelInfo(S.xp);
+  S.level = li.cur.lvl;
+  if(li.cur.lvl > oldLvl){ toast('🎉 وصلت للمستوى '+li.cur.lvl+'! '+li.cur.title,'success'); logActivity('وصلت للمستوى '+li.cur.lvl+' - '+li.cur.title); }
+  saveState();
+}
+function addCoins(amount){ S.coins += amount; saveState(); }
+function spendCoins(amount){ if(S.coins < amount) return false; S.coins -= amount; saveState(); return true; }
+function logActivity(text){ S.activity.unshift({t:Date.now(), text}); S.activity = S.activity.slice(0,20); saveState(); }
+
+/* ============================================================
+   CROSSWORD PUZZLE DATA
+============================================================ */
+const PUZZLES = [
+  {
+    id:1, title:'مرحلة 1 - كلمات أساسية', difficulty:'easy', size:9, basePoints:100,
+    words:[
+      {word:'كتاب', clue:'وعاء المعرفة', direction:'across', row:0, col:0},
+      {word:'كاتب', clue:'مؤلف الكتب', direction:'down', row:0, col:0},
+      {word:'بحر', clue:'مساحة مائية كبيرة', direction:'down', row:0, col:3},
+      {word:'عسل', clue:'حلاوة النحل', direction:'down', row:0, col:5},
+      {word:'رمل', clue:'ما يغطي الصحراء', direction:'across', row:2, col:3},
+      {word:'علم', clue:'نقيض الجهل', direction:'across', row:4, col:1},
+      {word:'ملعب', clue:'مكان اللعب', direction:'down', row:4, col:3},
+      {word:'سبع', clue:'رقم بين ستة وثمانية', direction:'across', row:6, col:1}
+    ]
+  },
+  {
+    id:2, title:'مرحلة 2 - المدرسة', difficulty:'medium', size:10, basePoints:180,
+    words:[
+      {word:'مدرسة', clue:'صرح التعليم', direction:'across', row:0, col:0},
+      {word:'مكتب', clue:'مكان العمل والدراسة', direction:'down', row:0, col:0},
+      {word:'تلميذ', clue:'طالب العلم', direction:'across', row:2, col:0},
+      {word:'معلم', clue:'من يعلّم', direction:'down', row:2, col:2},
+      {word:'ملعب', clue:'مكان اللعب', direction:'across', row:4, col:1},
+      {word:'بستان', clue:'حديقة الأشجار', direction:'down', row:4, col:4},
+      {word:'سترة', clue:'ما يستر', direction:'across', row:6, col:3},
+      {word:'قصة', clue:'حكاية مكتوبة', direction:'down', row:0, col:7},
+      {word:'بنين', clue:'جمع ابن', direction:'across', row:8, col:3}
+    ]
+  },
+  {
+    id:3, title:'مرحلة 3 - المعرفة', difficulty:'hard', size:10, basePoints:260,
+    words:[
+      {word:'فكر', clue:'استخدام العقل', direction:'down', row:0, col:0},
+      {word:'رسم', clue:'إنتاج صورة بالقلم', direction:'across', row:2, col:0},
+      {word:'أمة', clue:'جماعة من الناس', direction:'down', row:1, col:2},
+      {word:'قلم', clue:'أداة الكتابة', direction:'down', row:0, col:4},
+      {word:'مدرسة', clue:'صرح التعليم', direction:'across', row:2, col:4},
+      {word:'راية', clue:'علم الوطن', direction:'down', row:2, col:6},
+      {word:'قلب', clue:'عضو النبض', direction:'across', row:5, col:0},
+      {word:'بأس', clue:'القوة والشدّة', direction:'down', row:5, col:2},
+      {word:'ساعة', clue:'أداة قياس الزمن', direction:'across', row:7, col:2},
+      {word:'سنة', clue:'اثنا عشر شهراً', direction:'down', row:4, col:8}
+    ]
+  },
+  {
+    id:4, title:'مرحلة 4 - الطبيعة', difficulty:'medium', size:10, basePoints:200,
+    words:[
+      {word:'شمس', clue:'نجمة النهار', direction:'across', row:0, col:0},
+      {word:'سماء', clue:'ما فوقنا', direction:'down', row:0, col:2},
+      {word:'نار', clue:'ضد الماء، حارة', direction:'across', row:2, col:1},
+      {word:'رعد', clue:'صوت العاصفة', direction:'down', row:2, col:3},
+      {word:'درس', clue:'ما يُتعلم', direction:'across', row:4, col:3},
+      {word:'سفر', clue:'الانتقال من مكان لآخر', direction:'down', row:4, col:5},
+      {word:'مطر', clue:'ماء من السماء', direction:'across', row:6, col:3},
+      {word:'قمر', clue:'نجم الليل', direction:'down', row:0, col:8},
+      {word:'صخر', clue:'الحجر الصلب', direction:'across', row:2, col:6},
+      {word:'طين', clue:'الطين والتراب', direction:'down', row:6, col:4},
+      {word:'جبل', clue:'مرتفع شاهق', direction:'across', row:4, col:7},
+      {word:'بحر', clue:'مساحة مائية كبيرة', direction:'down', row:4, col:8}
+    ]
+  },
+  {
+    id:5, title:'مرحلة 5 - الأخلاق', difficulty:'hard', size:10, basePoints:280,
+    words:[
+      {word:'صدق', clue:'قول الحق', direction:'across', row:0, col:0},
+      {word:'قسم', clue:'عهد مؤكد', direction:'down', row:0, col:2},
+      {word:'صبر', clue:'التحمّل', direction:'down', row:0, col:0},
+      {word:'رحمة', clue:'الرأفة بالخلق', direction:'across', row:2, col:0},
+      {word:'كرم', clue:'بذل العطاء', direction:'down', row:4, col:2},
+      {word:'ملك', clue:'الحاكم', direction:'across', row:4, col:0},
+      {word:'ملح', clue:'ما يُطيب الطعام', direction:'across', row:6, col:2},
+      {word:'حلم', clue:'ضد الطيش', direction:'down', row:6, col:4},
+      {word:'كمال', clue:'التمام والكمال', direction:'across', row:8, col:3},
+      {word:'فضل', clue:'العطاء الزائد', direction:'down', row:6, col:6},
+      {word:'فلاح', clue:'الفوز والنجاح', direction:'across', row:6, col:6},
+      {word:'عدل', clue:'إعطاء الحق', direction:'down', row:0, col:5}
+    ]
+  }
+];
+
+/* ============================================================
+   CROSSWORD ENGINE
+============================================================ */
+let cwState = null;
+
+function buildPuzzle(puzzle){
+  const size = puzzle.size;
+  const grid = Array.from({length:size},()=>Array.from({length:size},()=>null));
+  // Place letters
+  puzzle.words.forEach((w, idx) => {
+    for(let i=0;i<w.word.length;i++){
+      const r = w.direction==='across' ? w.row : w.row+i;
+      const c = w.direction==='across' ? w.col+i : w.col;
+      if(r>=size||c>=size) continue;
+      if(!grid[r][c]) grid[r][c] = {letter:w.word[i], num:0, across:null, down:null, user:'', revealed:false};
+      else if(normalize(grid[r][c].letter) !== normalize(w.word[i])) console.warn('Conflict at',r,c,grid[r][c].letter,'vs',w.word[i]);
+    }
+  });
+  // Assign word indices
+  puzzle.words.forEach((w, idx) => {
+    for(let i=0;i<w.word.length;i++){
+      const r = w.direction==='across' ? w.row : w.row+i;
+      const c = w.direction==='across' ? w.col+i : w.col;
+      if(grid[r] && grid[r][c]){
+        if(w.direction==='across') grid[r][c].across = idx;
+        else grid[r][c].down = idx;
+      }
+    }
+  });
+  // Auto-number: only cells that start a DEFINED word get a number
+  const wordStarts = {};
+  puzzle.words.forEach(w => { wordStarts[w.row+','+w.col] = true; });
+  let num = 0;
+  for(let r=0;r<size;r++){
+    for(let c=0;c<size;c++){
+      const cell = grid[r][c];
+      if(!cell) continue;
+      if(wordStarts[r+','+c]){
+        num++;
+        cell.num = num;
+        puzzle.words.forEach((w) => { if(w.row===r && w.col===c) w.number = num; });
+      }
+    }
+  }
+  return {puzzle, grid, size, selected:null, direction:'across', startTime:Date.now(), hintsUsed:0, solved:false, timerInterval:null};
+}
+
+function renderCrossword(){
+  const {grid, size, puzzle} = cwState;
+  const gridEl = document.getElementById('cwGrid');
+  gridEl.style.gridTemplateColumns = 'repeat('+size+', 34px)';
+  gridEl.innerHTML = '';
+  for(let r=0;r<size;r++){
+    for(let c=0;c<size;c++){
+      const cell = grid[r][c];
+      const div = document.createElement('div');
+      div.className = 'cw-cell' + (!cell ? ' block' : '');
+      div.dataset.r = r; div.dataset.c = c;
+      if(cell){
+        if(cell.num) { const n = document.createElement('span'); n.className='num'; n.textContent=cell.num; div.appendChild(n); }
+        const letter = document.createElement('span');
+        letter.textContent = cell.user;
+        letter.className = 'letter';
+        div.appendChild(letter);
+        div.addEventListener('click', ()=>selectCell(r,c));
+      }
+      gridEl.appendChild(div);
+    }
+  }
+  document.getElementById('cwTitle').textContent = puzzle.title;
+  renderClues();
+  updateCwStats();
+}
+
+function renderClues(){
+  const {puzzle} = cwState;
+  const across = document.getElementById('cwAcross');
+  const down = document.getElementById('cwDown');
+  across.innerHTML = ''; down.innerHTML = '';
+  puzzle.words.forEach((w, idx) => {
+    const item = document.createElement('div');
+    item.className = 'cw-clue-item';
+    if(isWordSolved(idx)) item.classList.add('solved');
+    if(cwState.selected && cwState.selected.wordIdx === idx) item.classList.add('active');
+    item.innerHTML = '<span class="n">'+(w.number||'')+'</span><span>'+w.clue+'</span>';
+    item.addEventListener('click', ()=>selectWord(idx));
+    (w.direction==='across'?across:down).appendChild(item);
+  });
+}
+
+function isWordSolved(idx){
+  const w = cwState.puzzle.words[idx];
+  for(let i=0;i<w.word.length;i++){
+    const r = w.direction==='across' ? w.row : w.row+i;
+    const c = w.direction==='across' ? w.col+i : w.col;
+    const cell = cwState.grid[r][c];
+    if(!cell || normalize(cell.user) !== normalize(w.word[i])) return false;
+  }
+  return true;
+}
+
+function normalize(ch){ return (ch||'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ؤ/g,'و').replace(/ئ/g,'ي').replace(/ة/g,'ه'); }
+
+function selectCell(r,c){
+  const cell = cwState.grid[r][c];
+  if(!cell) return;
+  if(cwState.selected && cwState.selected.r===r && cwState.selected.c===c && cell.across!==null && cell.down!==null){
+    cwState.direction = cwState.direction==='across' ? 'down' : 'across';
+    cwState.selected.wordIdx = cwState.direction==='across' ? cell.across : cell.down;
+  } else if(cell.across!==null && cell.down!==null){
+    if(!((cwState.direction==='across' && cell.across!==null) || (cwState.direction==='down' && cell.down!==null))){
+      cwState.direction = 'across';
+    }
+    cwState.selected = {r, c, wordIdx: cwState.direction==='across' ? cell.across : cell.down};
+  } else {
+    cwState.direction = cell.across!==null ? 'across' : 'down';
+    cwState.selected = {r, c, wordIdx: cell.across!==null ? cell.across : cell.down};
+  }
+  updateHighlight();
+  showKeyboard();
+}
+
+function selectWord(idx){
+  const w = cwState.puzzle.words[idx];
+  cwState.direction = w.direction;
+  cwState.selected = {r:w.row, c:w.col, wordIdx:idx};
+  updateHighlight();
+  showKeyboard();
+}
+
+function updateHighlight(){
+  document.querySelectorAll('.cw-cell').forEach(el=>{ el.classList.remove('selected','highlight'); });
+  if(!cwState.selected){ updateClueBar(); return; }
+  const w = cwState.puzzle.words[cwState.selected.wordIdx];
+  for(let i=0;i<w.word.length;i++){
+    const r = w.direction==='across' ? w.row : w.row+i;
+    const c = w.direction==='across' ? w.col+i : w.col;
+    const el = document.querySelector('.cw-cell[data-r="'+r+'"][data-c="'+c+'"]');
+    if(el) el.classList.add('highlight');
+  }
+  const selEl = document.querySelector('.cw-cell[data-r="'+cwState.selected.r+'"][data-c="'+cwState.selected.c+'"]');
+  if(selEl) selEl.classList.add('selected');
+  updateClueBar();
+  renderClues();
+}
+
+function updateClueBar(){
+  const bar = document.getElementById('cwClueBar');
+  if(!cwState.selected){ bar.innerHTML='<div class="clue-num">-</div><div class="clue-text">اختر خلية للبدء</div>'; return; }
+  const w = cwState.puzzle.words[cwState.selected.wordIdx];
+  bar.innerHTML = '<div class="clue-num">'+(w.number||'')+'</div><div class="clue-text"><div class="clue-dir">'+(w.direction==='across'?'↔ أفقي':'↕ عمودي')+'</div>'+w.clue+'</div>';
+}
+
+function moveCursor(delta){
+  if(!cwState.selected) return;
+  const w = cwState.puzzle.words[cwState.selected.wordIdx];
+  let {r,c} = cwState.selected;
+  let idx = w.direction==='across' ? c - w.col : r - w.row;
+  idx += delta;
+  if(idx < 0 || idx >= w.word.length) return;
+  r = w.direction==='across' ? w.row : w.row + idx;
+  c = w.direction==='across' ? w.col + idx : w.col;
+  cwState.selected = {r, c, wordIdx: cwState.selected.wordIdx};
+  updateHighlight();
+}
+
+function inputLetter(ch){
+  if(!cwState.selected) return;
+  const {r,c} = cwState.selected;
+  const cell = cwState.grid[r][c];
+  if(!cell) return;
+  cell.user = ch;
+  cell.revealed = false;
+  const el = document.querySelector('.cw-cell[data-r="'+r+'"][data-c="'+c+'"] .letter');
+  if(el) el.textContent = ch;
+  moveCursor(1);
+  updateCwStats();
+  checkAutoWin();
+}
+
+function deleteLetter(){
+  if(!cwState.selected) return;
+  const {r,c} = cwState.selected;
+  const cell = cwState.grid[r][c];
+  if(!cell) return;
+  if(cell.user){
+    cell.user = '';
+    const el = document.querySelector('.cw-cell[data-r="'+r+'"][data-c="'+c+'"] .letter');
+    if(el) el.textContent = '';
+  } else {
+    moveCursor(-1);
+    const {r:r2,c:c2} = cwState.selected;
+    const cell2 = cwState.grid[r2][c2];
+    if(cell2){ cell2.user=''; const el = document.querySelector('.cw-cell[data-r="'+r2+'"][data-c="'+c2+'"] .letter'); if(el) el.textContent=''; }
+  }
+  updateCwStats();
+}
+
+function checkPuzzle(){
+  if(!cwState) return;
+  let allCorrect = true, anyFilled = false;
+  document.querySelectorAll('.cw-cell').forEach(el=>el.classList.remove('correct','incorrect'));
+  for(let r=0;r<cwState.size;r++){
+    for(let c=0;c<cwState.size;c++){
+      const cell = cwState.grid[r][c];
+      if(!cell) continue;
+      const el = document.querySelector('.cw-cell[data-r="'+r+'"][data-c="'+c+'"]');
+      if(!el) continue;
+      if(cell.user){
+        anyFilled = true;
+        if(normalize(cell.user) === normalize(cell.letter)){ el.classList.add('correct'); }
+        else { el.classList.add('incorrect'); allCorrect = false; }
+      } else { allCorrect = false; }
+    }
+  }
+  if(!anyFilled){ toast('لم تدخل أي حرف بعد','error'); return; }
+  if(allCorrect){ onPuzzleSolved(); }
+  else { toast('بعض الحروف غير صحيحة','error'); setTimeout(()=>document.querySelectorAll('.cw-cell').forEach(el=>el.classList.remove('correct','incorrect')),2000); }
+}
+
+function checkAutoWin(){
+  for(let r=0;r<cwState.size;r++){
+    for(let c=0;c<cwState.size;c++){
+      const cell = cwState.grid[r][c];
+      if(!cell) continue;
+      if(!cell.user || normalize(cell.user) !== normalize(cell.letter)) return;
+    }
+  }
+  onPuzzleSolved();
+}
+
+function useHint(){
+  if(!cwState || !cwState.selected){ toast('اختر خلية أولاً','error'); return; }
+  if(!spendCoins(10)){ toast('عملات غير كافية','error'); return; }
+  const {r,c} = cwState.selected;
+  const cell = cwState.grid[r][c];
+  if(cell){
+    cell.user = cell.letter; cell.revealed = true;
+    const el = document.querySelector('.cw-cell[data-r="'+r+'"][data-c="'+c+'"] .letter');
+    if(el) el.textContent = cell.letter;
+    cwState.hintsUsed++;
+    document.getElementById('cwHints').textContent = cwState.hintsUsed;
+    moveCursor(1);
+    logActivity('استخدمت تلميحاً');
+    checkAutoWin();
+  }
+}
+
+function revealWord(){
+  if(!cwState || !cwState.selected){ toast('اختر كلمة أولاً','error'); return; }
+  if(!spendCoins(30)){ toast('عملات غير كافية','error'); return; }
+  const w = cwState.puzzle.words[cwState.selected.wordIdx];
+  for(let i=0;i<w.word.length;i++){
+    const r = w.direction==='across' ? w.row : w.row+i;
+    const c = w.direction==='across' ? w.col+i : w.col;
+    const cell = cwState.grid[r][c];
+    if(cell){ cell.user = w.word[i]; cell.revealed = true; const el = document.querySelector('.cw-cell[data-r="'+r+'"][data-c="'+c+'"] .letter'); if(el) el.textContent = w.word[i]; }
+  }
+  cwState.hintsUsed += 2;
+  document.getElementById('cwHints').textContent = cwState.hintsUsed;
+  logActivity('كشفت كلمة كاملة');
+  updateCwStats();
+  checkAutoWin();
+}
+
+function resetPuzzle(){
+  if(!cwState) return;
+  if(!confirm('إعادة تعيين اللغز؟ سيتم مسح كل إجاباتك.')) return;
+  for(let r=0;r<cwState.size;r++){
+    for(let c=0;c<cwState.size;c++){
+      const cell = cwState.grid[r][c];
+      if(cell){ cell.user=''; cell.revealed=false; }
+    }
+  }
+  document.querySelectorAll('.cw-cell').forEach(el=>{ el.classList.remove('correct','incorrect'); const l=el.querySelector('.letter'); if(l) l.textContent=''; });
+  cwState.hintsUsed = 0;
+  document.getElementById('cwHints').textContent = 0;
+  updateCwStats();
+  toast('تمت الإعادة','success');
+}
+
+function updateCwStats(){
+  const {puzzle} = cwState;
+  let solved = 0;
+  puzzle.words.forEach((w, idx) => { if(isWordSolved(idx)) solved++; });
+  document.getElementById('cwSolved').textContent = solved+'/'+puzzle.words.length;
+}
+
+function onPuzzleSolved(){
+  if(cwState.solved) return;
+  cwState.solved = true;
+  clearInterval(cwState.timerInterval);
+  hideKeyboard();
+  const seconds = Math.floor((Date.now() - cwState.startTime)/1000);
+  const puzzle = cwState.puzzle;
+  const base = puzzle.basePoints;
+  const timeBonus = Math.max(0, 120 - seconds) * 2;
+  const hintPenalty = cwState.hintsUsed * 15;
+  const total = Math.max(50, base + timeBonus - hintPenalty);
+  const isDaily = cwState.isDaily;
+  const coinsEarned = Math.floor((10 + (puzzle.difficulty==='hard'?50:puzzle.difficulty==='medium'?30:15)) * (isDaily?2:1));
+  const xpEarned = Math.floor((20 + (puzzle.difficulty==='hard'?100:puzzle.difficulty==='medium'?60:30)) * (isDaily?1.5:1));
+  if(!S.puzzlesSolved.includes(puzzle.id)) S.puzzlesSolved.push(puzzle.id);
+  if(!S.bestTimes[puzzle.id] || seconds < S.bestTimes[puzzle.id]) S.bestTimes[puzzle.id] = seconds;
+  addCoins(coinsEarned);
+  addXp(xpEarned);
+  logActivity((isDaily?'أنهيت تحدّي اليوم: ':'أنهيت ')+puzzle.title);
+  if(isDaily) updateStreak();
+  // Check no-hint badge
+  if(cwState.hintsUsed === 0 && !S.badges.includes(8)){ S.badges.push(8); saveState(); if(S.settings.achievements) toast('🏅 وسام جديد: بدون تلميحات','success'); }
+  document.getElementById('successTitle').textContent = isDaily ? '🏆 تحدّي اليوم مكتمل!' : '🎉 أحسنت!';
+  document.getElementById('successMsg').textContent = isDaily ? 'مكافآت مضاعفة لك!' : 'لقد أكملت اللغز بنجاح';
+  document.getElementById('successPoints').textContent = total;
+  document.getElementById('spBase').textContent = base;
+  document.getElementById('spTime').textContent = '+'+timeBonus;
+  document.getElementById('spHint').textContent = '-'+hintPenalty;
+  document.getElementById('spCoins').textContent = '+'+coinsEarned+' 🪙';
+  document.getElementById('spXp').textContent = '+'+xpEarned+' ⭐';
+  document.getElementById('successOverlay').classList.add('show');
+  fireConfetti();
+  checkBadges();
+  refreshUI();
+}
+
+function fireConfetti(){
+  const colors = ['#9333EA','#2563EB','#F59E0B','#22C55E','#EF4444'];
+  for(let i=0;i<40;i++){
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random()*100+'%';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDelay = Math.random()+'s';
+    c.style.animationDuration = (2+Math.random()*2)+'s';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 4000);
+  }
+}
+
+function closeSuccess(){
+  document.getElementById('successOverlay').classList.remove('show');
+  exitCrossword();
+}
+
+function exitCrossword(){
+  if(cwState && cwState.timerInterval) clearInterval(cwState.timerInterval);
+  cwState = null;
+  hideKeyboard();
+  navTo('game');
+}
+
+function startPuzzle(puzzleId, isDaily){
+  const puzzle = PUZZLES.find(p=>p.id===puzzleId);
+  if(!puzzle) return;
+  cwState = buildPuzzle(JSON.parse(JSON.stringify(puzzle)));
+  cwState.isDaily = !!isDaily;
+  navTo('crossword');
+  renderCrossword();
+  cwState.timerInterval = setInterval(()=>{
+    const s = Math.floor((Date.now() - cwState.startTime)/1000);
+    const mm = String(Math.floor(s/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    document.getElementById('cwTimer').textContent = mm+':'+ss;
+  }, 500);
+  setTimeout(()=>{ if(cwState && cwState.puzzle.words[0]) selectWord(0); }, 200);
+}
+
+/* ============================================================
+   ON-SCREEN KEYBOARD
+============================================================ */
+const ARABIC_KEYS = [
+  ['ض','ص','ث','ق','ف','غ','ع','ه','خ','ح','ج'],
+  ['ش','س','ي','ب','ل','ا','ت','ن','م','ك'],
+  ['ئ','ء','ؤ','ر','ى','ة','و','ز','ظ']
+];
+function buildKeyboard(){
+  const osk = document.getElementById('osk');
+  osk.innerHTML = '';
+  ARABIC_KEYS.forEach(row=>{
+    const r = document.createElement('div'); r.className='osk-row';
+    row.forEach(k=>{ const b=document.createElement('button'); b.className='osk-key'; b.textContent=k; b.onclick=()=>inputLetter(k); r.appendChild(b); });
+    osk.appendChild(r);
+  });
+  const r = document.createElement('div'); r.className='osk-row';
+  const bk = document.createElement('button'); bk.className='osk-key special'; bk.textContent='⌫ حذف'; bk.onclick=deleteLetter; r.appendChild(bk);
+  const dir = document.createElement('button'); dir.className='osk-key special'; dir.textContent=(cwState&&cwState.direction==='down')?'↕ عمودي':'↔ أفقي';
+    dir.onclick=()=>{ if(cwState&&cwState.selected){ const cell=cwState.grid[cwState.selected.r][cwState.selected.c]; if(cell&&cell.across!==null&&cell.down!==null){ cwState.direction=cwState.direction==='across'?'down':'across'; cwState.selected.wordIdx=cwState.direction==='across'?cell.across:cell.down; updateHighlight(); buildKeyboard(); } } };
+    r.appendChild(dir);
+  const ck = document.createElement('button'); ck.className='osk-key special'; ck.textContent='✓ تحقق'; ck.onclick=checkPuzzle; r.appendChild(ck);
+  osk.appendChild(r);
+}
+function showKeyboard(){ document.body.classList.add('osk-open'); document.getElementById('osk').classList.add('show'); buildKeyboard(); }
+function hideKeyboard(){ document.body.classList.remove('osk-open'); document.getElementById('osk').classList.remove('show'); }
+
+document.addEventListener('keydown', e => {
+  if(!cwState || !document.getElementById('screen-crossword').classList.contains('active')) return;
+  if(e.key === 'Backspace'){ e.preventDefault(); deleteLetter(); }
+  else if(e.key === 'ArrowLeft'){ e.preventDefault(); if(cwState.direction==='across') moveCursor(-1); }
+  else if(e.key === 'ArrowRight'){ e.preventDefault(); if(cwState.direction==='across') moveCursor(1); }
+  else if(e.key === 'ArrowUp'){ e.preventDefault(); if(cwState.direction==='down') moveCursor(-1); }
+  else if(e.key === 'ArrowDown'){ e.preventDefault(); if(cwState.direction==='down') moveCursor(1); }
+  else if(e.key.length===1 && /[\u0600-\u06FF]/.test(e.key)){ inputLetter(e.key); }
+});
+
+/* ============================================================
+   DAILY CHALLENGE
+============================================================ */
+function todayKey(){ const d = new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function getDailyPuzzleId(){
+  const seed = Math.floor(Date.now()/(1000*60*60*24));
+  return PUZZLES[seed % PUZZLES.length].id;
+}
+function updateStreak(){
+  const today = todayKey();
+  if(S.lastDailyDate === today) return;
+  const y = new Date(Date.now()-86400000);
+  const yKey = y.getFullYear()+'-'+(y.getMonth()+1)+'-'+y.getDate();
+  if(S.lastDailyDate === yKey){ S.streak += 1; }
+  else { S.streak = 1; }
+  S.lastDailyDate = today;
+  S.dailyHistory.push(today);
+  saveState();
+  checkBadges();
+}
+function canPlayDaily(){ return S.lastDailyDate !== todayKey(); }
+function startDaily(){
+  if(!canPlayDaily()){ toast('لقد أكملت تحدّي اليوم بالفعل! عُد غداً','error'); return; }
+  startPuzzle(getDailyPuzzleId(), true);
+}
+function updateDailyCountdown(){
+  const now = new Date();
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1);
+  const diff = tomorrow - now;
+  const h = String(Math.floor(diff/3600000)).padStart(2,'0');
+  const m = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+  const s = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+  const el = document.getElementById('dailyCountdown');
+  if(el) el.textContent = 'الوقت المتبقي: '+h+':'+m+':'+s;
+  const sb = document.getElementById('dailyStreak');
+  if(sb) sb.textContent = '🔥 '+S.streak+' يوم متتالي';
+  const btn = document.getElementById('dailyStartBtn');
+  if(btn){ btn.textContent = canPlayDaily() ? 'ابدأ تحدّي اليوم 🎯' : 'أكملت تحدّي اليوم ✓'; btn.disabled = !canPlayDaily(); }
+}
+
+/* ============================================================
+   BADGES
+============================================================ */
+const BADGES = [
+  {id:1, name:'أول خطوة', icon:'👣', desc:'أكمل أول لغز', check:()=>S.puzzlesSolved.length>=1},
+  {id:2, name:'قارئ جديد', icon:'📖', desc:'اقرأ أول فصل', check:()=>Object.keys(S.readingProgress).length>=1},
+  {id:3, name:'متحدي اليومي', icon:'🎯', desc:'أكمل تحدّي اليوم', check:()=>S.dailyHistory.length>=1},
+  {id:4, name:'سلسلة 7 أيام', icon:'🔥', desc:'7 أيام متتالية', check:()=>S.streak>=7},
+  {id:5, name:'محقق الكلمات', icon:'🔍', desc:'حل 10 ألغاز', check:()=>S.puzzlesSolved.length>=10},
+  {id:6, name:'قارئ نهم', icon:'📚', desc:'اقرأ 5 كتب', check:()=>S.booksRead.length>=5},
+  {id:7, name:'سريع البديهة', icon:'⚡', desc:'حل لغزاً في أقل من دقيقتين', check:()=>Object.values(S.bestTimes).some(t=>t<120)},
+  {id:8, name:'بدون تلميحات', icon:'🧠', desc:'حل لغزاً بدون تلميحات', check:()=>S.badges.includes(8)},
+  {id:9, name:'خبير المتقاطعة', icon:'🏆', desc:'أكمل كل المراحل', check:()=>PUZZLES.every(p=>S.puzzlesSolved.includes(p.id))},
+  {id:10, name:'عاشق المعرفة', icon:'💎', desc:'100 XP مكتسبة', check:()=>S.xp>=100},
+  {id:11, name:'منافس', icon:'🥇', desc:'وصلت لأعلى 10', check:()=>S.badges.includes(11)},
+  {id:12, name:'مثابر', icon:'🌟', desc:'30 يوم متتالي', check:()=>S.streak>=30},
+  {id:13, name:'ملك الكلمات', icon:'👑', desc:'اجمع 1000 عملة', check:()=>S.coins>=1000},
+  {id:14, name:'شارك المعرفة', icon:'📤', desc:'ادعُ صديقاً', check:()=>S.badges.includes(14)},
+  {id:15, name:'الإتقان', icon:'🎓', desc:'أكمل كتاباً', check:()=>S.booksRead.length>=1}
+];
+function checkBadges(){
+  BADGES.forEach(b=>{
+    if(!S.badges.includes(b.id) && b.check()){
+      S.badges.push(b.id);
+      saveState();
+      if(S.settings.achievements){ toast('🏅 وسام جديد: '+b.name,'success'); }
+      logActivity('حصلت على وسام: '+b.name);
+    }
+  });
+}
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+function navTo(screen){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById('screen-'+screen);
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.screen===screen));
+  hideKeyboard();
+  window.scrollTo(0,0);
+  if(screen==='home') renderHome();
+  if(screen==='library') renderLibrary();
+  if(screen==='game') renderGameList();
+  if(screen==='leaderboard') renderLeaderboard();
+  if(screen==='profile') renderProfile();
+  if(screen==='settings') renderSettings();
+  if(screen==='daily') updateDailyCountdown();
+}
+
+/* ============================================================
+   API CLIENT
+============================================================ */
+async function api(path, opts){
+  try{
+    const res = await fetch(API+path, Object.assign({headers:{'Content-Type':'application/json'}}, opts));
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    return await res.json();
+  }catch(e){ console.warn('API error', path, e); return null; }
+}
+let booksCache = null;
+async function loadBooks(){
+  if(booksCache) return booksCache;
+  const data = await api('/api/books?limit=50');
+  booksCache = (data && (data.books || data)) || [];
+  return booksCache;
+}
+
+/* ============================================================
+   HOME RENDER
+============================================================ */
+async function renderHome(){
+  const hour = new Date().getHours();
+  const greet = hour<12?'صباح الخير':'مساء الخير';
+  document.getElementById('greetUser').textContent = greet+'، '+(S.user.name||'صديقي')+'!';
+  document.getElementById('homeStreak').textContent = '🔥 '+S.streak+' يوم';
+  const books = await loadBooks();
+  const recEl = document.getElementById('homeRecommend');
+  recEl.innerHTML = '';
+  const list = books.length ? books : fallbackBooks();
+  list.slice(0,8).forEach(b=>{
+    const card = document.createElement('div');
+    card.style.flex='0 0 130px';
+    card.innerHTML = '<div class="card" style="padding:8px;margin:0;cursor:pointer" onclick="openBook('+b.id+')"><div style="width:100%;aspect-ratio:3/4;border-radius:8px;background:linear-gradient(135deg,#9333EA,#2563EB);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-head);font-weight:900;font-size:24px;margin-bottom:6px">'+(b.title||'ك').charAt(0)+'</div><h4 style="font-size:12px;line-height:1.3;height:32px;overflow:hidden">'+(b.title||'عنوان')+'</h4><p class="text-muted" style="font-size:10px;margin-top:2px">'+(b.author||'')+'</p></div>';
+    recEl.appendChild(card);
+  });
+  if(recEl.children.length===0) recEl.innerHTML = '<div class="text-muted text-sm">تعذّر تحميل الكتب</div>';
+  const lvlEl = document.getElementById('homeLevels');
+  lvlEl.innerHTML = '';
+  PUZZLES.slice(0,3).forEach(p=>{
+    const solved = S.puzzlesSolved.includes(p.id);
+    const item = document.createElement('div');
+    item.className='row';
+    item.onclick = ()=>startPuzzle(p.id);
+    item.innerHTML = '<div class="row-ico">'+(solved?'✓':'🧩')+'</div><div class="row-main"><h4>'+p.title+'</h4><p>'+p.words.length+' كلمات • '+(p.difficulty==='easy'?'سهل':p.difficulty==='medium'?'متوسط':'صعب')+'</p></div><div class="row-action">‹</div>';
+    lvlEl.appendChild(item);
+  });
+  const rEl = document.getElementById('homeReadingList');
+  rEl.innerHTML = '';
+  const reading = Object.keys(S.readingProgress).map(id=>parseInt(id));
+  if(reading.length===0){ rEl.innerHTML = '<div class="text-muted text-sm py-8">لا توجد كتب قيد القراءة</div>'; }
+  else {
+    reading.slice(0,3).forEach(id=>{
+      const b = list.find(x=>x.id===id);
+      if(b){
+        const prog = S.readingProgress[id]||{};
+        const pct = prog.chapter?Math.min(100,prog.chapter*20):0;
+        rEl.innerHTML += '<div class="book-row" onclick="openBook('+b.id+')"><div class="book-cover" style="background:linear-gradient(135deg,#9333EA,#2563EB);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:20px">'+(b.title||'ك').charAt(0)+'</div><div class="book-meta"><h4>'+(b.title||'')+'</h4><div class="author">'+(b.author||'')+'</div><div class="progress"><span style="width:'+pct+'%"></span></div></div></div>';
+      }
+    });
+  }
+}
+
+/* ============================================================
+   LIBRARY RENDER
+============================================================ */
+async function renderLibrary(){
+  const books = await loadBooks();
+  const list = books.length ? books : fallbackBooks();
+  const q = (document.getElementById('bookSearch').value || '').trim();
+  const filtered = q ? list.filter(b => (b.title||'').includes(q) || (b.author||'').includes(q)) : list;
+  const el = document.getElementById('libraryList');
+  el.innerHTML = '';
+  if(filtered.length===0){ el.innerHTML = '<div class="empty"><div class="ico">📚</div>لا توجد كتب</div>'; return; }
+  filtered.forEach(b=>{
+    const prog = S.readingProgress[b.id]||{};
+    const pct = prog.chapter?Math.min(100,prog.chapter*20):0;
+    const div = document.createElement('div');
+    div.className='book-row'; div.onclick=()=>openBook(b.id);
+    div.innerHTML = '<div class="book-cover" style="background:linear-gradient(135deg,#9333EA,#2563EB);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:22px">'+(b.title||'ك').charAt(0)+'</div><div class="book-meta"><h4>'+(b.title||'بدون عنوان')+'</h4><div class="author">'+(b.author||'غير معروف')+'</div><div class="tags"><span class="tag">'+(b.category||'عام')+'</span><span class="tag">'+(b.pages||'--')+' صفحة</span></div>'+(pct>0?'<div class="progress"><span style="width:'+pct+'%"></span></div>':'')+'</div>';
+    el.appendChild(div);
+  });
+}
+
+function fallbackBooks(){
+  return [
+    {id:1,title:'مقدمة ابن خلدون',author:'ابن خلدون',category:'تاريخ',pages:320},
+    {id:2,title:'الأيام',author:'طه حسين',category:'أدب',pages:240},
+    {id:3,title:'الرسالة',author:'ابن زيدون',category:'شعر',pages:180},
+    {id:4,title:'كليلة ودمنة',author:'ابن المقفع',category:'أدب',pages:200},
+    {id:5,title:'البخلاء',author:'الجاحظ',category:'أدب',pages:260}
+  ];
+}
+
+/* ============================================================
+   BOOK READER
+============================================================ */
+async function openBook(id){
+  showModal('<div class="close-x" onclick="closeModal()">✕</div><h3>📖 جارٍ التحميل...</h3><div class="text-center"><div class="spinner" style="margin:20px auto"></div></div>');
+  const [book, chapters] = await Promise.all([api('/api/books/'+id), api('/api/books/'+id+'/chapters')]);
+  const b = book || fallbackBooks().find(x=>x.id===id) || {title:'كتاب'};
+  const chs = (chapters && (chapters.chapters || chapters)) || [{order:1, title:'الفصل الأول', content:'محتوى الفصل غير متاح حالياً. يرجى المحاولة لاحقاً.'}];
+  const prog = S.readingProgress[id] || {chapter:1};
+  const ch = chs.find(c=>c.order===prog.chapter) || chs[0];
+  showModal('<div class="close-x" onclick="closeModal()">✕</div><h3 style="text-align:right">'+(b.title||'كتاب')+'</h3><p class="text-muted text-sm" style="text-align:right;margin-bottom:14px">'+(b.author||'')+' • '+chs.length+' فصل</p><div class="reader"><h2>'+(ch.title||'الفصل '+ch.order)+'</h2><p>'+(ch.content||'').replace(/\n/g,'</p><p>')+'</p></div><div class="flex between gap-8 mt-12"><button class="btn sm" onclick="prevChapter('+id+')">‹ السابق</button><button class="btn primary sm" onclick="saveReading('+id+', '+ch.order+', '+chs.length+')">حفظ التقدّم</button><button class="btn sm" onclick="nextChapter('+id+', '+ch.order+', '+chs.length+')">التالي ›</button></div>');
+}
+async function nextChapter(id, order, total){
+  if(order>=total){ toast('وصلت لآخر فصل'); if(!S.booksRead.includes(id)){ S.booksRead.push(id); saveState(); logActivity('أكملت قراءة كتاب'); checkBadges(); } return; }
+  S.readingProgress[id] = {chapter: order+1}; saveState();
+  openBook(id);
+}
+async function prevChapter(id){
+  const prog = S.readingProgress[id]||{chapter:1};
+  if(prog.chapter<=1){ toast('أنت في الفصل الأول'); return; }
+  S.readingProgress[id] = {chapter: prog.chapter-1}; saveState();
+  openBook(id);
+}
+function saveReading(id, order, total){
+  S.readingProgress[id] = {chapter: order}; saveState();
+  if(order===total && !S.booksRead.includes(id)){ S.booksRead.push(id); logActivity('أكملت قراءة كتاب'); checkBadges(); }
+  toast('تم حفظ التقدّم','success');
+  refreshUI();
+}
+
+/* ============================================================
+   GAME LIST
+============================================================ */
+function renderGameList(){
+  const el = document.getElementById('puzzleList');
+  el.innerHTML = '';
+  PUZZLES.forEach(p=>{
+    const solved = S.puzzlesSolved.includes(p.id);
+    const best = S.bestTimes[p.id];
+    const locked = p.id>1 && !S.puzzlesSolved.includes(p.id-1);
+    const item = document.createElement('div');
+    item.className='row'; item.style.opacity=locked?'.5':'1';
+    if(!locked) item.onclick = ()=>startPuzzle(p.id);
+    item.innerHTML = '<div class="row-ico" style="background:'+(solved?'rgba(34,197,94,.2)':'var(--card-2)')+'">'+(solved?'✓':locked?'🔒':'🧩')+'</div><div class="row-main"><h4>'+p.title+'</h4><p>'+p.words.length+' كلمات • '+(p.difficulty==='easy'?'سهل':p.difficulty==='medium'?'متوسط':'صعب')+(best?' • أفضل وقت: '+Math.floor(best/60)+':'+String(best%60).padStart(2,'0'):'')+'</p></div><div class="row-action">'+(locked?'🔒':'‹')+'</div>';
+    el.appendChild(item);
+  });
+  const daily = document.createElement('div');
+  daily.className='card mt-12';
+  daily.style.background='linear-gradient(135deg,rgba(245,158,11,.15),var(--card))';
+  daily.style.cursor='pointer';
+  daily.onclick = ()=>navTo('daily');
+  daily.innerHTML = '<div class="flex between center"><div><h4 style="color:var(--accent)">🎯 تحدّي اليوم</h4><p class="text-muted text-sm">مكافآت مضاعفة - سلسلة '+S.streak+' يوم</p></div><div class="row-action">‹</div></div>';
+  el.appendChild(daily);
+}
+
+/* ============================================================
+   LEADERBOARD
+============================================================ */
+let lbTab = 'weekly';
+function setLbTab(tab, el){
+  lbTab = tab;
+  document.querySelectorAll('.lb-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderLeaderboard();
+}
+async function renderLeaderboard(){
+  const data = await api('/api/leaderboard?period='+lbTab);
+  const list = (data && (data.leaderboard || data)) || mockLeaderboard();
+  const el = document.getElementById('leaderboardList');
+  el.innerHTML = '';
+  list.slice(0,20).forEach((u,i)=>{
+    const div = document.createElement('div');
+    div.className = 'lb-item';
+    const rankCls = i===0?'r1':i===1?'r2':i===2?'r3':'';
+    div.innerHTML = '<div class="lb-rank '+rankCls+'">'+(i+1)+'</div><div class="row-main"><h4>'+(u.name||u.username||'لاعب')+'</h4><p>'+(u.xp||0)+' XP • مستوى '+(u.level||1)+'</p></div>';
+    el.appendChild(div);
+  });
+  const myRank = list.length+1;
+  const div = document.createElement('div');
+  div.className='lb-item me';
+  div.innerHTML = '<div class="lb-rank">'+myRank+'</div><div class="row-main"><h4>'+S.user.name+' (أنت)</h4><p>'+S.xp+' XP • مستوى '+S.level+'</p></div><span class="text-primary text-sm fw-700">أنت</span>';
+  el.appendChild(div);
+}
+function mockLeaderboard(){
+  return [
+    {name:'نورا أحمد', xp:2840, level:5},
+    {name:'خالد العمري', xp:2210, level:5},
+    {name:'سارة محمد', xp:1980, level:4},
+    {name:'عبدالله فهد', xp:1750, level:4},
+    {name:'ليان خالد', xp:1620, level:4},
+    {name:'ماجد سعد', xp:1450, level:4},
+    {name:'ريم العتيبي', xp:1320, level:3},
+    {name:'فيصل ناصر', xp:1180, level:3},
+    {name:'هند علي', xp:980, level:3},
+    {name:'طارق يوسف', xp:760, level:2}
+  ];
+}
+
+/* ============================================================
+   PROFILE RENDER
+============================================================ */
+function renderProfile(){
+  const li = levelInfo(S.xp);
+  document.getElementById('profileAvatar').textContent = S.user.avatar || 'ع';
+  document.getElementById('profileName').textContent = S.user.name || 'زائر';
+  document.getElementById('profileLevelTitle').textContent = 'المستوى '+S.level+' - '+li.cur.title;
+  document.getElementById('profileLevelBar').style.width = li.progress+'%';
+  document.getElementById('profileLevelInfo').textContent = S.xp+' / '+li.next.xp+' XP ('+li.toNext+' للقادم)';
+  document.getElementById('statPuzzles').textContent = S.puzzlesSolved.length;
+  document.getElementById('statBooks').textContent = S.booksRead.length;
+  document.getElementById('statXp').textContent = S.xp;
+  document.getElementById('statCoins').textContent = S.coins;
+  document.getElementById('statStreak').textContent = S.streak;
+  document.getElementById('statBadges').textContent = S.badges.length+'/15';
+  document.getElementById('badgesCount').textContent = S.badges.length+'/15';
+  const bg = document.getElementById('badgesGrid');
+  bg.innerHTML = '';
+  BADGES.forEach(b=>{
+    const earned = S.badges.includes(b.id);
+    const d = document.createElement('div');
+    d.className = 'badge'+(earned?' earned':'');
+    d.innerHTML = '<div class="b-ico">'+b.icon+'</div><div class="b-name">'+b.name+'</div>';
+    d.title = b.desc + (earned?' ✓':' 🔒');
+    d.onclick = ()=>toast(b.name+': '+b.desc+(earned?' ✓':' 🔒'));
+    bg.appendChild(d);
+  });
+  const al = document.getElementById('activityLog');
+  al.innerHTML = '';
+  if(S.activity.length===0){ al.innerHTML = '<div class="text-muted text-sm py-8">لا يوجد نشاط بعد</div>'; }
+  else {
+    S.activity.slice(0,10).forEach(a=>{
+      const d = new Date(a.t);
+      const time = d.toLocaleDateString('ar')+' '+d.toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});
+      al.innerHTML += '<div class="row"><div class="row-ico" style="font-size:14px">•</div><div class="row-main"><h4 style="font-size:13px">'+a.text+'</h4><p>'+time+'</p></div></div>';
+    });
+  }
+}
+
+/* ============================================================
+   SETTINGS
+============================================================ */
+function renderSettings(){
+  document.getElementById('setName').value = S.user.name || '';
+  document.getElementById('setReminderTime').value = S.settings.reminderTime || '20:00';
+  document.getElementById('setDailyReminder').classList.toggle('on', S.settings.dailyReminder);
+  document.getElementById('setAchievements').classList.toggle('on', S.settings.achievements);
+  document.getElementById('setDark').classList.toggle('on', S.settings.dark);
+  document.getElementById('setFont').value = S.settings.fontSize;
+  setFontSize(S.settings.fontSize);
+  const ap = document.getElementById('avatarPicker');
+  ap.innerHTML = '';
+  const letters = ['ع','أ','م','س','ف','ر','ن','ل','ك','ت','ب','ح','ج','د','ز','و','ه','ي','ق','ص','ط','ظ','خ','غ'];
+  letters.forEach(L=>{
+    const o = document.createElement('div');
+    o.className = 'avatar-opt'+(S.user.avatar===L?' selected':'');
+    o.textContent = L; o.style.fontSize='18px';
+    o.style.aspectRatio='1'; o.style.borderRadius='8px';
+    o.style.background='linear-gradient(135deg,var(--primary),var(--secondary))';
+    o.style.display='flex'; o.style.alignItems='center'; o.style.justifyContent='center';
+    o.style.color='#fff'; o.style.fontFamily='var(--font-head)'; o.style.fontWeight='900';
+    o.style.cursor='pointer'; o.style.border='2px solid '+(S.user.avatar===L?'var(--accent)':'transparent');
+    o.onclick = ()=>{ S.user.avatar = L; saveState(); renderSettings(); refreshUI(); };
+    ap.appendChild(o);
+  });
+}
+function saveSettings(){
+  S.user.name = (document.getElementById('setName').value || '').slice(0,20) || 'زائر';
+  S.settings.reminderTime = document.getElementById('setReminderTime').value;
+  saveState(); refreshUI();
+}
+function toggleSetting(el, key){
+  S.settings[key] = !S.settings[key];
+  el.classList.toggle('on', S.settings[key]);
+  saveState();
+  toast(S.settings[key]?'تم التفعيل':'تم الإيقاف','success');
+}
+function toggleTheme(){
+  S.settings.dark = !S.settings.dark;
+  document.documentElement.setAttribute('data-theme', S.settings.dark?'dark':'light');
+  document.getElementById('setDark').classList.toggle('on', S.settings.dark);
+  saveState();
+}
+function setFontSize(v){
+  v = parseInt(v);
+  S.settings.fontSize = v;
+  const sizes = [0.9, 1, 1.15];
+  const labels = ['صغير','متوسط','كبير'];
+  document.documentElement.style.setProperty('--font-scale', sizes[v]);
+  const el = document.getElementById('fontVal');
+  if(el) el.textContent = labels[v];
+  saveState();
+}
+function deleteAccount(){
+  showConfirm('حذف الحساب؟', 'سيتم حذف كل بياناتك نهائياً. لا يمكن التراجع.', function(){
+    localStorage.removeItem(STORE_KEY);
+    S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    closeModal();
+    showOnboarding();
+    toast('تم حذف الحساب','success');
+  });
+}
+function clearCache(){ toast('تم مسح الذاكرة المؤقتة','success'); booksCache = null; }
+function downloadOffline(){ toast('قريباً - سيتم تفعيل هذه الميزة'); }
+function syncProgress(){ toast('تمت مزامنة تقدّمك','success'); }
+
+/* ============================================================
+   STORE
+============================================================ */
+function simulatePurchase(item){
+  toast('قريباً - سيتم تفعيل عمليات الشراء لاحقاً');
+  logActivity('محاولة شراء: '+item);
+}
+
+/* ============================================================
+   MODALS / TOAST
+============================================================ */
+function showModal(html){
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal(e){
+  if(e && e.target && e.target.id !== 'modalBg' && e.type==='click') return;
+  document.getElementById('modalBg').classList.remove('show');
+}
+function showConfirm(title, msg, onYes){
+  window._confirmYes = onYes;
+  showModal('<h3>'+title+'</h3><p class="text-muted text-center mb-12">'+msg+'</p><div class="flex gap-8"><button class="btn full" onclick="closeModal()">إلغاء</button><button class="btn danger full" onclick="window._confirmYes(); closeModal()">تأكيد</button></div>');
+}
+let toastTimer;
+function toast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type?' '+type:'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+/* ============================================================
+   ONBOARDING
+============================================================ */
+let onboardAvatar = 'ع';
+function showOnboarding(){
+  const letters = ['ع','أ','م','س','ف','ر','ن','ل','ك','ت','ب','ح'];
+  const ap = document.getElementById('onboardAvatars');
+  ap.innerHTML = '';
+  onboardAvatar = 'ع';
+  letters.forEach(L=>{
+    const o = document.createElement('div');
+    o.className = 'avatar-opt'+(L===onboardAvatar?' selected':'');
+    o.textContent = L;
+    o.onclick = ()=>{ onboardAvatar = L; ap.querySelectorAll('.avatar-opt').forEach(x=>x.classList.remove('selected')); o.classList.add('selected'); };
+    ap.appendChild(o);
+  });
+  document.getElementById('onboardName').value = '';
+  document.getElementById('onboardBg').classList.add('show');
+}
+function finishOnboarding(){
+  const name = (document.getElementById('onboardName').value || '').trim() || 'صديقي';
+  S.user.name = name;
+  S.user.avatar = onboardAvatar || 'ع';
+  saveState();
+  document.getElementById('onboardBg').classList.remove('show');
+  refreshUI();
+  navTo('home');
+  toast('أهلاً بك '+name+'! 🎉','success');
+}
+
+/* ============================================================
+   UI REFRESH
+============================================================ */
+function refreshUI(){
+  document.getElementById('coinsDisplay').textContent = S.coins;
+  document.getElementById('levelDisplay').textContent = S.level;
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+function init(){
+  document.documentElement.setAttribute('data-theme', S.settings.dark?'dark':'light');
+  document.documentElement.style.setProperty('--font-scale', [0.9,1,1.15][S.settings.fontSize]||1);
+  refreshUI();
+  const isFirstTime = !localStorage.getItem(STORE_KEY);
+  setTimeout(()=>{
+    document.getElementById('splash').classList.add('hide');
+    if(isFirstTime){ showOnboarding(); }
+    else { navTo('home'); }
+  }, 1200);
+  setInterval(updateDailyCountdown, 1000);
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+  document.getElementById('splash').addEventListener('click', ()=>{
+    document.getElementById('splash').classList.add('hide');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
