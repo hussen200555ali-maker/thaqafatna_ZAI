@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>ثقافتنا - الخريطة البصرية الشاملة</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Amiri:wght@700&display=swap');
+  @page { size: A4 landscape; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'Tajawal', sans-serif;
+    color: #1f2937;
+    background: #f3f4f6;
+    line-height: 1.6;
+  }
+  
+  .page {
+    width: 297mm;
+    min-height: 210mm;
+    padding: 15mm;
+    margin: 0 auto 20px;
+    background: white;
+    page-break-after: always;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  
+  /* Cover */
+  .cover {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 30%, #6366f1 70%, #8b5cf6 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .cover h1 {
+    font-family: 'Amiri', serif;
+    font-size: 56pt;
+    margin: 20px 0;
+    text-shadow: 0 4px 30px rgba(0,0,0,0.4);
+  }
+  
+  .cover .subtitle {
+    font-size: 22pt;
+    opacity: 0.95;
+    margin-bottom: 40px;
+  }
+  
+  .cover .icon { font-size: 100pt; }
+  
+  /* Typography */
+  h1 {
+    font-family: 'Amiri', serif;
+    font-size: 28pt;
+    color: #1e3a8a;
+    margin: 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #6366f1;
+  }
+  
+  h2 {
+    font-size: 18pt;
+    color: #4338ca;
+    margin: 20px 0 10px;
+  }
+  
+  h3 {
+    font-size: 13pt;
+    color: #7c3aed;
+    margin: 15px 0 8px;
+  }
+  
+  /* Cards */
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 10px 0;
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  
+  .card-blue { border-color: #3b82f6; background: #eff6ff; }
+  .card-green { border-color: #10b981; background: #ecfdf5; }
+  .card-amber { border-color: #f59e0b; background: #fffbeb; }
+  .card-purple { border-color: #8b5cf6; background: #f5f3ff; }
+  .card-rose { border-color: #f43f5e; background: #fff1f2; }
+  .card-teal { border-color: #14b8a6; background: #f0fdfa; }
+  
+  /* Screen mockups */
+  .screen-mockup {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 10px;
+    color: white;
+    font-size: 9pt;
+    margin: 10px 0;
+    border: 2px solid #475569;
+  }
+  
+  .screen-mockup .header {
+    background: linear-gradient(135deg, #1e3a8a, #6366f1);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .screen-mockup .content {
+    background: #0f172a;
+    padding: 10px;
+    border-radius: 8px;
+    min-height: 100px;
+  }
+  
+  .mockup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin: 10px 0;
+  }
+  
+  .mockup-card {
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid #6366f1;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    font-size: 9pt;
+  }
+  
+  .mockup-btn {
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: bold;
+    margin: 5px 0;
+    font-size: 9pt;
+  }
+  
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 9pt;
+  }
+  
+  th, td {
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    text-align: right;
+  }
+  
+  th {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    font-weight: 700;
+  }
+  
+  tr:nth-child(even) { background: #f9fafb; }
+  
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0;
+  }
+  
+  .flow-node {
+    background: white;
+    border: 2px solid #6366f1;
+    border-radius: 12px;
+    padding: 10px 15px;
+    font-size: 10pt;
+    text-align: center;
+    min-width: 100px;
+    position: relative;
+  }
+  
+  .flow-node.start { background: #d1fae5; border-color: #10b981; }
+  .flow-node.end { background: #fee2e2; border-color: #ef4444; }
+  .flow-node.decision { background: #fef3c7; border-color: #f59e0b; border-radius: 0; transform: rotate(45deg); padding: 15px; }
+  .flow-node.decision span { display: inline-block; transform: rotate(-45deg); }
+  
+  .flow-arrow {
+    color: #6366f1;
+    font-size: 20pt;
+    font-weight: bold;
+  }
+  
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 15px 0;
+  }
+  
+  .stat {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    padding: 15px 10px;
+    border-radius: 12px;
+    text-align: center;
+  }
+  
+  .stat .number { font-size: 20pt; font-weight: 900; display: block; }
+  .stat .label { font-size: 8pt; opacity: 0.9; }
+  
+  /* Architecture diagram */
+  .arch-layer {
+    background: white;
+    border: 2px solid #6366f1;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 10px 0;
+  }
+  
+  .arch-layer h3 {
+    margin-top: 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .arch-boxes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  
+  .arch-box {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border: 1px solid #3b82f6;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 9pt;
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+  }
+  
+  /* Persona */
+  .persona {
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border: 2px solid #0284c7;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 10px;
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .persona .avatar {
+    font-size: 30pt;
+    text-align: center;
+    margin-bottom: 5px;
+  }
+  
+  .persona h4 { color: #0c4a6e; text-align: center; }
+  .persona ul { font-size: 9pt; padding-right: 15px; }
+  
+  /* Journey */
+  .journey-stage {
+    background: white;
+    border: 2px solid;
+    border-radius: 12px;
+    padding: 12px;
+    margin: 8px 0;
+  }
+  
+  .journey-stage.discover { border-color: #3b82f6; background: #eff6ff; }
+  .journey-stage.try { border-color: #f59e0b; background: #fffbeb; }
+  .journey-stage.engage { border-color: #10b981; background: #ecfdf5; }
+  .journey-stage.advocate { border-color: #8b5cf6; background: #f5f3ff; }
+  
+  .stage-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  
+  .stage-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16pt;
+    color: white;
+  }
+  
+  .discover .stage-icon { background: #3b82f6; }
+  .try .stage-icon { background: #f59e0b; }
+  .engage .stage-icon { background: #10b981; }
+  .advocate .stage-icon { background: #8b5cf6; }
+  
+  .journey-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  
+  /* Admin sections */
+  .admin-section {
+    background: #1e293b;
+    color: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 10px 0;
+  }
+  
+  .admin-section h3 {
+    color: #fbbf24;
+    border-bottom: 1px solid #475569;
+    padding-bottom: 5px;
+  }
+  
+  .admin-tabs {
+    display: flex;
+    gap: 5px;
+    margin: 8px 0;
+    border-bottom: 1px solid #475569;
+  }
+  
+  .admin-tab {
+    padding: 5px 10px;
+    font-size: 9pt;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+  }
+  
+  .admin-tab.active {
+    border-color: #fbbf24;
+    color: #fbbf24;
+  }
+  
+  /* Mobile mockup */
+  .mobile {
+    width: 180px;
+    height: 360px;
+    background: #1e293b;
+    border-radius: 24px;
+    padding: 8px;
+    border: 3px solid #475569;
+    margin: 10px auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  
+  .mobile-screen {
+    background: linear-gradient(135deg, #0f766e, #134e4a);
+    border-radius: 16px;
+    height: 100%;
+    padding: 8px;
+    color: white;
+    font-size: 7pt;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .mobile-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    margin-bottom: 5px;
+  }
+  
+  .mobile-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 6px;
+    margin: 4px 0;
+  }
+  
+  .mobile-nav {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    right: 5px;
+    display: flex;
+    justify-content: space-around;
+    background: rgba(0,0,0,0.4);
+    padding: 5px;
+    border-radius: 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============== COVER ============== -->
+<div class="page cover">
+  <div class="icon">🗺️</div>
+  <h1>ثقافتنا</h1>
+  <div class="subtitle">الخريطة البصرية الشاملة</div>
+  <div style="font-size: 14pt; opacity: 0.9; max-width: 700px; margin: 20px 0;">
+    خريطة كاملة لتجربة المستخدم + الواجهة الإدارية + تدفّقات الاستخدام + المعمارية البصرية
+  </div>
+  <div style="background: rgba(255,255,255,0.15); padding: 20px 40px; border-radius: 16px; margin-top: 30px;">
+    <div>📋 الإصدار: 3.1.0 — الخريطة البصرية</div>
+    <div>📅 أكتوبر 2026</div>
+    <div>🎯 يشمل: 4 أنواع خرائط + معاينات شاشات</div>
+  </div>
+</div>
+
+<!-- ============== SECTION 1: ARCHITECTURE MAP ============== -->
+<div class="page">
+  <h1>🗺️ 1. الخريطة المعمارية الشاملة للتطبيق</h1>
+  
+  <p>رؤية شاملة لكامل مكوّنات المنصّة — الواجهة الأمامية، الـ APIs، قاعدة البيانات، والتكاملات الخارجية.</p>
+  
+  <div class="arch-layer" style="border-color: #f59e0b;">
+    <h3 style="color: #f59e0b;">📱 طبقة الواجهة (Frontend Layer)</h3>
+    <div class="arch-boxes">
+      <div class="arch-box" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #f59e0b;">
+        🏠<br><strong>الرئيسية</strong><br>توصيات + إحصائيات
+      </div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #f59e0b;">
+        🎮<br><strong>اللعبة</strong><br>13 نوع لغز
+      </div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #f59e0b;">
+        📚<br><strong>المكتبة</strong><br>500 كتاب
+      </div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #f59e0b;">
+        🗺️<br><strong>خريطة المعرفة</strong><br>20 مهارة
+      </div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #f59e0b;">
+        📊<br><strong>تحليلاتي</strong><br>نمو + إنجازات
+      </div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #f59e0b;">
+        👤<br><strong>الملف الشخصي</strong><br>إعدادات + سجل
+      </div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #f59e0b;">
+        ⚙️<br><strong>لوحة الإدارة</strong><br>إدارة شاملة
+      </div>
+    </div>
+  </div>
+  
+  <div style="text-align: center; color: #6366f1; font-size: 14pt; margin: 5px 0;">↕ APIs ↕</div>
+  
+  <div class="arch-layer" style="border-color: #3b82f6;">
+    <h3 style="color: #3b82f6;">🔌 طبقة الـ APIs (14 endpoint)</h3>
+    <div class="arch-boxes">
+      <div class="arch-box" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #3b82f6;">📚 /api/books</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #3b82f6;">🎮 /api/levels</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #3b82f6;">🧠 /api/analytics</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #3b82f6;">🗺️ /api/knowledge-map</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #3b82f6;">⭐ /api/skills</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #3b82f6;">📊 /api/progress</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #3b82f6;">⚖️ /api/admin/difficulty</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #3b82f6;">✅ /api/admin/books</div>
+    </div>
+  </div>
+  
+  <div style="text-align: center; color: #6366f1; font-size: 14pt; margin: 5px 0;">↕ Business Logic ↕</div>
+  
+  <div class="arch-layer" style="border-color: #8b5cf6;">
+    <h3 style="color: #8b5cf6;">🧠 طبقة المنطق (Business Logic)</h3>
+    <div class="arch-boxes">
+      <div class="arch-box" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-color: #8b5cf6;">🤖<br>محرّك التكيّف<br>Bayesian-style</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-color: #8b5cf6;">📊<br>مدقّق الجودة<br>10 معايير</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-color: #8b5cf6;">⚖️<br>موازن الصعوبة<br>Bloom's + Vygotsky</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-color: #8b5cf6;">🎯<br>محرّك التوصيات<br>Personalized</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-color: #8b5cf6;">📖<br>تتبّع القراءة<br>Progress tracker</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-color: #8b5cf6;">🏆<br>مولّد الشهادات<br>PDF generator</div>
+    </div>
+  </div>
+  
+  <div style="text-align: center; color: #6366f1; font-size: 14pt; margin: 5px 0;">↕ Database ↕</div>
+  
+  <div class="arch-layer" style="border-color: #10b981;">
+    <h3 style="color: #10b981;">💾 طبقة البيانات (21 نموذج)</h3>
+    <div class="arch-boxes">
+      <div class="arch-box" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-color: #10b981;">User, Chapter, Level, Word, Cell</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-color: #10b981;">PlayerProgress, UserStreak, DailyChallenge</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-color: #10b981;">Skill, LevelSkill, PlayerSkill</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-color: #10b981;">AdaptiveState, LearningEvent, QuestionTypeStat</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-color: #10b981;">Book, BookChapter, BookCategory</div>
+      <div class="arch-box" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-color: #10b981;">BookReview, UserBookmark, UserCertificate</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== SECTION 2: USER PERSONAS ============== -->
+<div class="page">
+  <h1>👥 2. شخصيات المستخدمين (User Personas)</h1>
+  
+  <p>4 شخصيات رئيسية تمثّل المستخدمين المستهدفين، مع احتياجاتهم وآلامهم وتوقّعاتهم.</p>
+  
+  <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+    <div class="persona" style="flex: 1; min-width: 220px;">
+      <div class="avatar">🎓</div>
+      <h4 style="text-align: center;">أحمد - الطالب الجامعي</h4>
+      <p style="font-size: 8pt; text-align: center; color: #64748b;">20 سنة | كلية الهندسة</p>
+      <hr style="margin: 8px 0;">
+      <p><strong>🎯 الهدف:</strong></p>
+      <ul>
+        <li>تنمية ثقافته العامة</li>
+        <li>كسب وقت الفراغ</li>
+        <li>منافسة الأصدقاء</li>
+      </ul>
+      <p><strong>😤 الألم:</strong></p>
+      <ul>
+        <li>وقت محدود للمذاكرة</li>
+        <li>يحتاج ترفيهاً سريعاً</li>
+      </ul>
+      <p><strong>⭐ التوقّع:</strong> لعب سريع + قراءة قصيرة</p>
+    </div>
+    
+    <div class="persona" style="flex: 1; min-width: 220px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #f59e0b;">
+      <div class="avatar">👩‍💼</div>
+      <h4 style="text-align: center;">سارة - الأم الشابة</h4>
+      <p style="font-size: 8pt; text-align: center; color: #64748b;">32 سنة | أم لطفلين</p>
+      <hr style="margin: 8px 0;">
+      <p><strong>🎯 الهدف:</strong></p>
+      <ul>
+        <li>تعليم أبنائها بمرح</li>
+        <li>محتوى آمن وموثوق</li>
+        <li>تتبّع تقدّمهم</li>
+      </ul>
+      <p><strong>😤 الألم:</strong></p>
+      <ul>
+        <li>القلق من المحتوى غير المناسب</li>
+        <li>صعوبة إيجاد محتوى تعليمي عربي</li>
+      </ul>
+      <p><strong>⭐ التوقّع:</strong> ألغاز للأطفال + كتب مصوّرة</p>
+    </div>
+    
+    <div class="persona" style="flex: 1; min-width: 220px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-color: #10b981;">
+      <div class="avatar">👨‍🏫</div>
+      <h4 style="text-align: center;">د. خالد - المعلّم</h4>
+      <p style="font-size: 8pt; text-align: center; color: #64748b;">45 سنة | أستاذ لغة عربية</p>
+      <hr style="margin: 8px 0;">
+      <p><strong>🎯 الهدف:</strong></p>
+      <ul>
+        <li>تكليف الطلاب بمهام</li>
+        <li>تتبّع أدائهم</li>
+        <li>محتوى معتمد للمنهج</li>
+      </ul>
+      <p><strong>😤 الألم:</strong></p>
+      <ul>
+        <li>صعوبة تتبّع كل طالب</li>
+        <li>نقص الأدوات التعليمية</li>
+      </ul>
+      <p><strong>⭐ التوقّع:</strong> لوحة B2B + تقارير + مهام</p>
+    </div>
+    
+    <div class="persona" style="flex: 1; min-width: 220px; background: linear-gradient(135deg, #f5f3ff, #ede9fe); border-color: #8b5cf6;">
+      <div class="avatar">👴</div>
+      <h4 style="text-align: center;">أبو محمد - المتقاعد</h4>
+      <p style="font-size: 8pt; text-align: center; color: #64748b;">65 سنة | مهتم بالتراث</p>
+      <hr style="margin: 8px 0;">
+      <p><strong>🎯 الهدف:</strong></p>
+      <ul>
+        <li>قراءة كتب التراث</li>
+        <li>تنشيط الذاكرة</li>
+        <li>قتل وقت الفراغ</li>
+      </ul>
+      <p><strong>😤 الألم:</strong></p>
+      <ul>
+        <li>صعوبة بصرية (يحتاج خطوطاً كبيرة)</li>
+        <li>غير مرتاح للتقنية المعقّدة</li>
+      </ul>
+      <p><strong>⭐ التوقّع:</strong> قارئ مريح + خطوط كبيرة</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============== SECTION 3: USER JOURNEY ============== -->
+<div class="page">
+  <h1>🛣️ 3. رحلة المستخدم الكاملة (User Journey)</h1>
+  
+  <p>4 مراحل يمرّ بها كل مستخدم من الاكتشاف إلى الدعوة:</p>
+  
+  <div class="journey-grid">
+    <div class="journey-stage discover">
+      <div class="stage-header">
+        <div class="stage-icon">🔍</div>
+        <h3>الاكتشاف</h3>
+      </div>
+      <p style="font-size: 8pt; color: #64748b;">يكتشف التطبيق من إعلان أو صديق</p>
+      <ul style="font-size: 9pt; padding-right: 15px;">
+        <li>إعلان فيسبوك / تيك توك</li>
+        <li>توصية صديق</li>
+        <li>بحث في المتجر</li>
+        <li>مقال في مدوّنة</li>
+      </ul>
+      <div style="margin-top: 8px; font-size: 8pt; background: #3b82f6; color: white; padding: 4px; border-radius: 4px; text-align: center;">
+        🎯 الهدف: التحميل
+      </div>
+    </div>
+    
+    <div class="journey-stage try">
+      <div class="stage-header">
+        <div class="stage-icon">⚡</div>
+        <h3>التجربة الأولى</h3>
+      </div>
+      <p style="font-size: 8pt; color: #64748b;">أول 5 دقائق — يجب أن تنبهر</p>
+      <ul style="font-size: 9pt; padding-right: 15px;">
+        <li>Onboarding (3 شاشات)</li>
+        <li>إنشاء حساب سريع (ضيف)</li>
+        <li>أول لغز في &lt; 60 ثانية</li>
+        <li>نظام نجوم إيجابي</li>
+      </ul>
+      <div style="margin-top: 8px; font-size: 8pt; background: #f59e0b; color: white; padding: 4px; border-radius: 4px; text-align: center;">
+        🎯 الهدف: العودة غداً
+      </div>
+    </div>
+    
+    <div class="journey-stage engage">
+      <div class="stage-header">
+        <div class="stage-icon">🎮</div>
+        <h3>الانخراط العميق</h3>
+      </div>
+      <p style="font-size: 8pt; color: #64748b;">أسبوع 1-4 — عادة يومية</p>
+      <ul style="font-size: 9pt; padding-right: 15px;">
+        <li>تحدّي يومي</li>
+        <li>إكمال فصول</li>
+        <li>قراءة أول كتاب</li>
+        <li>الحصول على شهادة</li>
+      </ul>
+      <div style="margin-top: 8px; font-size: 8pt; background: #10b981; color: white; padding: 4px; border-radius: 4px; text-align: center;">
+        🎯 الهدف: Premium
+      </div>
+    </div>
+    
+    <div class="journey-stage advocate">
+      <div class="stage-header">
+        <div class="stage-icon">📣</div>
+        <h3>الدعوة والتوصية</h3>
+      </div>
+      <p style="font-size: 8pt; color: #64748b;">شهر 2+ — سفير للتطبيق</p>
+      <ul style="font-size: 9pt; padding-right: 15px;">
+        <li>دعوة الأصدقاء</li>
+        <li>مشاركة الإنجازات</li>
+        <li>كتابة مراجعات</li>
+        <li>متابعة على تويتر</li>
+      </ul>
+      <div style="margin-top: 8px; font-size: 8pt; background: #8b5cf6; color: white; padding: 4px; border-radius: 4px; text-align: center;">
+        🎯 الهدف: 5+ أصدقاء
+      </div>
+    </div>
+  </div>
+  
+  <h2>📈 قمع التحوّل (Conversion Funnel)</h2>
+  
+  <div class="flow">
+    <div class="flow-node start">10,000 زائر</div>
+    <span class="flow-arrow">←</span>
+    <div class="flow-node">3,000 تحميل<br><small>(30%)</small></div>
+    <span class="flow-arrow">←</span>
+    <div class="flow-node">1,500 تسجيل<br><small>(50%)</small></div>
+    <span class="flow-arrow">←</span>
+    <div class="flow-node">900 نشط D1<br><small>(60%)</small></div>
+    <span class="flow-arrow">←</span>
+    <div class="flow-node">450 نشط D7<br><small>(50%)</small></div>
+    <span class="flow-arrow">←</span>
+    <div class="flow-node end">45 Premium<br><small>(10%)</small></div>
+  </div>
+</div>
+
+<!-- ============== SECTION 4: PLAYER UI MAP ============== -->
+<div class="page">
+  <h1>🎮 4. خريطة واجهة اللاعب</h1>
+  
+  <p>كل الشاشات التي يراها اللاعب مع روابط الانتقال بينها.</p>
+  
+  <div class="card card-blue">
+    <h3>🏠 الصفحة الرئيسية / Home</h3>
+    <div class="mockup-grid">
+      <div class="mockup-card">
+        🚀 توصية ذكية<br>
+        <small>اقتراح المرحلة التالية</small>
+      </div>
+      <div class="mockup-card">
+        📊 إحصائيات سريعة<br>
+        <small>🪙 عملات + ⭐ نجوم</small>
+      </div>
+      <div class="mockup-card">
+        🎯 تحدّي يومي<br>
+        <small>+100 عملة مكافأة</small>
+      </div>
+      <div class="mockup-card">
+        📚 الفصول<br>
+        <small>8 فصول + 45 مرحلة</small>
+      </div>
+    </div>
+    <div class="mockup-btn">← ينقل لـ: اللعبة / المكتبة / التحليلات →</div>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+    <div class="card card-amber">
+      <h3>🎯 شاشة اللعبة</h3>
+      <div class="screen-mockup">
+        <div class="header">مرحلة 7 — أمثال عربية</div>
+        <div class="content">
+          <div style="text-align: center; padding: 10px;">
+            <div style="background: rgba(245, 158, 11, 0.2); padding: 10px; border-radius: 8px; margin-bottom: 5px;">
+              أكمل المثل: "اتَّقِ شرّ..."
+            </div>
+            <div style="display: flex; gap: 5px; justify-content: center; margin: 10px 0;">
+              <span style="background: white; color: #1e293b; padding: 5px 8px; border-radius: 4px; font-weight: bold;">ح</span>
+              <span style="background: white; color: #1e293b; padding: 5px 8px; border-radius: 4px; font-weight: bold;">ل</span>
+              <span style="background: white; color: #1e293b; padding: 5px 8px; border-radius: 4px; font-weight: bold;">ي</span>
+              <span style="background: white; color: #1e293b; padding: 5px 8px; border-radius: 4px; font-weight: bold;">م</span>
+            </div>
+            <div class="mockup-btn" style="background: linear-gradient(135deg, #10b981, #059669);">✓ إجابة صحيحة!</div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size: 9pt; margin-top: 5px;">→ عند الإكمال: شاشة النجاح + شاشة الأهداف للمرحلة التالية</p>
+    </div>
+    
+    <div class="card card-purple">
+      <h3>📚 شاشة المكتبة</h3>
+      <div class="screen-mockup">
+        <div class="header">📚 مكتبة ثقافتنا 🔍</div>
+        <div class="content">
+          <div style="text-align: center; padding: 8px;">
+            <div style="background: linear-gradient(135deg, #8b5cf6, #ec4899); padding: 8px; border-radius: 8px; margin-bottom: 5px;">
+              ✨ كتاب اليوم<br>
+              <small>مقدمة ابن خلدون</small>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3px;">
+              <div style="background: rgba(139, 92, 246, 0.3); padding: 4px; border-radius: 4px;">📖 أدب</div>
+              <div style="background: rgba(139, 92, 246, 0.3); padding: 4px; border-radius: 4px;">🕌 ديني</div>
+              <div style="background: rgba(139, 92, 246, 0.3); padding: 4px; border-radius: 4px;">📜 تاريخ</div>
+              <div style="background: rgba(139, 92, 246, 0.3); padding: 4px; border-radius: 4px;">🔬 علوم</div>
+              <div style="background: rgba(139, 92, 246, 0.3); padding: 4px; border-radius: 4px;">🌍 جغراف</div>
+              <div style="background: rgba(139, 92, 246, 0.3); padding: 4px; border-radius: 4px;">👶 أطفال</div>
+            </div>
+            <div class="mockup-btn" style="margin-top: 5px;">📖 ابدأ القراءة</div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size: 9pt; margin-top: 5px;">→ ينقل لـ: صفحة الكتاب → القارئ → ألغاز الفصل</p>
+    </div>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+    <div class="card card-teal">
+      <h3>🗺️ خريطة المعرفة</h3>
+      <div class="screen-mockup">
+        <div class="header">🗺️ خريطة المعرفة</div>
+        <div class="content">
+          <div style="padding: 5px;">
+            <div style="background: linear-gradient(135deg, #14b8a6, #0d9488); padding: 6px; border-radius: 6px; margin-bottom: 4px; font-size: 8pt;">
+              📖 المفردات (75%)
+            </div>
+            <div style="background: linear-gradient(135deg, #14b8a6, #0d9488); padding: 6px; border-radius: 6px; margin-bottom: 4px; font-size: 8pt;">
+              🏛️ الثقافة (60%)
+            </div>
+            <div style="background: linear-gradient(135deg, #14b8a6, #0d9488); padding: 6px; border-radius: 6px; margin-bottom: 4px; font-size: 8pt;">
+              📜 التاريخ (45%)
+            </div>
+            <div style="background: linear-gradient(135deg, #14b8a6, #0d9488); padding: 6px; border-radius: 6px; font-size: 8pt;">
+              🧩 المنطق (30%)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card card-rose">
+      <h3>📊 تحليلاتي</h3>
+      <div class="screen-mockup">
+        <div class="header">📊 لوحة التحليلات</div>
+        <div class="content">
+          <div style="padding: 5px;">
+            <div style="background: linear-gradient(135deg, #f43f5e, #e11d48); padding: 6px; border-radius: 6px; margin-bottom: 4px; font-size: 8pt;">
+              المستوى 5 · 250 XP
+            </div>
+            <div style="display: flex; gap: 2px; margin: 5px 0;">
+              <div style="background: #f43f5e; height: 30px; flex: 1; border-radius: 2px;"></div>
+              <div style="background: #f43f5e; height: 20px; flex: 1; border-radius: 2px; opacity: 0.6;"></div>
+              <div style="background: #f43f5e; height: 40px; flex: 1; border-radius: 2px;"></div>
+              <div style="background: #f43f5e; height: 15px; flex: 1; border-radius: 2px; opacity: 0.5;"></div>
+              <div style="background: #f43f5e; height: 35px; flex: 1; border-radius: 2px;"></div>
+              <div style="background: #f43f5e; height: 25px; flex: 1; border-radius: 2px; opacity: 0.7;"></div>
+              <div style="background: #f43f5e; height: 45px; flex: 1; border-radius: 2px;"></div>
+            </div>
+            <div style="font-size: 7pt; text-align: center;">📈 نمو الأسبوع</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== SECTION 5: MOBILE NAVIGATION ============== -->
+<div class="page">
+  <h1>📱 5. تجربة الموبايل (Mobile UX)</h1>
+  
+  <p>5 شاشات أساسية للموبايل مع شريط تنقّل سفلي.</p>
+  
+  <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+    
+    <div class="mobile">
+      <div class="mobile-screen">
+        <div class="mobile-header">
+          <span>🪙 100</span>
+          <span>⭐ 12</span>
+        </div>
+        <div style="text-align: center; padding: 5px;">
+          <div style="font-size: 10pt; font-weight: bold;">🌟 أهلاً بك</div>
+          <div class="mobile-card" style="background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.3));">
+            <div style="font-size: 7pt;">🚀 توصية</div>
+            <div style="font-size: 8pt; font-weight: bold;">المرحلة 8</div>
+          </div>
+          <div class="mobile-card">
+            <div style="font-size: 7pt;">🎯 تحدّي اليوم</div>
+            <div style="font-size: 7pt;">+100 🪙</div>
+          </div>
+          <div class="mobile-card">
+            <div style="font-size: 7pt;">📚 فصول</div>
+            <div style="font-size: 7pt;">8 فصول</div>
+          </div>
+        </div>
+        <div class="mobile-nav">
+          <span>🏠</span><span>🗺️</span><span>🎯</span><span>📊</span><span>👤</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="mobile">
+      <div class="mobile-screen" style="background: linear-gradient(135deg, #1e3a8a, #312e81);">
+        <div class="mobile-header">
+          <span>مرحلة 7</span>
+          <span>⭐⭐⭐</span>
+        </div>
+        <div style="text-align: center; padding: 10px;">
+          <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; margin-bottom: 5px;">
+            <div style="font-size: 7pt;">أكمل المثل:</div>
+            <div style="font-size: 9pt; font-weight: bold;">"اتَّقِ شرّ..."</div>
+          </div>
+          <div style="display: flex; gap: 3px; justify-content: center; margin: 5px 0;">
+            <span style="background: white; color: #1e3a8a; padding: 4px 6px; border-radius: 3px; font-weight: bold; font-size: 9pt;">ح</span>
+            <span style="background: white; color: #1e3a8a; padding: 4px 6px; border-radius: 3px; font-weight: bold; font-size: 9pt;">ل</span>
+            <span style="background: white; color: #1e3a8a; padding: 4px 6px; border-radius: 3px; font-weight: bold; font-size: 9pt;">ي</span>
+            <span style="background: white; color: #1e3a8a; padding: 4px 6px; border-radius: 3px; font-weight: bold; font-size: 9pt;">م</span>
+          </div>
+          <div style="background: #f59e0b; padding: 4px; border-radius: 4px; font-size: 7pt; margin-top: 5px;">💡 تلميح</div>
+        </div>
+        <div class="mobile-nav">
+          <span>←</span><span>⌫</span><span>🗑️</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="mobile">
+      <div class="mobile-screen" style="background: linear-gradient(135deg, #581c87, #6b21a8);">
+        <div class="mobile-header">
+          <span>📚 المكتبة</span>
+          <span>🔍</span>
+        </div>
+        <div style="padding: 5px;">
+          <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 5px; margin: 3px 0; text-align: center;">
+            <div style="font-size: 8pt;">📕</div>
+            <div style="font-size: 7pt; font-weight: bold;">مقدمة ابن خلدون</div>
+            <div style="font-size: 6pt;">⭐ 4.8 · 3 ساعات</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 5px; margin: 3px 0; text-align: center;">
+            <div style="font-size: 8pt;">📗</div>
+            <div style="font-size: 7pt; font-weight: bold;">البخلاء</div>
+            <div style="font-size: 6pt;">⭐ 4.5 · 2 ساعة</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 5px; margin: 3px 0; text-align: center;">
+            <div style="font-size: 8pt;">📘</div>
+            <div style="font-size: 7pt; font-weight: bold;">كليلة ودمنة</div>
+          </div>
+        </div>
+        <div class="mobile-nav">
+          <span>🏠</span><span>🗺️</span><span>📚</span><span>📊</span><span>👤</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="mobile">
+      <div class="mobile-screen" style="background: linear-gradient(135deg, #134e4a, #115e59);">
+        <div class="mobile-header">
+          <span>🗺️ المهارات</span>
+        </div>
+        <div style="padding: 5px;">
+          <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 5px; margin: 3px 0;">
+            <div style="font-size: 7pt;">📖 المفردات</div>
+            <div style="background: rgba(255,255,255,0.3); height: 4px; border-radius: 2px; margin-top: 2px;">
+              <div style="background: #10b981; height: 100%; width: 75%; border-radius: 2px;"></div>
+            </div>
+            <div style="font-size: 6pt; text-align: right;">75%</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 5px; margin: 3px 0;">
+            <div style="font-size: 7pt;">🏛️ الثقافة</div>
+            <div style="background: rgba(255,255,255,0.3); height: 4px; border-radius: 2px; margin-top: 2px;">
+              <div style="background: #f59e0b; height: 100%; width: 60%; border-radius: 2px;"></div>
+            </div>
+            <div style="font-size: 6pt; text-align: right;">60%</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 5px; margin: 3px 0;">
+            <div style="font-size: 7pt;">🧩 المنطق</div>
+            <div style="background: rgba(255,255,255,0.3); height: 4px; border-radius: 2px; margin-top: 2px;">
+              <div style="background: #ef4444; height: 100%; width: 30%; border-radius: 2px;"></div>
+            </div>
+            <div style="font-size: 6pt; text-align: right;">30%</div>
+          </div>
+        </div>
+        <div class="mobile-nav">
+          <span>🏠</span><span>🗺️</span><span>📚</span><span>📊</span><span>👤</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="mobile">
+      <div class="mobile-screen" style="background: linear-gradient(135deg, #831843, #9f1239);">
+        <div class="mobile-header">
+          <span>📊 تحليلاتي</span>
+        </div>
+        <div style="padding: 5px; text-align: center;">
+          <div style="font-size: 24pt; font-weight: bold;">5</div>
+          <div style="font-size: 7pt; opacity: 0.8;">المستوى</div>
+          <div style="font-size: 12pt; font-weight: bold;">250 XP</div>
+          <div style="display: flex; gap: 2px; margin: 5px 0; align-items: end; justify-content: center;">
+            <div style="background: #f43f5e; width: 8px; height: 20px; border-radius: 1px;"></div>
+            <div style="background: #f43f5e; width: 8px; height: 15px; border-radius: 1px; opacity: 0.6;"></div>
+            <div style="background: #f43f5e; width: 8px; height: 30px; border-radius: 1px;"></div>
+            <div style="background: #f43f5e; width: 8px; height: 25px; border-radius: 1px; opacity: 0.8;"></div>
+            <div style="background: #f43f5e; width: 8px; height: 35px; border-radius: 1px;"></div>
+            <div style="background: #f43f5e; width: 8px; height: 20px; border-radius: 1px; opacity: 0.5;"></div>
+            <div style="background: #f43f5e; width: 8px; height: 40px; border-radius: 1px;"></div>
+          </div>
+          <div style="font-size: 6pt; opacity: 0.7;">نمو هذا الأسبوع</div>
+          <div style="background: rgba(255,255,255,0.2); padding: 4px; border-radius: 4px; margin-top: 5px; font-size: 7pt;">
+            💪 نقاط القوة: مفردات
+          </div>
+          <div style="background: rgba(255,255,255,0.2); padding: 4px; border-radius: 4px; margin-top: 3px; font-size: 7pt;">
+            🎯 يحتاج: منطق
+          </div>
+        </div>
+        <div class="mobile-nav">
+          <span>🏠</span><span>🗺️</span><span>📚</span><span>📊</span><span>👤</span>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  
+  <h2>🎨 شريط التنقّل السفلي (Bottom Navigation)</h2>
+  <table>
+    <tr>
+      <th>الزر</th>
+      <th>الأيقونة</th>
+      <th>الصفحة</th>
+      <th>الوصف</th>
+    </tr>
+    <tr><td>1</td><td>🏠</td><td>الرئيسية</td><td>توصيات + إحصائيات + فصول</td></tr>
+    <tr><td>2</td><td>🗺️</td><td>خريطتي</td><td>خريطة المعرفة + المهارات</td></tr>
+    <tr><td>3</td><td>🎯</td><td>يومي</td><td>التحدّي اليومي + السلسلة</td></tr>
+    <tr><td>4</td><td>📊</td><td>تحليلاتي</td><td>النمو + نقاط القوة والضعف</td></tr>
+    <tr><td>5</td><td>📚</td><td>المكتبة</td><td>الكتب + القارئ + الشهادات</td></tr>
+  </table>
+</div>
+
+<!-- ============== SECTION 6: ADMIN PANEL ============== -->
+<div class="page">
+  <h1>⚙️ 6. خريطة الواجهة الإدارية (Admin Panel)</h1>
+  
+  <p>كل أقسام لوحة الإدارة مع التبويبات والوظائف.</p>
+  
+  <div class="admin-section">
+    <h3>📋 القائمة الرئيسية للوحة الإدارة</h3>
+    <div class="admin-tabs">
+      <div class="admin-tab active">📊 Dashboard</div>
+      <div class="admin-tab">📚 المراحل</div>
+      <div class="admin-tab">📖 المكتبة</div>
+      <div class="admin-tab">🎮 الألغاز</div>
+      <div class="admin-tab">👥 المستخدمون</div>
+      <div class="admin-tab">📈 التحليلات</div>
+      <div class="admin-tab">⚙️ الإعدادات</div>
+    </div>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+    
+    <div class="admin-section">
+      <h3>📚 إدارة المراحل</h3>
+      <div style="padding: 10px;">
+        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+          <strong style="color: #fbbf24;">📂 الفصول</strong>
+          <ul style="margin-top: 5px; font-size: 9pt; padding-right: 15px;">
+            <li>عرض كل الفصول (8)</li>
+            <li>إضافة فصل جديد</li>
+            <li>ترتيب الفصول</li>
+            <li>نشر/إخفاء فصل</li>
+          </ul>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+          <strong style="color: #fbbf24;">📝 المراحل</strong>
+          <ul style="margin-top: 5px; font-size: 9pt; padding-right: 15px;">
+            <li>قائمة مراحل كل فصل</li>
+            <li>إنشاء مرحلة جديدة</li>
+            <li>تعديل/حذف مرحلة</li>
+            <li>نشر مرحلة</li>
+            <li>نسخ مرحلة</li>
+          </ul>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px;">
+          <strong style="color: #fbbf24;">✏️ محرّر المرحلة</strong>
+          <div style="margin-top: 5px; font-size: 9pt;">
+            تبويبات: المحرر | الإعدادات | المعاينة
+          </div>
+          <ul style="margin-top: 5px; font-size: 9pt; padding-right: 15px;">
+            <li>13 نوع لغز مدعوم</li>
+            <li>محرّر شبكة للكلمات المتقاطعة</li>
+            <li>رفع صور (image, images4)</li>
+            <li>إدخال إيموجي، صوت، خيارات</li>
+            <li>مدقّق جودة لحظي</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="admin-section">
+      <h3>📖 إدارة المكتبة</h3>
+      <div style="padding: 10px;">
+        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+          <strong style="color: #fbbf24;">📚 الكتب</strong>
+          <ul style="margin-top: 5px; font-size: 9pt; padding-right: 15px;">
+            <li>قائمة كل الكتب (500)</li>
+            <li>إضافة كتاب جديد</li>
+            <li>رفع PDF / إدخال نص</li>
+            <li>إدارة الفصول</li>
+            <li>ربط الكتاب بألغاز</li>
+            <li>كتب مميّزة (Featured)</li>
+          </ul>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+          <strong style="color: #fbbf24;">📂 التصنيفات</strong>
+          <ul style="margin-top: 5px; font-size: 9pt; padding-right: 15px;">
+            <li>8 تصنيفات رئيسية</li>
+            <li>تصنيفات فرعية</li>
+            <li>ترتيب وإدارة</li>
+          </ul>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px;">
+          <strong style="color: #fbbf24;">⭐ التقييمات</strong>
+          <ul style="margin-top: 5px; font-size: 9pt; padding-right: 15px;">
+            <li>مراجعة التقييمات</li>
+            <li>حذف تقييمات سيئة</li>
+            <li>الردّ على المراجعات</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="admin-section">
+      <h3>✅ مدقّق الجودة الآلي</h3>
+      <div style="padding: 10px;">
+        <div style="background: rgba(34, 197, 94, 0.2); padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+          <strong style="color: #4ade80;">📊 النتيجة: 92%</strong>
+          <div style="font-size: 8pt; margin-top: 3px;">✅ جودة ممتازة</div>
+        </div>
+        <div style="font-size: 9pt;">
+          <p><strong>10 معايير تربوية:</strong></p>
+          <ul style="padding-right: 15px;">
+            <li>✅ طول السؤال (80 حرفاً)</li>
+            <li>✅ وجود إجابة محددة</li>
+            <li>✅ طول الإجابة مناسب</li>
+            <li>⚠️ يعتمد على الحفظ</li>
+            <li>✅ لا تلميحات عارية</li>
+            <li>✅ محتوى دائم</li>
+            <li>✅ مناسبة للصعوبة</li>
+            <li>✅ الفئة محددة</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="admin-section">
+      <h3>⚖️ موازنة الصعوبة</h3>
+      <div style="padding: 10px;">
+        <div style="background: rgba(168, 85, 247, 0.2); padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+          <strong style="color: #c084fc;">📊 متوسط الصحة: 75%</strong>
+          <div style="font-size: 8pt; margin-top: 3px;">⚠️ يحتاج انتباه</div>
+        </div>
+        <div style="font-size: 9pt;">
+          <p><strong>الفصول:</strong></p>
+          <div style="background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; margin: 3px 0;">
+            🌟 البدايات — 85% ✅
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; margin: 3px 0;">
+            🌿 الطبيعة — 70% ⚠️
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; margin: 3px 0;">
+            📜 التراث — 65% ⚠️
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 5px; border-radius: 4px; margin: 3px 0;">
+            🕌 الشخصيات — 50% ❌
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<!-- ============== SECTION 7: GAME FLOW ============== -->
+<div class="page">
+  <h1>🔄 7. تدفّق اللعب الكامل (Game Flow)</h1>
+  
+  <p>رحلة اللاعب من اختيار المرحلة إلى الحصول على النجوم.</p>
+  
+  <div class="flow" style="flex-direction: column;">
+    <div class="flow-node start">🏠 الرئيسية</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">📚 اختيار فصل</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">🎯 اختيار مرحلة</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node decision"><span>📖 هل عرضنا الأهداف التربوية؟</span></div>
+    <div class="flow-arrow">↓ لا</div>
+    <div class="flow-node">🎯 شاشة الأهداف التربوية</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">🎮 بدء المرحلة</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">❓ عرض السؤال</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node decision"><span>✓ إجابة صحيحة؟</span></div>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+    <div class="card card-green">
+      <h3>✅ إذا الإجابة صحيحة</h3>
+      <div class="flow" style="flex-direction: column;">
+        <div class="flow-node">🔊 صوت نجاح</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">➕ نقاط + XP</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node decision"><span>آخر سؤال؟</span></div>
+        <div class="flow-arrow">↓ لا</div>
+        <div class="flow-node">❓ السؤال التالي</div>
+      </div>
+    </div>
+    
+    <div class="card card-rose">
+      <h3>❌ إذا الإجابة خاطئة</h3>
+      <div class="flow" style="flex-direction: column;">
+        <div class="flow-node">🔊 صوت خطأ</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">📳 اهتزاز</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">🔄 إعادة المحاولة</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">💡 اقتراح تلميح</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card card-amber" style="margin-top: 15px;">
+    <h3>🏆 عند إكمال المرحلة</h3>
+    <div class="flow">
+      <div class="flow-node">✅ إكمال المرحلة</div>
+      <span class="flow-arrow">←</span>
+      <div class="flow-node">⭐ حساب النجوم</div>
+      <span class="flow-arrow">←</span>
+      <div class="flow-node">🎉 شاشة النجاح</div>
+      <span class="flow-arrow">←</span>
+      <div class="flow-node">📊 تسجيل التحليلات</div>
+      <span class="flow-arrow">←</span>
+      <div class="flow-node">🧠 تحديث التكيّف</div>
+      <span class="flow-arrow">←</span>
+      <div class="flow-node end">🏠 العودة للرئيسية</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== SECTION 8: READING FLOW ============== -->
+<div class="page">
+  <h1>📖 8. تدفّق القراءة (Reading Flow)</h1>
+  
+  <p>رحلة المستخدم من اختيار الكتاب إلى الحصول على شهادة الإتقان.</p>
+  
+  <div class="flow" style="flex-direction: column;">
+    <div class="flow-node start">📚 فتح المكتبة</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">🔍 بحث / تصفّح</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">📖 اختيار كتاب</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">📄 صفحة الكتاب</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">📖 بدء القراءة</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">📑 قراءة فصل</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node decision"><span>🎮 هل يوجد لغز؟</span></div>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+    <div class="card card-purple">
+      <h3>🎮 نعم — حل اللغز</h3>
+      <div class="flow" style="flex-direction: column;">
+        <div class="flow-node">🎮 عرض لغز الفصل</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">✓ حلّ اللغز</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">⭐ نجمة إتقان</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node decision"><span>آخر فصل؟</span></div>
+        <div class="flow-arrow">↓ لا</div>
+        <div class="flow-node">📑 الفصل التالي</div>
+      </div>
+    </div>
+    
+    <div class="card card-teal">
+      <h3>🏆 إكمال الكتاب</h3>
+      <div class="flow" style="flex-direction: column;">
+        <div class="flow-node">✅ إكمال كل الفصول</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">✅ حلّ كل الألغاز</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">🏆 توليد الشهادة</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">📄 تحميل PDF</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node end">📚 عرض في الملف الشخصي</div>
+      </div>
+    </div>
+  </div>
+  
+  <h2>📊 تتبّع القراءة</h2>
+  <table>
+    <tr>
+      <th>المؤشر</th>
+      <th>كيف يُقاس</th>
+      <th>المستهدف</th>
+    </tr>
+    <tr><td>النسبة المئوية للقراءة</td><td>scroll position / chapter</td><td>100% لكل فصل</td></tr>
+    <tr><td>الوقت المستغرق</td><td>active time tracking</td><td>~ الوقت المقدّر</td></tr>
+    <tr><td>آخر موضع</td><td>localStorage + DB</td><td>استئناف سلس</td></tr>
+    <tr><td>الفصول المكتملة</td><td>scroll 95%+</td><td>كل الفصول</td></tr>
+    <tr><td>إشارات مرجعية</td><td>click bookmark</td><td>حسب الحاجة</td></tr>
+    <tr><td>تقييم الكتاب</td><td>1-5 نجوم</td><td>بعد الإكمال</td></tr>
+  </table>
+</div>
+
+<!-- ============== SECTION 9: ADAPTIVE ENGINE FLOW ============== -->
+<div class="page">
+  <h1>🧠 9. تدفّق محرّك التكيّف (Adaptive Engine)</h1>
+  
+  <p>كيف يراقب النظام أداء اللاعب ويعدّل التجربة بشكل ذكي.</p>
+  
+  <div class="flow" style="flex-direction: column;">
+    <div class="flow-node start">🎮 اللاعب يلعب</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">📊 تسجيل كل إجابة</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">🧠 تحديث PlayerSkill</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">📈 حساب الإتقان (0-100%)</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node decision"><span>الإتقان &lt; 40%؟</span></div>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+    <div class="card card-rose">
+      <h3>⚠️ نعم — مهارة ضعيفة</h3>
+      <div class="flow" style="flex-direction: column;">
+        <div class="flow-node">🔍 إيجاد مرحلة غير مكتملة</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">📚 اقتراح مراجعة</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">📉 خفض معامل الصعوبة</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">💡 عرض تلميحات أكثر</div>
+      </div>
+    </div>
+    
+    <div class="card card-green">
+      <h3>✅ لا — مهارة قوية</h3>
+      <div class="flow" style="flex-direction: column;">
+        <div class="flow-node">📈 رفع معامل الصعوبة</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">🎯 اقتراح تحدّي جديد</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">📚 اقتراح فصل أعلى</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">🏆 فتح مراحل بوس</div>
+      </div>
+    </div>
+  </div>
+  
+  <h2>📊 معادلة الإتقان</h2>
+  <div class="card card-blue">
+    <p style="text-align: center; font-size: 14pt; font-family: 'Courier New';">
+      <strong>mastery_new = 0.85 × mastery_old + 0.15 × performance × 100</strong>
+    </p>
+    <p style="font-size: 9pt; margin-top: 8px;">
+      حيث: <code>performance</code> = 1.0 (صحيح بدون تلميح) | 0.8 (مع تلميح) | 0.4 (3+ تلميحات) | 0.2 (خاطئ)
+    </p>
+  </div>
+  
+  <h2>🎯 خوارزمية التوصية (4 مستويات)</h2>
+  <table>
+    <tr>
+      <th>الأولوية</th>
+      <th>النوع</th>
+      <th>الشرط</th>
+      <th>المثال</th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>review</td>
+      <td>مهارة &lt; 40% + مرحلة غير مكتملة</td>
+      <td>"راجع مهارة الأمثال"</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>next</td>
+      <td>المرحلة التالية في الفصل</td>
+      <td>"أكمل فصل التراث"</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>challenge</td>
+      <td>فصل جديد تماماً</td>
+      <td>"استكشف فصل الشعر"</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>explore</td>
+      <td>fallback: أقدم مرحلة غير مكتملة</td>
+      <td>"استكمل رحلتك"</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== SECTION 10: INFORMATION ARCHITECTURE ============== -->
+<div class="page">
+  <h1>🏗️ 10. معمار المعلومات (Information Architecture)</h1>
+  
+  <p>الشجرة الهرمية الكاملة لكل صفحات التطبيق.</p>
+  
+  <pre style="font-size: 8pt; background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; direction: ltr; text-align: left;">
+📱 ثقافتنا
+│
+├── 🏠 الرئيسية (/)
+│   ├── 🚀 بطاقة التوصية الذكية
+│   ├── 📊 الإحصائيات السريعة
+│   ├── 🎯 تحدّي اليوم
+│   ├── 📚 الفصول (8 فصول)
+│   └── 🎮 المراحل (45 مرحلة)
+│
+├── 🎮 اللعبة (/play/:levelId)
+│   ├── 📖 شاشة الأهداف التربوية
+│   ├── ❓ عرض السؤال (13 نوع)
+│   ├── ⌨️ لوحة المفاتيح العربية
+│   ├── 💡 نظام التلميحات
+│   └── 🎉 شاشة النجاح (نجوم)
+│
+├── 📚 المكتبة (/library)
+│   ├── 🔍 البحث
+│   ├── 📂 التصنيفات (8 فئات)
+│   ├── ⭐ كتب مميّزة
+│   ├── 🔥 الأكثر قراءة
+│   ├── 📖 صفحة الكتاب (/library/:bookId)
+│   │   ├── 📑 قائمة الفصول
+│   │   ├── ⭐ التقييمات
+│   │   └── 🎮 ألغاز الكتاب
+│   └── 📖 القارئ (/library/reader/:bookId/:chapterId)
+│       ├── ⚙️ إعدادات القراءة (خط، حجم، وضع)
+│       ├── 🔖 إشارات مرجعية
+│       ├── 📝 ملاحظات
+│       └── 📊 شريط التقدّم
+│
+├── 🗺️ خريطة المعرفة (/knowledge-map)
+│   ├── 📊 إحصائيات الإتقان
+│   ├── 🌳 عرض شجري (5 جذور)
+│   ├── 🔲 عرض شبكي
+│   └── 📋 تفاصيل كل مهارة
+│
+├── 📊 تحليلاتي (/analytics)
+│   ├── 🎯 المستوى + XP
+│   ├── 🚀 التوصية الذكية
+│   ├── 📈 نمو الأسبوع
+│   ├── 💪 نقاط القوة
+│   ├── 🎯 نقاط الضعف
+│   └── 🎮 توزيع أنواع الألغاز
+│
+├── 🎯 تحدّي يومي (/daily)
+│   ├── 📅 لغز اليوم
+│   ├── 🔥 السلسلة اليومية
+│   └── 🏆 مكافآت
+│
+├── 👤 الملف الشخصي (/profile)
+│   ├── 📊 إحصائيات
+│   ├── 🏅 الإنجازات
+│   ├── 📜 الشهادات
+│   ├── ⚙️ الإعدادات
+│   └── 📤 المشاركة
+│
+└── ⚙️ لوحة الإدارة (/admin)
+    ├── 📊 Dashboard
+    ├── 📚 المراحل
+    │   ├── 📂 الفصول
+    │   ├── 📝 المراحل
+    │   └── ✏️ محرّر المرحلة
+    │       ├── 🎮 المحرر (13 نوع)
+    │       ├── ⚙️ الإعدادات
+    │       └── 👁️ المعاينة
+    ├── 📖 المكتبة
+    │   ├── 📚 الكتب
+    │   ├── 📂 التصنيفات
+    │   ├── 📑 الفصول
+    │   └── ⭐ التقييمات
+    ├── ✅ مدقّق الجودة
+    ├── ⚖️ موازنة الصعوبة
+    ├── 👥 المستخدمون
+    └── 📈 التحليلات</pre>
+</div>
+
+<!-- ============== SECTION 11: STATS & SUMMARY ============== -->
+<div class="page">
+  <h1>📊 11. الإحصائيات الشاملة</h1>
+  
+  <h2>🎯 أرقام المشروع</h2>
+  <div class="stats-grid">
+    <div class="stat">
+      <span class="number">21</span>
+      <span class="label">نموذج DB</span>
+    </div>
+    <div class="stat">
+      <span class="number">14</span>
+      <span class="label">API endpoint</span>
+    </div>
+    <div class="stat">
+      <span class="number">13</span>
+      <span class="label">نوع لغز</span>
+    </div>
+    <div class="stat">
+      <span class="number">20</span>
+      <span class="label">مهارة</span>
+    </div>
+  </div>
+  
+  <div class="stats-grid">
+    <div class="stat" style="background: linear-gradient(135deg, #f59e0b, #f97316);">
+      <span class="number">500</span>
+      <span class="label">كتاب مستهدف</span>
+    </div>
+    <div class="stat" style="background: linear-gradient(135deg, #f59e0b, #f97316);">
+      <span class="number">8</span>
+      <span class="label">تصنيفات</span>
+    </div>
+    <div class="stat" style="background: linear-gradient(135deg, #f59e0b, #f97316);">
+      <span class="number">10K+</span>
+      <span class="label">سطر كود</span>
+    </div>
+    <div class="stat" style="background: linear-gradient(135deg, #f59e0b, #f97316);">
+      <span class="number">6</span>
+      <span class="label">أسابيع للإطلاق</span>
+    </div>
+  </div>
+  
+  <h2>📋 خلاصة الخريطة البصرية</h2>
+  
+  <table>
+    <tr>
+      <th>القسم</th>
+      <th>عدد الشاشات</th>
+      <th>الحالة</th>
+    </tr>
+    <tr><td>🏠 واجهة اللاعب</td><td>15 شاشة</td><td>✅ مكتمل</td></tr>
+    <tr><td>⚙️ واجهة الإدارة</td><td>12 شاشة</td><td>✅ مكتمل</td></tr>
+    <tr><td>📚 المكتبة (جديد)</td><td>8 شاشات</td><td>🔲 قيد التنفيذ</td></tr>
+    <tr><td>📱 الموبايل</td><td>5 شاشات أساسية</td><td>✅ مكتمل (PWA)</td></tr>
+    <tr><td>🎯 رحلة المستخدم</td><td>4 مراحل</td><td>✅ مكتمل</td></tr>
+    <tr><td>🧠 محرّك التكيّف</td><td>6 دوال</td><td>✅ مكتمل</td></tr>
+    <tr><td><strong>الإجمالي</strong></td><td><strong>50+ شاشة</strong></td><td><strong>85% مكتمل</strong></td></tr>
+  </table>
+  
+  <h2>🎯 الأولويات للإكمال</h2>
+  
+  <div class="card card-amber">
+    <h3>🔴 أولوية قصوى (هذا الشهر)</h3>
+    <ol>
+      <li>📚 نظام المكتبة الكامل (6 أسابيع)</li>
+      <li>🔄 Spaced Repetition (مراجعة يومية)</li>
+      <li>📱 PWA + Push notifications</li>
+    </ol>
+  </div>
+  
+  <div class="card card-blue">
+    <h3>🟡 أولوية عالية (الشهر القادم)</h3>
+    <ol>
+      <li>👥 Leaderboards + الأصدقاء</li>
+      <li>🤖 AI Tutor (GPT-4o)</li>
+      <li>💾 PostgreSQL + Tests</li>
+    </ol>
+  </div>
+  
+  <div class="card card-purple">
+    <h3>🟢 أولوية متوسطة (3-6 أشهر)</h3>
+    <ol>
+      <li>📱 Native mobile app</li>
+      <li>🏫 B2B Classroom</li>
+      <li>🎮 Meta-game (Story mode)</li>
+    </ol>
+  </div>
+  
+  <div style="text-align: center; margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-radius: 16px;">
+    <h2 style="border: none; color: white; margin: 0;">🚀 الخريطة واضحة — لنبدأ التنفيذ!</h2>
+    <p style="margin-top: 10px; opacity: 0.9;">فريقنا جاهز · السوق ضخم · الفرصة الآن</p>
+  </div>
+</div>
+
+</body>
+</html>

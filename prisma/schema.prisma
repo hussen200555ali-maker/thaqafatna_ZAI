@@ -1,0 +1,821 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== نموذج الفصول =====
+model Chapter {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @default("")
+  icon        String   @default("⭐")
+  color       String   @default("oklch(0.78 0.13 80)")
+  order       Int      @default(0)
+  unlockAt    Int      @default(0) // عدد المراحل المطلوبة لفتح الفصل
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  levels Level[]
+}
+
+// ===== نموذج المراحل =====
+model Level {
+  id            Int      @id @default(autoincrement())
+  chapterId     Int
+  number        Int      @default(1)
+  title         String
+  difficulty    String   @default("easy") // easy | medium | hard
+  gameMode      String   @default("quiz") // quiz | crossword
+  puzzleType    String   @default("text") 
+  // text: سؤال نصي مباشر
+  // image: صورة واحدة
+  // images4: 4 صور
+  // emoji: إيموجي
+  // scrambled: حروف مبعثرة
+  // crossword: شبكة متقاطعة
+  // fillblank: فراغات
+  // matching: توصيل وربط
+  // multiple: اختيار من متعدد
+  // audio: أصوات
+  // logic: ألغاز ذهنية
+  // progressive: تلميحات متدرجة
+  // mixed: مرحلة مختلطة (بوس)
+  timeLimit     Int      @default(0) // بالثواني (0 = بلا وقت)
+  gridSizeRows  Int      @default(5)
+  gridSizeCols  Int      @default(5)
+  availableLetters String // حروف مفصولة بفواصل
+  bonusWords    String   @default("") // كلمات إضافية مفصولة بفواصل
+  reward        Int      @default(50)
+  hintCost      Int      @default(10)
+  // ===== الأهداف التربوية (الميزة الاحترافية) =====
+  // JSON array of goals: ["معنى 5 أمثال شائعة", "أصل المثل وقصته"]
+  // تُعرض للاعب في شاشة قصيرة قبل بدء المرحلة
+  learningGoals String   @default("[]")
+  // وصف تربوي مختصر للمرحلة
+  educationalDescription String @default("")
+  status        String   @default("draft") // draft | review | published | archived
+  version       Int      @default(1)
+  isPublished   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  chapter         Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  words           Word[]
+  cells           Cell[]
+  playerProgress  PlayerProgress[]
+  dailyChallenges DailyChallenge[]
+  // نظام خريطة المعرفة التكيّفية
+  levelSkills     LevelSkill[]
+
+  @@index([chapterId])
+  @@index([status])
+}
+
+// ===== نموذج الكلمات/الأسئلة =====
+model Word {
+  id          Int      @id @default(autoincrement())
+  levelId     Int
+  text        String   // الكلمة/الإجابة
+  clue        String   // التلميح/السؤال
+  category    String   @default("") // تصنيف السؤال: من، ماذا، أين، إلخ
+  imageUrl    String   @default("") // رابط الصورة للغز
+  image2Url   String   @default("") // للغز 4 صور
+  image3Url   String   @default("") // للغز 4 صور
+  image4Url   String   @default("") // للغز 4 صور
+  // حقول خاصة بأنواع الألغاز
+  emojis      String   @default("") // رموز تعبيرية للغز الإيموجي
+  options     String   @default("") // خيارات للاختيار من متعدد (مفصولة بـ|)
+  correctOption Int    @default(0)  // رقم الخيار الصحيح (0-indexed)
+  matchPairs  String   @default("") // أزواج التوصيل (مفصولة بـ|)
+  fillBlanks  String   @default("") // نص الفراغات (الفراغ = ___)
+  audioUrl    String   @default("") // رابط الصوت للغز الصوتي
+  logicData   String   @default("") // بيانات اللغز المنطقي (JSON)
+  sequence    String   @default("") // متتالية أو شفرة
+  direction   String   @default("across") // across | down
+  startRow    Int      @default(0)
+  startCol    Int      @default(0)
+  number      Int
+  createdAt   DateTime @default(now())
+
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@index([levelId])
+}
+
+// ===== نموذج خلايا الشبكة =====
+model Cell {
+  id      Int    @id @default(autoincrement())
+  levelId Int
+  row     Int
+  col     Int
+  letter  String
+  number  Int?
+
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@index([levelId])
+  @@unique([levelId, row, col])
+}
+
+// ===== نموذج المستخدمين =====
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  name         String?
+  role         String   @default("player") // player | editor | admin (legacy - استخدم userRoles)
+  coins        Int      @default(100)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // ===== Sprint 0: مصادقة NextAuth =====
+  passwordHash String?  // لكلمة المرور (bcrypt)
+  emailVerified DateTime?
+  image        String?  // صورة الملف الشخصي
+  twoFactorSecret String? // سرّ TOTP — مُشفّر بـ AES-256-GCM عبر src/lib/crypto.ts (TOTP_ENCRYPTION_KEY)
+  twoFactorEnabled Boolean @default(false)
+  lastLoginAt  DateTime?
+  lastLoginIp  String?
+
+  progress         PlayerProgress[]
+  streak           UserStreak?
+  // نظام خريطة المعرفة التكيّفية
+  playerSkills     PlayerSkill[]
+  adaptiveState    AdaptiveState?
+  learningEvents   LearningEvent[]
+  questionTypeStats QuestionTypeStat[]
+  // ===== نظام المكتبة =====
+  bookBookmarks    UserBookmark[]
+  bookReviews      BookReview[]
+  readingProgress  UserReadingProgress[]
+  certificates     UserCertificate[]
+  // ===== نظام التكرار المتباعد =====
+  wordMastery      UserWordMastery[]
+  // ===== Sprint 0: الأمان + الإدارة =====
+  userRoles        UserRole[]
+  auditLogs        AuditLog[]
+  uploadedVersions BookVersion[]
+  // ===== Sprint 0: رسائل التواصل (الأدمن الذي يرد) =====
+  contactMessages  ContactMessage[]
+  // ===== Sprint 5: رموز احتياطية للـ 2FA =====
+  backupCodes      BackupCode[]
+}
+
+// ===== نموذج تقدم اللاعب =====
+model PlayerProgress {
+  id           Int      @id @default(autoincrement())
+  userId       String
+  levelId      Int
+  isCompleted  Boolean  @default(false)
+  stars        Int      @default(0)
+  score        Int      @default(0)
+  hintsUsed    Int      @default(0)
+  timeSpent    Int      @default(0) // بالثواني
+  completedAt  DateTime?
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level Level  @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, levelId])
+  @@index([userId])
+}
+
+// ===== نموذج التحديات اليومية =====
+model DailyChallenge {
+  id          Int      @id @default(autoincrement())
+  date        String   @unique // YYYY-MM-DD
+  levelId     Int
+  bonusReward Int      @default(100)
+  createdAt   DateTime @default(now())
+
+  level Level @relation(fields: [levelId], references: [id])
+}
+
+// ===== نموذج سلاسل المستخدمين اليومية =====
+model UserStreak {
+  id              Int      @id @default(autoincrement())
+  userId          String
+  lastChallengeDate String?
+  currentStreak   Int      @default(0)
+  longestStreak   Int      @default(0)
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+}
+
+// ====================================================================
+// ===== نظام خريطة المعرفة التكيّفية (Adaptive Knowledge Map) =====
+// ====================================================================
+// الركيزة 1: المهارات (Skills)
+// الركيزة 2: إتقان اللاعب لكل مهارة (PlayerSkill)
+// الركيزة 3: الحالة التكيّفية (AdaptiveState)
+// الركيزة 4: سجل أحداث التعلّم (LearningEvent)
+// الركيزة 5: إحصائيات أنواع الألغاز (QuestionTypeStat)
+// ====================================================================
+
+// ===== نموذج المهارات =====
+// المهارة = مفهوم دقيق قابل للقياس (مثل: "مفردات الطبيعة"، "أمثال شائعة")
+// الفصل يحوي عدة مهارات، والمهارة قد تظهر في عدة فصول
+model Skill {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // كود فريد مثل "nature.vocab", "proverbs.common"
+  title       String   // عنوان المهارة
+  description String   @default("")
+  icon        String   @default("🎯")
+  // فئة المهارة: vocabulary | grammar | culture | logic | memory
+  category    String   @default("vocabulary")
+  // المستوى المفترض: 1 (مبتدئ) .. 5 (متقدم)
+  level       Int      @default(1)
+  // هل هذه مهارة جذرية (تتفرع منها مهارات أخرى)؟
+  isRoot      Boolean  @default(false)
+  // المهارة الأصل إن وُجدت (للمهارات الفرعية)
+  parentId    Int?
+  parent      Skill?   @relation("SkillHierarchy", fields: [parentId], references: [id])
+  children    Skill[]  @relation("SkillHierarchy")
+  // العلاقات
+  levelSkills    LevelSkill[]
+  playerSkills   PlayerSkill[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([parentId])
+  @@index([category])
+}
+
+// ===== نموذج ربط المراحل بالمهارات =====
+// كل مرحلة قد تُغطي عدة مهارات، وكل مهارة قد تتكرر في عدة مراحل
+model LevelSkill {
+  id        Int @id @default(autoincrement())
+  levelId   Int
+  skillId   Int
+  // وزن المهارة في هذه المرحلة (1-10): كم تُساهم هذه المرحلة في إتقان المهارة
+  weight    Int @default(5)
+
+  level Level @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([levelId, skillId])
+  @@index([skillId])
+}
+
+// ===== نموذج إتقان اللاعب لكل مهارة =====
+// نموذج إتقان بايرز (Bayers Mastery): 0-100%
+// يحسب بناءً على: عدد الأسئلة الصحيحة / إجمالي الأسئلة في هذه المهارة
+// مع وزن أكبر للأسئلة الأخيرة (decay)
+model PlayerSkill {
+  id           Int      @id @default(autoincrement())
+  userId       String
+  skillId      Int
+  // نسبة الإتقان 0-100 (محسوبة بأخذ متوسط مرجّح)
+  mastery      Float    @default(0)
+  // عدد المرات التي واجه فيها اللاعب هذه المهارة
+  attempts     Int      @default(0)
+  // عدد الإجابات الصحيحة
+  correct      Int      @default(0)
+  // عدد الإجابات الخاطئة
+  incorrect    Int      @default(0)
+  // عدد التلميحات المستخدمة في هذه المهارة
+  hintsUsed    Int      @default(0)
+  // متوسط الوقت المستغرق (ثانية)
+  avgTimeSec   Int      @default(0)
+  // آخر مرة تمارس فيها هذه المهارة
+  lastPracticedAt DateTime?
+  // تاريخ الإتقان الكامل (≥95%)
+  masteredAt   DateTime?
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([userId])
+  @@index([skillId])
+}
+
+// ===== نموذج الحالة التكيّفية للاعب =====
+// يحوي "القرارات" التي اتخذها المحرك التكيّفي للاعب
+// يُحدّث بعد كل إكمال مرحلة
+model AdaptiveState {
+  id                Int      @id @default(autoincrement())
+  userId            String   @unique
+  // المستوى العام للاعب (1-10): يحسب من مجموع النجوم
+  playerLevel       Int      @default(1)
+  // نقاط الخبرة (XP)
+  xp                Int      @default(0)
+  // معامل الصعوبة الحالي (0.7 = سهل، 1.0 = متوسط، 1.3 = صعب)
+  // يضبط ترتيب الأسئلة داخل المرحلة
+  difficultyMultiplier Float @default(1.0)
+  // المهارات الأقوى (Top 3) — JSON array of skill IDs
+  strengths         String   @default("[]")
+  // المهارات الأضعف (Bottom 3) — JSON array of skill IDs
+  weaknesses        String   @default("[]")
+  // المرحلة المُقترَحة التالية
+  recommendedLevelId Int?
+  // سبب التوصية (نص يظهر للاعب)
+  recommendationReason String @default("")
+  // نوع التوصية: next | review | challenge | explore
+  recommendationType String @default("next")
+  // آخر تحديث للخريطة
+  lastMapUpdate     DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ===== نموذج سجل أحداث التعلّم =====
+// كل تفاعل مهم يُسجّل هنا للتحليلات والـ analytics
+// يُستخدم لـ:
+//   - رسم نمو التعلم في الملف الشخصي
+//   - اكتشاف أنماط الضعف
+//   - حساب إحصائيات الأداء
+model LearningEvent {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  // نوع الحدث
+  // level_start | level_complete | question_correct | question_wrong
+  // hint_used | bonus_found | star_earned | daily_complete
+  eventType   String
+  // السياق: ID المرحلة / السؤال / المهارة (JSON)
+  context     String   @default("{}")
+  // القيمة المرتبطة بالحدث (مثل: عدد النجوم، النقاط المكتسبة)
+  value       Int      @default(0)
+  // الطابع الزمني
+  timestamp   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, eventType])
+  @@index([userId, timestamp])
+  @@index([timestamp])
+}
+
+// ===== نموذج إحصائيات أنواع الألغاز =====
+// لكل لاعب + نوع لغز: كم مرة لعب، نسبة النجاح، متوسط الوقت
+// يُستخدم لاقتراح أنواع ألغاز جديدة وتجنّب الإرهاق
+model QuestionTypeStat {
+  id           Int      @id @default(autoincrement())
+  userId       String
+  puzzleType   String   // text | image | emoji | crossword | ...
+  attempts     Int      @default(0)
+  correct      Int      @default(0)
+  avgTimeSec   Int      @default(0)
+  lastPlayedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, puzzleType])
+  @@index([userId])
+}
+
+// ====================================================================
+// ===== نظام المكتبة الذكية (Smart Library System) =====
+// ====================================================================
+// 7 نماذج جديدة لإدارة الكتب والفصول والقراءة والشهادات
+// ====================================================================
+
+// ===== 1. تصنيفات الكتب =====
+model BookCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
+  icon        String   @default("📚")
+  color       String   @default("#3b82f6")
+  description String   @default("")
+  order       Int      @default(0)
+  isPublished Boolean  @default(true)
+  books       Book[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished])
+}
+
+// ===== 2. الكتب =====
+model Book {
+  id              Int      @id @default(autoincrement())
+  categoryId      Int
+  title           String
+  author          String
+  description     String   @default("")
+  coverImage      String   @default("")
+
+  // نوع المحتوى: text | pdf | audio
+  contentType     String   @default("text")
+  pdfUrl          String   @default("")
+  audioUrl        String   @default("")
+
+  // ميتاداتا الملفات المرفوعة (Vercel Blob)
+  pdfFileName     String   @default("")
+  pdfSize         Int      @default(0)
+  pdfPageCount    Int      @default(0)
+  coverImageFileName String @default("")
+  coverImageSize  Int      @default(0)
+  uploadedAt      DateTime?
+
+  // خصائص
+  difficulty      String   @default("medium") // easy | medium | hard
+  readingTimeMin  Int      @default(15)
+  pages           Int      @default(0)
+  language        String   @default("ar")
+  isbn            String?  @unique
+
+  // الكلمات المفتاحية (JSON array)
+  keywords        String   @default("[]")
+
+  // الإحصائيات
+  views           Int      @default(0)
+  downloads       Int      @default(0)
+  ratingAvg       Float    @default(0)
+  ratingCount     Int      @default(0)
+
+  // الحالة (إصلاح #5 + حل source-of-truth عبر Trigger)
+  status          BookStatus @default(draft) // enum: المصدر الوحيد للحقيقة (يُكتب فقط)
+  /// ⚠️ لا تكتب على isPublished مباشرة.
+  /// لنشر كتاب، غيّر status إلى 'published'.
+  /// isPublished يُزامَن تلقائيًا عبر Trigger في DB (migration.sql).
+  /// أي محاولة كتابة مباشرة سيتم تجاوزها من قبل الـ Trigger.
+  isPublished     Boolean   @default(false)
+  isFeatured      Boolean   @default(false)
+  isPremium       Boolean   @default(false)
+
+  // علاقات
+  category        BookCategory @relation(fields: [categoryId], references: [id])
+  chapters        BookChapter[]
+  bookmarks       UserBookmark[]
+  reviews         BookReview[]
+  readingProgress UserReadingProgress[]
+  certificates    UserCertificate[]
+  // ===== Sprint 0: الإصدارات + الوسوم =====
+  versions        BookVersion[]
+  tags            BookTag[]
+  // ===== Sprint 0: رسائل التواصل (تحويل رسالة إلى كتاب) =====
+  contactConversions ContactMessage[] @relation("ConvertedToBook")
+
+  // ربط مع اللعبة: JSON array of level IDs
+  relatedLevels   String   @default("[]")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([isFeatured])
+}
+
+// ===== 3. فصول الكتاب =====
+// إصلاح #4: تنظيف الحقول المكررة (حذف number + readingTimeMin)
+// - حذف number (كان = order legacy، استخدمنا migrate script لنقل البيانات)
+// - حذف readingTimeMin (كرّر estimatedMinutes)
+// - ابقينا على estimatedMinutes كحقل واحد لوقت القراءة
+model BookChapter {
+  id               Int      @id @default(autoincrement())
+  bookId           Int
+  order            Int      // ترتيب العرض (يدعم إعادة الترتيب مستقبلاً)
+  title            String
+  content          String   @default("")  // محتوى HTML
+  estimatedMinutes Int      @default(5)  // تقدير وقت القراءة بالدقائق
+
+  // ===== صفحات PDF (Sprint 3) =====
+  pageStart        Int?     // أول صفحة في PDF
+  pageEnd          Int?     // آخر صفحة في PDF
+
+  // حالة الفصل
+  isFree          Boolean  @default(true)
+  isPublished     Boolean  @default(true)
+
+  // الكلمات المفتاحية للفصل (JSON array)
+  keywords        String   @default("[]")
+
+  // ربط مع ألغاز اللعبة (ID المرحلة المرتبطة)
+  relatedLevelId  Int?
+
+  book            Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, order])
+  @@index([bookId, order])
+}
+
+// ===== 4. الإشارات المرجعية =====
+model UserBookmark {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  bookId      Int
+  chapterId   Int?     // إشارة لفصل محدد (null = لكتاب كامل)
+  note        String   @default("")  // ملاحظة المستخدم
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId, chapterId])
+  @@index([userId])
+}
+
+// ===== 5. التقييمات والمراجعات =====
+model BookReview {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  bookId      Int
+  rating      Int      // 1-5
+  review      String   @default("")
+  likes        Int      @default(0)
+
+  // ===== معتدل المراجعات (Sprint 2) — إصلاح #3: status كـ enum =====
+  // ضروري لأن المكتبة مفتوحة هدف للسبام
+  // (سابقًا: String — سمح بأخطاء إملائية مثل "aproved" أو "Approved")
+  status      ReviewStatus @default(pending) // enum (يمنع القيم الشاذة)
+  rejectionReason String? // سبب الرفض (إن رُفضت)
+  moderatedBy String?  // الأدمن الذي راجعها
+  moderatedAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([bookId])
+  @@index([status, createdAt]) // للأدمن: فلترة حسب الحالة
+}
+
+// ===== 6. تتبّع تقدّم القراءة =====
+model UserReadingProgress {
+  id                Int      @id @default(autoincrement())
+  userId            String
+  bookId            Int
+  currentChapter    Int      @default(1)
+  currentScroll     Float    @default(0)  // النسبة المئوية 0-100
+  timeSpentSec      Int      @default(0)
+  completedChapters String   @default("[]")  // JSON array of chapter numbers
+  completedAt       DateTime?
+  lastReadAt        DateTime?
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book              Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([userId])
+}
+
+// ===== 7. شهادات الإتقان =====
+model UserCertificate {
+  id                Int      @id @default(autoincrement())
+  userId            String
+  bookId            Int
+  certificateNumber String   @unique  // THQ-2026-XXXXXX
+  score             Int      // 0-100
+  issuedAt          DateTime @default(now())
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book              Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([userId])
+}
+
+// ====================================================================
+// ===== نظام التكرار المتباعد (Spaced Repetition System) =====
+// ====================================================================
+// يتبع كل كلمة تعلّمها اللاعب ويحدد متى يجب مراجعتها
+// قبل أن ينساها — مستوحى من خوارزمية SM-2 (SuperMemo)
+// ====================================================================
+
+// ===== 8. إتقان الكلمات (Word Mastery) =====
+// لكل مستخدم + كلمة: متى مراجعتها التالية، كم مرة ذكرها، إلخ
+model UserWordMastery {
+  id              Int      @id @default(autoincrement())
+  userId          String
+  word            String   // الكلمة نفسها (مثلاً: "كتاب")
+  wordText        String   // الإجابة الصحيحة (نفس word غالباً)
+  clue            String   @default("") // تلميح/سؤال الكلمة
+  
+  // خوارزمية SM-2
+  easeFactor      Float    @default(2.5)  // معامل السهولة (يبدأ 2.5، يقلّ مع الأخطاء)
+  interval        Int      @default(1)    // الفاصل الزمني بالأيام
+  repetitions      Int      @default(0)    // عدد المراجعات الناجحة المتتالية
+  
+  // الحالة
+  nextReviewAt    DateTime @default(now()) // متى يجب مراجعتها
+  lastReviewedAt  DateTime?
+  
+  // مصدر الكلمة
+  sourceType      String   @default("level") // level | book
+  sourceId        Int?     // ID المرحلة أو الكتاب
+  
+  // إحصائيات
+  correctCount    Int      @default(0)
+  wrongCount      Int      @default(0)
+  
+  // تصنيف التقدير
+  // again (0) — خاطئة تماماً، أعد المراجعة فوراً
+  // hard (1) — صعبة، قلّل الفاصل
+  // good (2) — جيدة، استمر بالفاصل الحالي
+  // easy (3) — سهلة، زيّد الفاصل
+  lastQuality     Int?     // 0-3
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, word])
+  @@index([userId, nextReviewAt])
+  @@index([userId])
+}
+
+// ===== 9. سجل المراجعات (Review Log) =====
+// يسجّل كل مراجعة كلمة لتتبّع التقدّم
+model ReviewLog {
+  id              Int      @id @default(autoincrement())
+  userId          String
+  word            String
+  quality         Int      // 0-3 (again/hard/good/easy)
+  reviewedAt      DateTime @default(now())
+  
+  @@index([userId, reviewedAt])
+  @@index([word])
+}
+
+// ════════════════════════════════════════════════════════════════
+// ██████ نماذج Sprint 0: الأمان + الإدارة + الإصدارات ██████
+// ════════════════════════════════════════════════════════════════
+
+// ===== Enums (تمنع القيم الشاذة) =====
+enum AuditSeverity {
+  info      // عمليات عادية
+  warning   // تغييرات أدوار، رفع ملفات
+  critical  // محاولات دخول فاشلة، حذف، تغييرات أمنية
+}
+
+enum BookStatus {
+  draft       // مسودة
+  published   // منشور
+  archived    // مؤرشف
+}
+
+enum ContactStatus {
+  new        // جديد
+  read       // مقروء
+  replied    // تم الرد
+  converted  // تم تحويله إلى كتاب
+  rejected   // مرفوض
+}
+
+// ===== Sprint 0 إصلاح #3: توحيد status كـ enum =====
+// (سابقًا: String @default("pending") — يسمح بأخطاء إملائية)
+enum ReviewStatus {
+  pending    // بانتظار الاعتدال
+  approved   // موافق عليها (تظهر للجمهور)
+  rejected   // مرفوضة (مع سبب)
+}
+
+// ===== 10. الوسوم (Tags) — مفقود =====
+// يدعم نظام وسوم مرن للكتب (مختلف عن keywords الموجودة)
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  slug      String    @unique  // للروابط: /library?tag=الفلسفة
+  createdAt DateTime  @default(now())
+
+  books     BookTag[]
+
+  @@index([name])
+}
+
+// ===== 11. ربط الكتب بالوسوم (BookTag) — مفقود =====
+// مفتاح مركّب @@id لمنع التكرار
+model BookTag {
+  bookId    Int
+  tagId     Int
+  createdAt DateTime @default(now())
+
+  book      Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  tag       Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, tagId])
+  @@index([tagId])
+}
+
+// ===== 12. سجل التدقيق (AuditLog) — Sprint 1 =====
+// ضروري لأن المكتبة مفتوحة هدف للاعتداء
+model AuditLog {
+  id          Int          @id @default(autoincrement())
+  userId      String?      // null = عملية من النظام
+  action      String       // CREATE | UPDATE | DELETE | LOGIN | LOGOUT | DOWNLOAD | ROLE_CHANGE | PUBLISH | UNPUBLISH
+  entityType  String       // Book | User | Category | Chapter | Role | Review | Tag | ContactMessage
+  entityId    String?      // معرّف الكيان المتأثر
+  changes     Json?        // { before: {}, after: {} } — لـ UPDATE
+  ipAddress   String?
+  userAgent   String?
+  severity    AuditSeverity @default(info) // enum يمنع القيم الشاذة
+  createdAt   DateTime     @default(now())
+
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@index([severity, createdAt])
+  @@index([action, createdAt])
+}
+
+// ===== 13. الأدوار (Role) — Sprint 1 =====
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // admin | librarian | assistant | reader
+  displayName String   // الاسم العربي: مدير | أمين مكتبة | مساعد | قارئ
+  description String   @default("")
+  permissions Json     // مصفوفة صلاحيات: ["books.create", "books.publish", "users.manage", ...]
+  isSystem    Boolean  @default(false) // true = لا يمكن حذفه (admin, reader)
+  createdAt   DateTime @default(now())
+
+  userRoles   UserRole[]
+
+  @@index([name])
+}
+
+// ===== 14. ربط المستخدمين بالأدوار (UserRole) — Sprint 1 =====
+model UserRole {
+  userId     String
+  roleId     Int
+  assignedAt DateTime @default(now())
+  assignedBy String?  // الأدمن الذي منح الدور
+
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+}
+
+// ===== 15. إصدارات الكتب (BookVersion) — Sprint 3 =====
+// يحتفظ بكل إصدارات PDF لكل كتاب
+// قيد فريد جزئي: إصدار نشط واحد فقط لكل كتاب
+model BookVersion {
+  id           Int      @id @default(autoincrement())
+  bookId       Int
+  version      Int      // رقم الإصدار (1, 2, 3...)
+  pdfUrl       String
+  pdfFileName  String
+  pdfSize      Int
+  pdfPageCount Int
+  uploadedBy   String   // userId
+  uploadedAt   DateTime @default(now())
+  isActive     Boolean  @default(false) // الإصدار النشط حاليًا
+  notes        String?  // سبب الرفع (مثلاً: "إصلاح صفحة 45")
+
+  book         Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  uploader     User     @relation(fields: [uploadedBy], references: [id])
+
+  @@index([bookId, version])
+  @@unique([bookId, version])
+}
+
+// ===== 16. رسائل التواصل (ContactMessage) — بديل CTA "ارفع كتابك" =====
+// نموذج اتصال للمؤلفين/المستخدمين بدلاً من رفع مباشر
+model ContactMessage {
+  id           Int           @id @default(autoincrement())
+  name         String        // اسم المرسل
+  email        String        // بريد التواصل
+  bookTitle    String?       // عنوان الكتاب المقترح
+  message      String        // نص الرسالة
+  fileUrl      String?       // رابط للملف (Google Drive) — لا رفع مباشر
+  status       ContactStatus @default(new)
+  // إدارة الرد
+  reply        String?       // رد الإدارة على الرسالة
+  repliedBy    String?       // userId للأدمن الذي ردّ
+  repliedAt    DateTime?
+  // التحويل إلى كتاب (علاقة فعلية مع Book — ليست scalar فقط)
+  convertedBookId Int?       // معرّف الكتاب إن تم التحويل
+  convertedBook   Book?      @relation("ConvertedToBook", fields: [convertedBookId], references: [id], onDelete: SetNull)
+  convertedAt  DateTime?
+  // التتبّع
+  ipAddress    String?
+  createdAt    DateTime      @default(now())
+
+  admin        User?          @relation(fields: [repliedBy], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([email])
+}
+
+// ===== 17. رموز احتياطية للـ 2FA (BackupCode) — Sprint 5 A.2 =====
+// 10 رموز لكل أدمن، تُستخدم عند فقدان الجهاز
+// مشفّرة بـ bcrypt، تُستهلك مرة واحدة
+model BackupCode {
+  id        Int       @id @default(autoincrement())
+  userId    String
+  codeHash  String    // bcrypt hash (وليس plaintext)
+  usedAt    DateTime? // null = غير مستخدم
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

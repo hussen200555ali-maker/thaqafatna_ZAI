@@ -1,0 +1,21 @@
+# CODEOWNERS — قواعد مراجعة الكود
+# كل ملف حساس يتطلب مراجعة من المالك
+
+# ملفات قاعدة البيانات
+/prisma/                    @hussen200555ali-maker
+
+# ملفات الأمان
+/src/lib/auth.ts            @hussen200555ali-maker
+/src/lib/crypto.ts          @hussen200555ali-maker
+/src/lib/rate-limit.ts      @hussen200555ali-maker
+/src/lib/audit.ts           @hussen200555ali-maker
+/src/lib/sanitize.ts        @hussen200555ali-maker
+/src/lib/file-validation.ts @hussen200555ali-maker
+
+# Middleware
+/middleware.ts              @hussen200555ali-maker
+
+# إعدادات المشروع
+/next.config.ts             @hussen200555ali-maker
+/package.json               @hussen200555ali-maker
+/vercel.json                @hussen200555ali-maker
