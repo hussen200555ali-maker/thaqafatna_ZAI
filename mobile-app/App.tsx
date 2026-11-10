@@ -4,24 +4,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
+import { View, Text, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { Colors } from './src/theme/theme';
 import { loadAuthToken } from './src/services/api';
 
-// Helper متوافق مع الويب والموبايل
 const getOnboardingSeen = async (): Promise<boolean> => {
   try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return window.localStorage.getItem('onboarding_seen') === 'true';
+    if (Platform.OS === 'web') {
+      return localStorage.getItem('onboarding_seen') === 'true';
     }
-    // React Native
     const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-    const value = await AsyncStorage.getItem('onboarding_seen');
-    return value === 'true';
+    return (await AsyncStorage.getItem('onboarding_seen')) === 'true';
   } catch {
     return false;
   }
@@ -29,8 +25,8 @@ const getOnboardingSeen = async (): Promise<boolean> => {
 
 const setOnboardingSeen = async () => {
   try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem('onboarding_seen', 'true');
+    if (Platform.OS === 'web') {
+      localStorage.setItem('onboarding_seen', 'true');
       return;
     }
     const AsyncStorage = require('@react-native-async-storage/async-storage').default;
@@ -48,7 +44,7 @@ export default function App() {
         await loadAuthToken();
         const seen = await getOnboardingSeen();
         setShowOnboarding(seen !== true);
-      } catch (error) {
+      } catch {
         setShowOnboarding(true);
       } finally {
         setLoading(false);
@@ -95,9 +91,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  loadingEmoji: {
-    fontSize: 72,
-  },
+  loadingEmoji: { fontSize: 72 },
   loadingText: {
     color: Colors.textMuted,
     fontSize: 14,
