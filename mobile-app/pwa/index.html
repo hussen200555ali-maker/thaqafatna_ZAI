@@ -1062,7 +1062,480 @@
     }
 
     /* ============================================================
-       15) تجاوب الشاشات الكبيرة
+       15) شبكة الكلمات المتقاطعة (Crossword Grid)
+       ============================================================ */
+    .crossword-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 12px 0 4px;
+    }
+    .crossword-grid {
+      display: inline-grid;
+      gap: 2px;
+      background: var(--border);
+      padding: 2px;
+      border-radius: var(--radius-sm);
+      direction: ltr;
+    }
+    .crossword-cell {
+      width: 36px; height: 36px;
+      background: var(--surface-hover);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      border-radius: 2px;
+    }
+    .crossword-cell.blocked {
+      background: var(--background);
+    }
+    .crossword-cell .cell-num {
+      position: absolute;
+      top: 1px; right: 3px;
+      font-size: 9px;
+      color: var(--text-muted);
+      font-weight: 800;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .crossword-input {
+      width: 100%; height: 100%;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      text-align: center;
+      font-weight: 800;
+      font-size: 16px;
+      font-family: var(--font-cairo);
+      caret-color: var(--primary);
+      padding: 0;
+    }
+    .crossword-input:focus {
+      outline: 2px solid var(--primary);
+      background: rgba(147, 51, 234, 0.18);
+    }
+    .crossword-cell.correct .crossword-input {
+      background: rgba(34, 197, 94, 0.28);
+      color: var(--success);
+    }
+    .crossword-cell.incorrect .crossword-input {
+      background: rgba(239, 68, 68, 0.28);
+      color: var(--danger);
+      animation: shake .3s;
+    }
+    @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-3px);} 75%{transform:translateX(3px);} }
+
+    .crossword-clues {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    @media (max-width: 480px) {
+      .crossword-clues { grid-template-columns: 1fr; }
+    }
+    .crossword-clue-list {
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+    .crossword-clue-title {
+      font-family: var(--font-cairo);
+      font-size: 13px; font-weight: 800;
+      margin-bottom: 8px;
+      color: var(--primary-light);
+    }
+    .crossword-clue-item {
+      font-size: 12px;
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--border);
+      display: flex; gap: 6px; align-items: flex-start;
+      line-height: 1.5;
+    }
+    .crossword-clue-item:last-child { border-bottom: none; }
+    .crossword-clue-num {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 800;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 10px;
+      min-width: 18px; text-align: center;
+      flex-shrink: 0;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .crossword-actions {
+      display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;
+      justify-content: center;
+    }
+    .crossword-success {
+      text-align: center;
+      padding: 24px 16px;
+      animation: popIn .5s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes popIn { from{opacity:0; transform:scale(.85);} to{opacity:1; transform:scale(1);} }
+    .crossword-success-icon {
+      width: 90px; height: 90px;
+      margin: 0 auto 12px;
+      border-radius: 50%;
+      background: var(--gradient-accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px;
+      box-shadow: var(--shadow-accent);
+      animation: bounce 1s ease;
+    }
+    @keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-12px);} }
+
+    /* ============================================================
+       16) شاشة قارئ الكتب (Book Reader)
+       ============================================================ */
+    .reader-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--background);
+      z-index: 500;
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform .35s cubic-bezier(.32, .72, 0, 1);
+      overflow: hidden;
+    }
+    .reader-overlay.active { transform: translateY(0); }
+    .reader-topbar {
+      flex-shrink: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 12px;
+      display: flex; align-items: center; gap: 10px;
+      padding-top: calc(10px + var(--safe-top));
+    }
+    .reader-back-btn {
+      width: 38px; height: 38px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-hover);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .reader-back-btn svg { width: 18px; height: 18px; }
+    .reader-title {
+      flex: 1; min-width: 0;
+      font-weight: 700; font-size: 13px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .reader-controls { display: flex; gap: 6px; flex-shrink: 0; }
+    .reader-control-btn {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-hover);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      border: 1px solid var(--border-light);
+    }
+    .reader-control-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .reader-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 22px calc(var(--safe-bottom) + 28px);
+      max-width: 700px;
+      margin: 0 auto;
+      width: 100%;
+      line-height: 2.1;
+      transition: font-size .2s, background .25s, color .25s;
+    }
+    .reader-content.size-small { font-size: 15px; }
+    .reader-content.size-medium { font-size: 17px; }
+    .reader-content.size-large { font-size: 20px; }
+    .reader-content.size-xlarge { font-size: 23px; }
+    .reader-content.night-mode {
+      background: #0a0a0a; color: #d4c5a0;
+    }
+    .reader-content h1, .reader-content h2, .reader-content h3 {
+      font-family: var(--font-cairo);
+      margin: 28px 0 14px;
+      line-height: 1.4;
+    }
+    .reader-content h1 { font-size: 1.6em; }
+    .reader-content h2 { font-size: 1.3em; color: var(--primary-light); }
+    .reader-content h3 { font-size: 1.1em; color: var(--accent-light); }
+    .reader-content p { margin-bottom: 18px; text-align: justify; }
+    .reader-content blockquote {
+      border-right: 3px solid var(--primary);
+      padding: 12px 16px;
+      background: var(--surface);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin: 16px 0;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    .reader-content ul, .reader-content ol { padding-right: 22px; margin-bottom: 16px; }
+    .reader-content li { margin-bottom: 8px; }
+    .reader-progress {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 540px;
+      height: 4px;
+      background: var(--surface);
+      z-index: 501;
+    }
+    .reader-progress-fill {
+      height: 100%;
+      background: var(--gradient-primary);
+      transition: width .15s;
+    }
+    .reader-bottom-nav {
+      display: flex; gap: 8px;
+      padding: 12px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding-bottom: calc(12px + var(--safe-bottom));
+    }
+    .reader-bottom-nav .btn { flex: 1; }
+
+    /* ============================================================
+       17) المساعد الذكي (AI Tutor)
+       ============================================================ */
+    .ai-tutor-btn {
+      position: fixed;
+      bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 16px);
+      left: 16px;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-primary);
+      z-index: 250;
+      font-size: 24px;
+      animation: pulse 2.5s infinite;
+    }
+    .ai-tutor-btn:active { transform: scale(0.9); }
+    .ai-tutor-panel {
+      position: fixed;
+      inset: 0;
+      background: rgba(12, 10, 9, 0.85);
+      backdrop-filter: blur(6px);
+      z-index: 600;
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; visibility: hidden;
+      transition: opacity .25s, visibility .25s;
+    }
+    .ai-tutor-panel.active { opacity: 1; visibility: visible; }
+    .ai-tutor-sheet {
+      width: 100%; max-width: 540px;
+      max-height: 85vh;
+      background: var(--surface);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      transform: translateY(100%);
+      transition: transform .35s cubic-bezier(.32, .72, 0, 1);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      padding-bottom: var(--safe-bottom);
+    }
+    .ai-tutor-panel.active .ai-tutor-sheet { transform: translateY(0); }
+    .ai-tutor-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .ai-tutor-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .ai-tutor-info { flex: 1; }
+    .ai-tutor-name { font-family: var(--font-cairo); font-weight: 800; font-size: 15px; }
+    .ai-tutor-status { font-size: 11px; color: var(--success); display: flex; align-items: center; gap: 4px; }
+    .ai-tutor-status::before {
+      content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--success);
+    }
+    .ai-tutor-messages {
+      flex: 1; overflow-y: auto;
+      padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+      max-height: 50vh;
+    }
+    .ai-msg {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .ai-msg.bot {
+      background: var(--surface-hover);
+      align-self: flex-start;
+      border-bottom-right-radius: 4px;
+    }
+    .ai-msg.user {
+      background: var(--gradient-primary);
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-left-radius: 4px;
+    }
+    .ai-msg.typing {
+      display: flex; gap: 4px;
+    }
+    .ai-msg.typing span {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted);
+      animation: typingDot 1.2s infinite;
+    }
+    .ai-msg.typing span:nth-child(2) { animation-delay: .2s; }
+    .ai-msg.typing span:nth-child(3) { animation-delay: .4s; }
+    @keyframes typingDot { 0%,60%,100%{transform:translateY(0); opacity:.5;} 30%{transform:translateY(-6px); opacity:1;} }
+    .ai-tutor-input-wrap {
+      display: flex; gap: 8px;
+      padding: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .ai-tutor-input {
+      flex: 1;
+      padding: 10px 14px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      color: var(--text);
+      font-size: 13px;
+    }
+    .ai-tutor-input:focus { outline: none; border-color: var(--primary); }
+    .ai-tutor-send {
+      width: 44px; height: 44px;
+      background: var(--gradient-primary);
+      color: #fff;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .ai-tutor-send:active { transform: scale(0.92); }
+    .ai-tutor-suggestions {
+      display: flex; gap: 6px; padding: 0 12px 8px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .ai-tutor-suggestions::-webkit-scrollbar { display: none; }
+    .ai-suggestion-chip {
+      flex-shrink: 0;
+      padding: 6px 12px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border-light);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ============================================================
+       18) الإشعارات والتحليلات وخريطة المعرفة
+       ============================================================ */
+    .notif-panel {
+      position: fixed;
+      inset: 0;
+      background: rgba(12, 10, 9, 0.85);
+      backdrop-filter: blur(6px);
+      z-index: 500;
+      display: flex; align-items: flex-start; justify-content: flex-end;
+      opacity: 0; visibility: hidden;
+      transition: opacity .25s, visibility .25s;
+    }
+    .notif-panel.active { opacity: 1; visibility: visible; }
+    .notif-sheet {
+      width: 100%; max-width: 420px;
+      height: 100%;
+      background: var(--surface);
+      transform: translateX(100%);
+      transition: transform .35s cubic-bezier(.32, .72, 0, 1);
+      overflow-y: auto;
+      padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom));
+    }
+    .notif-panel.active .notif-sheet { transform: translateX(0); }
+    .notif-item {
+      display: flex; gap: 12px;
+      padding: 12px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 8px;
+      transition: border-color .2s;
+    }
+    .notif-item.unread { border-color: var(--primary); background: linear-gradient(135deg, rgba(147,51,234,.08), transparent); }
+    .notif-icon {
+      width: 38px; height: 38px;
+      flex-shrink: 0;
+      border-radius: var(--radius-sm);
+      background: var(--gradient-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-title { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+    .notif-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    .notif-time { font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .analytics-tile {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+    }
+    .analytics-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+    .analytics-value { font-family: var(--font-cairo); font-size: 22px; font-weight: 900; }
+    .analytics-bar {
+      height: 6px;
+      background: var(--surface-hover);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .analytics-bar-fill { height: 100%; border-radius: 999px; background: var(--gradient-primary); }
+
+    .knowledge-map {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      position: relative;
+      overflow-x: auto;
+    }
+    .km-node {
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      font-size: 12px; font-weight: 700;
+      margin: 4px;
+      background: var(--surface-hover);
+      border: 2px solid var(--border-light);
+      cursor: pointer;
+      transition: transform .15s;
+    }
+    .km-node:active { transform: scale(0.95); }
+    .km-node.mastered { background: rgba(34,197,94,.15); border-color: var(--success); color: var(--success); }
+    .km-node.in-progress { background: rgba(245,158,11,.15); border-color: var(--accent); color: var(--accent-light); }
+    .km-node.locked { opacity: 0.5; filter: grayscale(.6); }
+    .km-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: center; }
+    .km-row-label { font-size: 11px; color: var(--text-muted); width: 80px; flex-shrink: 0; }
+
+    /* أيقونة الجرس في الهيدر */
+    .notif-badge {
+      position: absolute;
+      top: 0; left: 0;
+      min-width: 16px; height: 16px;
+      padding: 0 4px;
+      background: var(--danger);
+      color: #fff;
+      border-radius: 999px;
+      font-size: 10px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--surface);
+    }
+
+    /* ============================================================
+       19) تجاوب الشاشات الكبيرة
        ============================================================ */
     @media (min-width: 600px) {
       .library-grid { grid-template-columns: repeat(3, 1fr); }
@@ -1102,6 +1575,10 @@
           <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#F59E0B" stroke="#D97706" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="#1C1917">★</text></svg>
           <span id="userCoins">0</span>
         </div>
+        <button class="header-icon-btn" id="notifBtn" aria-label="الإشعارات" title="الإشعارات" style="position:relative;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
         <button class="header-icon-btn" id="installBtn" aria-label="تثبيت التطبيق" title="تثبيت التطبيق" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
@@ -1281,6 +1758,16 @@
         <div class="section-title">الشارات</div>
         <div class="badges-grid" id="badgesGrid"></div>
 
+        <div class="section-title">📊 تحليلاتي</div>
+        <div id="analyticsSection">
+          <div class="loader-block"><div class="spinner"></div><span>جاري تحميل التحليلات...</span></div>
+        </div>
+
+        <div class="section-title">🗺️ خريطة المعرفة</div>
+        <div id="knowledgeMapSection">
+          <div class="loader-block"><div class="spinner"></div><span>جاري تحميل خريطة المعرفة...</span></div>
+        </div>
+
         <div class="section-title">إعدادات</div>
         <div class="card" style="display:flex; flex-direction:column; gap:10px;">
           <label style="display:flex; align-items:center; justify-content:space-between; padding:6px 4px; cursor:pointer;">
@@ -1400,6 +1887,357 @@
       ];
 
       /* ============================================================
+         1.5) بيانات احتياطية تُعرض عند فشل الـ API
+         ============================================================ */
+      const FALLBACK_BOOKS = [
+        {
+          id: 'fb-1', title: 'مقدمة ابن خلدون', author: 'عبد الرحمن بن خلدون',
+          category: 'تاريخ', description: 'من أعظم الكتب في علم العمران البشري والاجتماع الإنساني. يبحث في طبائع الدول والحضارات وأسباب قيامها وسقوطها، ويعدّ أساساً لعلم الاجتماع.',
+          pages: 720, year: 1377, isFeatured: true, rating: 4.8, ratingCount: 234,
+          contentType: 'pdf', readingTimeMin: 480, views: 1240, difficulty: 'hard',
+        },
+        {
+          id: 'fb-2', title: 'الأيام', author: 'طه حسين',
+          category: 'أدب', description: 'سيرة ذاتية رائعة تحكي طفولة الكاتب وصراعه مع فقدان البصر وسعيه للعلم في الأزهر ثم الجامعة المصرية، بأسلوب أدبي رفيع.',
+          pages: 280, year: 1929, isFeatured: true, rating: 4.7, ratingCount: 189,
+          contentType: 'pdf', readingTimeMin: 180, views: 980, difficulty: 'medium',
+        },
+        {
+          id: 'fb-3', title: 'موسم الهجرة إلى الشمال', author: 'الطيب صالح',
+          category: 'رواية', description: 'رواية كلاسيكية عن صراع الشرق والغرب ومأساة الإنسان المشرّد بين ثقافتين، تُعدّ من أفضل مئة رواية في القرن العشرين.',
+          pages: 169, year: 1966, isFeatured: true, rating: 4.6, ratingCount: 312,
+          contentType: 'pdf', readingTimeMin: 120, views: 1530, difficulty: 'medium',
+        },
+        {
+          id: 'fb-4', title: 'رسالة الغفران', author: 'أبو العلاء المعري',
+          category: 'أدب', description: 'رحلة خيالية إلى الجنة والنار يلتقي فيها البطل بشعراء وأدباء العرب في عالم الآخرة، عمل فلسفي ساخر.',
+          pages: 340, year: 1033, isFeatured: false, rating: 4.4, ratingCount: 78,
+          contentType: 'pdf', readingTimeMin: 220, views: 560, difficulty: 'hard',
+        },
+        {
+          id: 'fb-5', title: 'البخلاء', author: 'الجاحظ',
+          category: 'أدب', description: 'كتاب نثري يجمع طرائف وأخبار البخلاء في الأدب العربي بنكهة ساخرة لطيفة، يكشف عن طبائع البشر وعيوبهم.',
+          pages: 220, year: 869, isFeatured: true, rating: 4.5, ratingCount: 145,
+          contentType: 'pdf', readingTimeMin: 150, views: 720, difficulty: 'medium',
+        },
+        {
+          id: 'fb-6', title: 'إحياء علوم الدين', author: 'أبو حامد الغزالي',
+          category: 'دين', description: 'موسوعة في الفقه والأخلاق والتصوف الإسلامي، تعد من أهم الكتب في التراث الإسلامي، تجمع بين العلم والعمل.',
+          pages: 1600, year: 1100, isFeatured: false, rating: 4.9, ratingCount: 420,
+          contentType: 'pdf', readingTimeMin: 1200, views: 2100, difficulty: 'hard',
+        },
+        {
+          id: 'fb-7', title: 'كليلة ودمنة', author: 'ابن المقفع',
+          category: 'أدب', description: 'كتاب حكم وأخبار على ألسنة الحيوانات، يرمز إلى نواحٍ سياسية وأخلاقية واجتماعية بأسلوب بديع.',
+          pages: 200, year: 750, isFeatured: false, rating: 4.3, ratingCount: 92,
+          contentType: 'pdf', readingTimeMin: 130, views: 410, difficulty: 'easy',
+        },
+        {
+          id: 'fb-8', title: 'البيان والتبيين', author: 'الجاحظ',
+          category: 'أدب', description: 'موسوعة أدبية لغوية في البلاغة والخطابة وأخبار العرب وأشعارهم، من أهم مراجع الأدب العربي.',
+          pages: 880, year: 869, isFeatured: false, rating: 4.4, ratingCount: 67,
+          contentType: 'pdf', readingTimeMin: 600, views: 320, difficulty: 'hard',
+        },
+        {
+          id: 'fb-9', title: 'تاج العروس من جواهر القاموس', author: 'المرتضى الزبيدي',
+          category: 'لغة', description: 'أحد أكبر معاجم اللغة العربية وأشملها، يضم مئات الآلاف من المواد اللغوية وشرحاً وافياً للكلمات.',
+          pages: 3000, year: 1790, isFeatured: false, rating: 4.7, ratingCount: 56,
+          contentType: 'pdf', readingTimeMin: 2400, views: 280, difficulty: 'hard',
+        },
+        {
+          id: 'fb-10', title: 'السيرة النبوية', author: 'ابن هشام',
+          category: 'سيرة', description: 'أشهر كتب السيرة النبوية، يحكي سيرة النبي محمد صلى الله عليه وسلم منذ ولادته حتى وفاته بتفصيل دقيق.',
+          pages: 920, year: 833, isFeatured: true, rating: 4.9, ratingCount: 510,
+          contentType: 'pdf', readingTimeMin: 700, views: 3200, difficulty: 'medium',
+        },
+        {
+          id: 'fb-11', title: 'ألف ليلة وليلة', author: 'مجهول',
+          category: 'رواية', description: 'مجموعة قصص وحكايات شعبية عربية، تروي حكاية شهرزاد التي كانت تحكي للملك شهريار كل ليلة قصة.',
+          pages: 1200, year: 1450, isFeatured: true, rating: 4.6, ratingCount: 268,
+          contentType: 'pdf', readingTimeMin: 900, views: 1800, difficulty: 'medium',
+        },
+        {
+          id: 'fb-12', title: 'المعلقات السبع', author: 'شعراء الجاهلية',
+          category: 'شعر', description: 'ديوان يجمع أجود القصائد العربية الجاهلية المعلقة، كنتيجة لمسابقات أدبية في سوق عكاظ.',
+          pages: 180, year: 600, isFeatured: false, rating: 4.5, ratingCount: 134,
+          contentType: 'pdf', readingTimeMin: 120, views: 580, difficulty: 'medium',
+        },
+      ];
+
+      const FALLBACK_CHAPTERS = [
+        {
+          id: 'fc-1', title: 'المفردات الأساسية', icon: '📖', description: 'تعلّم المفردات العربية الأساسية من خلال كلمات متقاطعة ممتعة.',
+          levels: [
+            {
+              id: 'fl-1', title: 'كلمة: كتاب', difficulty: 'easy', reward: 50, number: 1,
+              words: [
+                { word: 'كتاب', clue: 'مجموعة صفحات تحتوي على نص مطبوع', direction: 'across', row: 0, col: 0, num: 1 },
+              ],
+              rows: 1, cols: 4,
+              cells: [
+                [{ letter: 'ك', num: 1 }, { letter: 'ت' }, { letter: 'ا' }, { letter: 'ب' }],
+              ],
+            },
+            {
+              id: 'fl-2', title: 'كلمة: قلم', difficulty: 'easy', reward: 50, number: 2,
+              words: [
+                { word: 'قلم', clue: 'أداة تُستخدم للكتابة', direction: 'across', row: 0, col: 0, num: 1 },
+              ],
+              rows: 1, cols: 3,
+              cells: [
+                [{ letter: 'ق', num: 1 }, { letter: 'ل' }, { letter: 'م' }],
+              ],
+            },
+            {
+              id: 'fl-3', title: 'كلمتان متقاطعتان', difficulty: 'medium', reward: 80, number: 3,
+              words: [
+                { word: 'علم', clue: 'راية الدولة وشعارها', direction: 'across', row: 0, col: 0, num: 1 },
+                { word: 'عطر', clue: 'رائحة طيبة تفوح من الزهور', direction: 'down', row: 0, col: 0, num: 1 },
+              ],
+              rows: 3, cols: 3,
+              cells: [
+                [{ letter: 'ع', num: 1 }, { letter: 'ل' }, { letter: 'م' }],
+                [{ letter: 'ط' }, null, null],
+                [{ letter: 'ر' }, null, null],
+              ],
+            },
+            {
+              id: 'fl-4', title: 'كلمة: مدرسة', difficulty: 'medium', reward: 80, number: 4,
+              words: [
+                { word: 'مدرسة', clue: 'مكان التعلّم والتعليم', direction: 'across', row: 0, col: 0, num: 1 },
+              ],
+              rows: 1, cols: 5,
+              cells: [
+                [{ letter: 'م', num: 1 }, { letter: 'د' }, { letter: 'ر' }, { letter: 'س' }, { letter: 'ة' }],
+              ],
+            },
+          ],
+        },
+        {
+          id: 'fc-2', title: 'الأدب العربي', icon: '✒️', description: 'اختبر معرفتك بأعلام الأدب العربي ومؤلفاتهم.',
+          levels: [
+            {
+              id: 'fl-5', title: 'الجاحظ', difficulty: 'medium', reward: 100, number: 1,
+              words: [
+                { word: 'جاحظ', clue: 'صاحب كتاب البخلاء والبيان والتبيين', direction: 'across', row: 0, col: 0, num: 1 },
+              ],
+              rows: 1, cols: 4,
+              cells: [
+                [{ letter: 'ج', num: 1 }, { letter: 'ا' }, { letter: 'ح' }, { letter: 'ظ' }],
+              ],
+            },
+            {
+              id: 'fl-6', title: 'المتنبي', difficulty: 'hard', reward: 120, number: 2,
+              words: [
+                { word: 'متنبي', clue: 'أشهر شعراء العرب في العصر العباسي', direction: 'across', row: 0, col: 0, num: 1 },
+              ],
+              rows: 1, cols: 5,
+              cells: [
+                [{ letter: 'م', num: 1 }, { letter: 'ت' }, { letter: 'ن' }, { letter: 'ب' }, { letter: 'ي' }],
+              ],
+            },
+            {
+              id: 'fl-7', title: 'ابن خلدون', difficulty: 'hard', reward: 150, number: 3,
+              words: [
+                { word: 'خلدون', clue: 'صاحب المقدمة الشهيرة', direction: 'across', row: 0, col: 0, num: 1 },
+                { word: 'كتاب', clue: 'مجموعة صفحات مطبوعة', direction: 'down', row: 0, col: 4, num: 2 },
+              ],
+              rows: 5, cols: 5,
+              cells: [
+                [null, null, null, null, { letter: 'ك', num: 2 }],
+                [{ letter: 'خ', num: 1 }, { letter: 'ل' }, { letter: 'د' }, { letter: 'و' }, { letter: 'ت' }],
+                [null, null, null, null, { letter: 'ا' }],
+                [null, null, null, null, { letter: 'ب' }],
+                [null, null, null, null, null],
+              ],
+            },
+          ],
+        },
+        {
+          id: 'fc-3', title: 'التاريخ الإسلامي', icon: '🕌', description: 'محطات بارزة من تاريخ الحضارة الإسلامية.',
+          levels: [
+            {
+              id: 'fl-8', title: 'بغداد', difficulty: 'easy', reward: 60, number: 1,
+              words: [
+                { word: 'بغداد', clue: 'عاصمة الخلافة العباسية ودار السلام', direction: 'across', row: 0, col: 0, num: 1 },
+              ],
+              rows: 1, cols: 5,
+              cells: [
+                [{ letter: 'ب', num: 1 }, { letter: 'غ' }, { letter: 'د' }, { letter: 'ا' }, { letter: 'د' }],
+              ],
+            },
+            {
+              id: 'fl-9', title: 'قرطبة', difficulty: 'medium', reward: 90, number: 2,
+              words: [
+                { word: 'قرطبة', clue: 'حاضرة الأندلس في العصر الأموي', direction: 'across', row: 0, col: 0, num: 1 },
+              ],
+              rows: 1, cols: 5,
+              cells: [
+                [{ letter: 'ق', num: 1 }, { letter: 'ر' }, { letter: 'ط' }, { letter: 'ب' }, { letter: 'ة' }],
+              ],
+            },
+            {
+              id: 'fl-10', title: 'القاهرة', difficulty: 'medium', reward: 90, number: 3,
+              words: [
+                { word: 'قاهرة', clue: 'عاصمة مصر الفاطمية', direction: 'across', row: 0, col: 0, num: 1 },
+              ],
+              rows: 1, cols: 5,
+              cells: [
+                [{ letter: 'ق', num: 1 }, { letter: 'ا' }, { letter: 'ه' }, { letter: 'ر' }, { letter: 'ة' }],
+              ],
+            },
+          ],
+        },
+        {
+          id: 'fc-4', title: 'العلوم', icon: '🔬', description: 'مفاهيم علمية أساسية بطريقة ممتعة.',
+          levels: [
+            {
+              id: 'fl-11', title: 'ذرة', difficulty: 'easy', reward: 50, number: 1,
+              words: [
+                { word: 'ذرة', clue: 'أصغر وحدة في المادة', direction: 'across', row: 0, col: 0, num: 1 },
+              ],
+              rows: 1, cols: 3,
+              cells: [
+                [{ letter: 'ذ', num: 1 }, { letter: 'ر' }, { letter: 'ة' }],
+              ],
+            },
+            {
+              id: 'fl-12', title: 'ضوء', difficulty: 'easy', reward: 50, number: 2,
+              words: [
+                { word: 'ضوء', clue: 'الإشعاع الذي نرى به الأشياء', direction: 'across', row: 0, col: 0, num: 1 },
+              ],
+              rows: 1, cols: 3,
+              cells: [
+                [{ letter: 'ض', num: 1 }, { letter: 'و' }, { letter: 'ء' }],
+              ],
+            },
+            {
+              id: 'fl-13', title: 'كيمياء', difficulty: 'hard', reward: 130, number: 3,
+              words: [
+                { word: 'كيمياء', clue: 'علم دراسة المادة وتفاعلاتها', direction: 'across', row: 0, col: 0, num: 1 },
+              ],
+              rows: 1, cols: 6,
+              cells: [
+                [{ letter: 'ك', num: 1 }, { letter: 'ي' }, { letter: 'م' }, { letter: 'ي' }, { letter: 'ا' }, { letter: 'ء' }],
+              ],
+            },
+          ],
+        },
+      ];
+
+      const FALLBACK_LEADERBOARD = {
+        weekly: [
+          { id: 'u1', name: 'أحمد المصري', score: 2450, level: 4, completedLevels: 18, totalStars: 12 },
+          { id: 'u2', name: 'فاطمة الزهراء', score: 2100, level: 3, completedLevels: 15, totalStars: 9 },
+          { id: 'u3', name: 'يوسف الشامي', score: 1850, level: 3, completedLevels: 13, totalStars: 8 },
+          { id: 'u4', name: 'مريم العلي', score: 1500, level: 3, completedLevels: 11, totalStars: 7 },
+          { id: 'u5', name: 'عبدالله اليمني', score: 1200, level: 2, completedLevels: 9, totalStars: 5 },
+          { id: 'u6', name: 'سارة البحرينية', score: 980, level: 2, completedLevels: 7, totalStars: 4 },
+          { id: 'u7', name: 'خالد القطري', score: 750, level: 2, completedLevels: 5, totalStars: 3 },
+          { id: 'u8', name: 'ليلى العراقية', score: 540, level: 1, completedLevels: 3, totalStars: 2 },
+        ],
+        monthly: [
+          { id: 'u1', name: 'مريم العلي', score: 9800, level: 4, completedLevels: 42, totalStars: 28 },
+          { id: 'u2', name: 'أحمد المصري', score: 8450, level: 4, completedLevels: 38, totalStars: 25 },
+          { id: 'u3', name: 'يوسف الشامي', score: 7200, level: 3, completedLevels: 33, totalStars: 22 },
+          { id: 'u4', name: 'فاطمة الزهراء', score: 6100, level: 3, completedLevels: 29, totalStars: 18 },
+          { id: 'u5', name: 'عبدالله اليمني', score: 4500, level: 3, completedLevels: 24, totalStars: 15 },
+          { id: 'u6', name: 'سارة البحرينية', score: 3200, level: 2, completedLevels: 18, totalStars: 11 },
+          { id: 'u7', name: 'خالد القطري', score: 2400, level: 2, completedLevels: 14, totalStars: 8 },
+          { id: 'u8', name: 'ليلى العراقية', score: 1800, level: 2, completedLevels: 10, totalStars: 6 },
+        ],
+        all: [
+          { id: 'u1', name: 'عبدالرحمن الحافظ', score: 45200, level: 5, completedLevels: 124, totalStars: 87 },
+          { id: 'u2', name: 'مريم العلي', score: 38700, level: 5, completedLevels: 108, totalStars: 76 },
+          { id: 'u3', name: 'أحمد المصري', score: 32100, level: 4, completedLevels: 95, totalStars: 68 },
+          { id: 'u4', name: 'فاطمة الزهراء', score: 28400, level: 4, completedLevels: 89, totalStars: 62 },
+          { id: 'u5', name: 'يوسف الشامي', score: 24800, level: 4, completedLevels: 82, totalStars: 55 },
+          { id: 'u6', name: 'عبدالله اليمني', score: 19200, level: 3, completedLevels: 71, totalStars: 48 },
+          { id: 'u7', name: 'سارة البحرينية', score: 16500, level: 3, completedLevels: 64, totalStars: 42 },
+          { id: 'u8', name: 'خالد القطري', score: 12300, level: 3, completedLevels: 52, totalStars: 35 },
+        ],
+      };
+
+      const FALLBACK_CHAPTER_CONTENT = {
+        title: 'الفصل الأول: المقدمة',
+        order: 1,
+        content: `<h1>الفصل الأول: المقدمة</h1>
+<p>الحمد لله الذي هدانا للإسلام، وجعلنا من أمة محمد صلى الله عليه وسلم، وعلّمنا بالقلم ما لم نعلم. والصلاة والسلام على النبي الأمي وعلى آله وصحبه أجمعين.</p>
+<h2>تمهيد</h2>
+<p>إنّ القراءة غذاء العقل ونبض الفكر، وهي السبيل الأمثل لمعرفة تاريخ الأمم وحضاراتها، وعلى صفحات الكتب تتراقص الحروف لتروي حكايات الأوّلين وتُلهم الأجيال اللاحقة. وفي زمننا هذا الذي تكاثرت فيه وسائل التشتيت، تبقى الكتب حصناً منيعاً للروح والفكر معاً.</p>
+<p>وهذا الكتاب الذي بين يديك، هو محاولة متواضعة لتقديم فائدة لمن يقرؤه، جمعنا فيه خلاصة ما توصّل إليه العقل البشري في هذا المجال، بأسلوب يسير وأمثلة واقعية، راجين من الله أن ينفع به القارئ الكريم.</p>
+<blockquote>قال رسول الله صلى الله عليه وسلم: "من سلك طريقاً يلتمس فيه علماً سهّل الله له به طريقاً إلى الجنة".</blockquote>
+<h2>أهمية العلم في الإسلام</h2>
+<p>اعلم أخي القارئ أنّ الإسلام دين علم ومعرفة، فقد بدأت أول آيات القرآن الكريم بالأمر بالقراءة: <strong>{اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ}</strong>، وفي ذلك إشارة واضحة إلى مكانة العلم والعلماء في هذا الدين الحنيف.</p>
+<p>وقد حثّ الإسلام على طلب العلم ورفع منزلة العلماء، فقال تعالى: <strong>{يَرْفَعِ اللَّهُ الَّذِينَ آمَنُوا مِنكُمْ وَالَّذِينَ أُوتُوا الْعِلْمَ دَرَجَاتٍ}</strong>. فكان المسلمون الأوائل روّاداً في مختلف العلوم والمعارف، من طب وفلك ورياضيات وفلسفة وغيرها.</p>
+<h2>أهداف الكتاب</h2>
+<p>يسعى هذا الكتاب إلى تحقيق جملة من الأهداف النبيلة، نذكر منها:</p>
+<ul>
+<li>تبسيط المفاهيم المعقدة بأسلوب سهل وواضح للقارئ العربي.</li>
+<li>تقديم أمثلة عملية تطبيقية من الواقع المعاش.</li>
+<li>ربط التراث العربي الإسلامي بالحاضر المعاصر.</li>
+<li>تنمية المهارات النقدية والتحليلية لدى القارئ.</li>
+<li>تشجيع البحث العلمي والاطلاع المستمر.</li>
+</ul>
+<h2>منهجية الكتاب</h2>
+<p>اعتمدنا في تأليف هذا الكتاب منهجاً يجمع بين الأصالة والمعاصرة، فاستلهمنا من تراثنا العربي والإسلامي ما يصلح لعصرنا، وانتقينا من العلوم الحديثة ما يخدم قضايانا. وقد قسّمنا الكتاب إلى فصول متسلسلة، كل فصل منها يبني على ما سبقه، مع توفير خلاصة وأسئلة في نهاية كل فصل لتثبيت الفائدة.</p>
+<p>ونسأل الله التوفيق والسداد، وأن يجعل هذا العمل خالصاً لوجهه الكريم، وأن ينفع به كل من قرأه. وآخر دعوانا أن الحمد لله رب العالمين.</p>`,
+      };
+
+      const FALLBACK_NOTIFICATIONS = [
+        { id: 'n1', icon: '🎁', title: 'مكافأة جديدة!', desc: 'حصلت على 50 عملة إضافية لإكمال تحدي الأمس. استمتع!', time: 'قبل ساعة', unread: true },
+        { id: 'n2', icon: '🏆', title: 'ترتيبك تحسّن', desc: 'صعدت إلى المركز الرابع في المتصدرين الأسبوعي. واصل التقدّم!', time: 'قبل 3 ساعات', unread: true },
+        { id: 'n3', icon: '📚', title: 'كتاب جديد', desc: 'تمت إضافة كتاب "مقدمة ابن خلدون" إلى المكتبة. اقرأه الآن.', time: 'قبل يوم', unread: true },
+        { id: 'n4', icon: '🎯', title: 'تحدي اليوم', desc: 'لا تنسَ إكمال تحدي اليوم واربح 100 عملة إضافية!', time: 'قبل يومين', unread: false },
+        { id: 'n5', icon: '⚡', title: 'سلسلة 7 أيام!', desc: 'أحسنت! أكملت سلسلة 7 أيام متتالية. حصلت على شارة "مثابر".', time: 'قبل 3 أيام', unread: false },
+      ];
+
+      const FALLBACK_ANALYTICS = {
+        totalStudyTime: 720,        // دقيقة
+        totalWords: 1840,
+        avgDailyMinutes: 24,
+        weeklyProgress: [
+          { day: 'السبت', minutes: 18 },
+          { day: 'الأحد', minutes: 32 },
+          { day: 'الإثنين', minutes: 15 },
+          { day: 'الثلاثاء', minutes: 41 },
+          { day: 'الأربعاء', minutes: 22 },
+          { day: 'الخميس', minutes: 28 },
+          { day: 'الجمعة', minutes: 35 },
+        ],
+        categories: [
+          { name: 'الأدب', count: 5, color: '#9333EA' },
+          { name: 'التاريخ', count: 3, color: '#F59E0B' },
+          { name: 'الدين', count: 2, color: '#22C55E' },
+          { name: 'اللغة', count: 1, color: '#2563EB' },
+        ],
+        achievements: 4,
+        rank: 6,
+        streakDays: 7,
+      };
+
+      const FALLBACK_KNOWLEDGE_MAP = [
+        { domain: 'اللغة العربية', nodes: [
+          { id: 'km-1', name: 'النحو', status: 'mastered' },
+          { id: 'km-2', name: 'البلاغة', status: 'in-progress' },
+          { id: 'km-3', name: 'العروض', status: 'locked' },
+          { id: 'km-4', name: 'المعجم', status: 'mastered' },
+        ]},
+        { domain: 'الأدب', nodes: [
+          { id: 'km-5', name: 'الشعر الجاهلي', status: 'mastered' },
+          { id: 'km-6', name: 'النثر العباسي', status: 'in-progress' },
+          { id: 'km-7', name: 'الأدب الحديث', status: 'locked' },
+        ]},
+        { domain: 'التاريخ', nodes: [
+          { id: 'km-8', name: 'العصر الأموي', status: 'mastered' },
+          { id: 'km-9', name: 'العصر العباسي', status: 'in-progress' },
+          { id: 'km-10', name: 'الأندلس', status: 'locked' },
+        ]},
+      ];
+
+      const FALLBACK_RECOMMENDATIONS = ['fb-1', 'fb-2', 'fb-5', 'fb-10', 'fb-11'];
+
+      /* ============================================================
          2) إدارة الحالة (LocalStorage)
          ============================================================ */
       const State = {
@@ -1467,15 +2305,43 @@
             try {
               const controller = new AbortController();
               const timeout = setTimeout(() => controller.abort(), 12000);
+
+              // إعداد الـ headers — Origin للمساعدة في CORS + إشارة لكونه PWA
+              const baseHeaders = {
+                'Accept': 'application/json',
+                'Origin': location.origin,
+                'X-Requested-With': 'thaqafatna-pwa',
+                ...(options.headers || {}),
+              };
+
+              // إذا كان الطلب POST/PUT ويحتوي على جسم JSON، أضف Content-Type
+              const method = (options.method || 'GET').toUpperCase();
+              let body = options.body;
+              if (body && typeof body === 'object' && !(body instanceof FormData)) {
+                body = JSON.stringify(body);
+                baseHeaders['Content-Type'] = 'application/json';
+              }
+
               const res = await fetch(url, {
                 ...options,
+                method,
+                body,
                 signal: controller.signal,
-                headers: { 'Accept': 'application/json', ...(options.headers || {}) },
+                mode: 'cors',                       // صريح للتعامل مع CORS
+                credentials: 'omit',                 // لا نرسل الكوكيز عبر الـ API العام
+                headers: baseHeaders,
               });
               clearTimeout(timeout);
 
               if (!res.ok) {
-                throw new Error(`HTTP ${res.status}`);
+                // محاولة قراءة رسالة الخطأ إن أمكن
+                let errMsg = `HTTP ${res.status}`;
+                try {
+                  const errData = await res.json();
+                  if (errData && errData.message) errMsg = errData.message;
+                  else if (errData && errData.error) errMsg = errData.error;
+                } catch (_) { /* تجاهل */ }
+                throw new Error(errMsg);
               }
 
               const data = await res.json();
@@ -1496,6 +2362,14 @@
 
           this.inflight.set(cacheKey, promise);
           return promise;
+        },
+
+        // إرسال طلب POST/PUT (للـ APIs التي تعدّل البيانات)
+        async post(path, payload = {}, method = 'POST') {
+          return this.request(path, {
+            method,
+            body: payload,
+          });
         },
 
         // استخراج مصفوفة من استجابة قد تكون بصيغ مختلفة
@@ -1536,6 +2410,59 @@
           return this.extractArray(data, 'chapters', 'data', 'items');
         },
 
+        // فصل محدد من كتاب
+        async getBookChapter(bookId, order) {
+          const data = await this.request(`/books/${bookId}/chapters/${order}`);
+          return this.extractObject(data, 'chapter', 'data') || data;
+        },
+
+        // توصيات شخصية
+        async getBookRecommendations() {
+          const data = await this.request('/books/recommend');
+          return this.extractArray(data, 'books', 'recommendations', 'data', 'items');
+        },
+
+        // حفظ تقدّم القراءة
+        async saveBookProgress(bookId, progress) {
+          try {
+            return await this.post(`/books/${bookId}/progress`, { progress });
+          } catch (e) {
+            console.warn('[API] فشل حفظ تقدّم القراءة:', e.message);
+            return null;
+          }
+        },
+
+        // إشارة مرجعية (Bookmark)
+        async toggleBookmark(bookId, bookmarkData = {}) {
+          try {
+            return await this.post(`/books/${bookId}/bookmark`, { action: 'toggle', ...bookmarkData });
+          } catch (e) {
+            console.warn('[API] فشل تحديث الإشارة المرجعية:', e.message);
+            return null;
+          }
+        },
+
+        // إرسال تقييم ومراجعة
+        async submitBookReview(bookId, rating, review) {
+          try {
+            return await this.post(`/books/${bookId}/review`, { rating, review });
+          } catch (e) {
+            console.warn('[API] فشل إرسال التقييم:', e.message);
+            return null;
+          }
+        },
+
+        // جلب مراجعات كتاب
+        async getBookReviews(bookId) {
+          try {
+            const data = await this.request(`/books/${bookId}/reviews`);
+            return this.extractArray(data, 'reviews', 'data', 'items');
+          } catch (e) {
+            console.warn('[API] فشل جلب المراجعات:', e.message);
+            return [];
+          }
+        },
+
         async getChapters() {
           const data = await this.request('/chapters');
           return this.extractArray(data, 'chapters', 'data', 'items');
@@ -1546,9 +2473,62 @@
           return this.extractArray(data, 'levels', 'data', 'items');
         },
 
+        // جلب مرحلة محددة بالتفاصيل (للكلمات المتقاطعة)
+        async getLevel(levelId) {
+          const data = await this.request(`/levels?id=${levelId}`);
+          const arr = this.extractArray(data, 'levels', 'level', 'data', 'items');
+          if (Array.isArray(arr) && arr.length > 0) return arr[0];
+          // قد تكون الاستجابة كائناً مباشراً
+          const obj = this.extractObject(data, 'level', 'data');
+          return obj || (arr.length > 0 ? arr[0] : null);
+        },
+
         async getLeaderboard(period = 'weekly') {
           const data = await this.request(`/leaderboard?period=${period}`);
           return this.extractArray(data, 'leaderboard', 'users', 'data', 'items');
+        },
+
+        // المساعد الذكي
+        async askAiTutor(question, context = {}) {
+          try {
+            const data = await this.post('/ai-tutor', { question, context });
+            return this.extractObject(data, 'answer', 'data', 'response') || data;
+          } catch (e) {
+            console.warn('[API] فشل المساعد الذكي:', e.message);
+            throw e;
+          }
+        },
+
+        // الإشعارات
+        async getNotifications() {
+          const data = await this.request('/notifications');
+          return this.extractArray(data, 'notifications', 'data', 'items');
+        },
+
+        // تحليلات اللاعب (مع userId من localStorage)
+        async getAnalytics() {
+          const userId = App.state.userId || App.state.guestId || localStorage.getItem('thaqafatna_user_id') || 'guest';
+          try {
+            const data = await this.request(`/analytics?userId=${encodeURIComponent(userId)}`);
+            return this.extractObject(data, 'analytics', 'data', 'stats') || data;
+          } catch (e) {
+            console.warn('[API] analytics failed, using fallback:', e.message);
+            return null; // يستخدم fallback data
+          }
+        },
+
+        // خريطة المعرفة (مع userId)
+        async getKnowledgeMap() {
+          const userId = App.state.userId || App.state.guestId || localStorage.getItem('thaqafatna_user_id') || 'guest';
+          try {
+            const data = await this.request(`/knowledge-map?userId=${encodeURIComponent(userId)}`);
+            const arr = this.extractArray(data, 'domains', 'nodes', 'map', 'data');
+            if (arr.length > 0) return arr;
+            return this.extractObject(data, 'map', 'data') || data;
+          } catch (e) {
+            console.warn('[API] knowledge-map failed, using fallback:', e.message);
+            return null; // يستخدم fallback data
+          }
         },
 
         clearCache() {
@@ -1574,6 +2554,9 @@
           this.renderProfile();
           this.updateCoins();
 
+          // تحميل البيانات الأساسية أولاً (قبل العرض) لتجنّب ظهور حالات خطأ خاطئة
+          await this.loadInitialData();
+
           // معالجة رابط URL parameter (للـ shortcuts)
           const params = new URLSearchParams(location.search);
           const tab = params.get('tab');
@@ -1592,9 +2575,6 @@
               console.warn('[App] فشل تسجيل Service Worker:', e);
             }
           }
-
-          // تحميل البيانات الأساسية
-          await this.loadInitialData();
 
           // إخفاء شاشة البداية
           setTimeout(() => {
@@ -1655,12 +2635,23 @@
           document.getElementById('clearCacheBtn').addEventListener('click', () => this.clearCache());
           document.getElementById('resetProfileBtn').addEventListener('click', () => this.resetProfile());
 
+          // زر الإشعارات في الهيدر
+          const notifBtn = document.getElementById('notifBtn');
+          if (notifBtn) {
+            notifBtn.addEventListener('click', () => this.openNotifications());
+          }
+
           // أحداث تثبيت PWA
           this.bindInstallPrompt();
 
           // Escape لإغلاق المودال
           document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') this.closeBookModal();
+            if (e.key === 'Escape') {
+              this.closeBookModal();
+              this.closeBookReader();
+              this.closeAiTutor();
+              this.closeNotifications();
+            }
           });
 
           // مراقبة الاتصال بالشبكة
@@ -1720,6 +2711,11 @@
 
           // إغلاق أي مودال مفتوح
           this.closeBookModal();
+
+          // إظهار/إخفاء زر المساعد الذكي حسب الشاشة (يظهر في اللعبة والرئيسية)
+          if (this._aiTutorBtn) {
+            this._aiTutorBtn.style.display = (screen === 'game' || screen === 'home') ? 'flex' : 'none';
+          }
         },
 
         async renderScreen(screen) {
@@ -1737,6 +2733,9 @@
             await this.loadLeaderboard();
           } else if (screen === 'profile') {
             this.renderProfile();
+            // حمّل التحليلات وخريطة المعرفة بالتوازي (مع البيانات الاحتياطية عند الفشل)
+            this.loadAnalytics().catch(() => {});
+            this.loadKnowledgeMap().catch(() => {});
           }
         },
 
@@ -1756,26 +2755,94 @@
           ]);
 
           // الفصول
-          if (results[0].status === 'fulfilled') {
-            this.chapters = results[0].value || [];
+          let usingFallbackChapters = false;
+          if (results[0].status === 'fulfilled' && Array.isArray(results[0].value) && results[0].value.length > 0) {
+            this.chapters = results[0].value;
           } else {
-            this.chapters = [];
-            console.warn('[App] فشل تحميل الفصول:', results[0].reason);
+            this.chapters = JSON.parse(JSON.stringify(FALLBACK_CHAPTERS));
+            usingFallbackChapters = true;
+            console.warn('[App] فشل تحميل الفصول أو لم تُرجع بيانات - استخدام البيانات الاحتياطية:', results[0].reason || 'مصفوفة فارغة');
           }
 
           // الكتب
-          if (results[1].status === 'fulfilled') {
-            this.books = results[1].value || [];
+          let usingFallbackBooks = false;
+          if (results[1].status === 'fulfilled' && Array.isArray(results[1].value) && results[1].value.length > 0) {
+            this.books = results[1].value;
           } else {
-            this.books = [];
-            console.warn('[App] فشل تحميل الكتب:', results[1].reason);
+            this.books = JSON.parse(JSON.stringify(FALLBACK_BOOKS));
+            usingFallbackBooks = true;
+            console.warn('[App] فشل تحميل الكتب أو لم تُرجع بيانات - استخدام البيانات الاحتياطية:', results[1].reason || 'مصفوفة فارغة');
           }
+
+          // إشارة لتتبّع حالة البيانات
+          this.usingFallback = usingFallbackChapters || usingFallbackBooks;
 
           // تحديث إحصائيات الهيدر
           document.getElementById('statBooks').textContent = this.books.length;
           document.getElementById('statLevels').textContent = this.getTotalLevelsCount();
           document.getElementById('gameTotalChapters').textContent = this.chapters.length;
           document.getElementById('gameTotalLevels').textContent = this.getTotalLevelsCount();
+
+          // إذا كنا نستخدم بيانات احتياطية، أظهر للمستخدم تنبيهاً لطيفاً مرة واحدة
+          if (this.usingFallback && !this._fallbackNotified) {
+            this._fallbackNotified = true;
+            setTimeout(() => {
+              this.showToast('يعرض التطبيق بيانات تجريبية مؤقتاً', 'info', 4000);
+            }, 1200);
+          }
+
+          // حمّل الإشعارات في الخلفية (لا توقف التطبيق لو فشلت)
+          this.loadNotificationsCount().catch(() => {});
+        },
+
+        /* ---------- عدّ الإشعارات غير المقروءة ---------- */
+        async loadNotificationsCount() {
+          let notifs = [];
+          try {
+            notifs = await Api.getNotifications();
+            if (!Array.isArray(notifs) || notifs.length === 0) {
+              notifs = FALLBACK_NOTIFICATIONS;
+            }
+          } catch (e) {
+            notifs = FALLBACK_NOTIFICATIONS;
+          }
+          this.notifications = notifs;
+          const unread = notifs.filter((n) => n.unread).length;
+          this.updateNotifBadge(unread);
+        },
+
+        updateNotifBadge(count) {
+          const badge = document.getElementById('notifBadge');
+          if (!badge) return;
+          if (count > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = count > 9 ? '9+' : String(count);
+          } else {
+            badge.style.display = 'none';
+          }
+        },
+
+        /* ---------- حالة الخطأ مع أزرار إعادة المحاولة والبيانات التجريبية ---------- */
+        renderErrorState(container, message = 'تعذّر تحميل البيانات', onRetry = null, onFallback = null) {
+          if (!container) return;
+          container.innerHTML = `
+            <div class="state">
+              <div class="state-icon error">📡</div>
+              <div class="state-title">${this.escape(message)}</div>
+              <div class="state-desc">تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت ثم أعد المحاولة، أو استعرض البيانات التجريبية.</div>
+              <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; justify-content:center;">
+                ${onRetry ? `<button class="btn btn-primary btn-sm" id="errRetryBtn">🔄 إعادة المحاولة</button>` : ''}
+                ${onFallback ? `<button class="btn btn-ghost btn-sm" id="errFallbackBtn">📄 عرض البيانات التجريبية</button>` : ''}
+              </div>
+            </div>`;
+          if (onRetry) {
+            const btn = container.querySelector('#errRetryBtn');
+            if (btn) btn.addEventListener('click', () => onRetry());
+          }
+          if (onFallback) {
+            const btn = container.querySelector('#errFallbackBtn');
+            if (btn) btn.addEventListener('click', () => onFallback());
+          }
         },
 
         getTotalLevelsCount() {
@@ -1819,16 +2886,39 @@
         async renderFeaturedBooks() {
           const container = document.getElementById('featuredBooks');
           if (this.books.length === 0) {
-            container.innerHTML = `
-              <div class="state" style="width:100%;">
-                <div class="state-icon empty">📚</div>
-                <div class="state-title">لا توجد كتب حالياً</div>
-                <div class="state-desc">ستظهر الكتب المميزة هنا عند توفّرها.</div>
-              </div>`;
+            // هذه الحالة لا تحدث عادةً بسبب البيانات الاحتياطية، لكن نُبقيها للأمان
+            this.renderErrorState(
+              container,
+              'لا توجد كتب للعرض',
+              () => this.refreshCurrentScreen(),
+              () => {
+                this.books = JSON.parse(JSON.stringify(FALLBACK_BOOKS));
+                this.renderFeaturedBooks();
+              }
+            );
             return;
           }
-          // أعطِ أولوية للكتب المميزة (isFeatured)، ثم رتّب حسب المشاهدات
+
+          // جرّب جلب التوصيات الشخصية من الـ API (في الخلفية)
+          let recommendedIds = [];
+          try {
+            const recs = await Api.getBookRecommendations();
+            if (Array.isArray(recs) && recs.length > 0) {
+              recommendedIds = recs.map((r) => String(r.id || r._id || r.bookId || '')).filter(Boolean);
+            }
+          } catch (e) {
+            // استخدم التوصيات الاحتياطية
+            recommendedIds = FALLBACK_RECOMMENDATIONS;
+          }
+
+          // أعطِ أولوية للكتب الموصى بها، ثم المميزة (isFeatured)، ثم رتّب حسب المشاهدات
           const sorted = this.books.slice().sort((a, b) => {
+            const ida = String(a.id || a._id || '');
+            const idb = String(b.id || b._id || '');
+            const ra = recommendedIds.includes(ida) ? 2 : 0;
+            const rb = recommendedIds.includes(idb) ? 2 : 0;
+            if (ra !== rb) return rb - ra;
+
             const fa = a.isFeatured ? 1 : 0;
             const fb = b.isFeatured ? 1 : 0;
             if (fa !== fb) return fb - fa;
@@ -1860,12 +2950,15 @@
         async renderHomeChapters() {
           const container = document.getElementById('homeChapters');
           if (this.chapters.length === 0) {
-            container.innerHTML = `
-              <div class="state">
-                <div class="state-icon empty">🎮</div>
-                <div class="state-title">لا توجد فصول حالياً</div>
-                <div class="state-desc">ستظهر فصول اللعبة هنا عند توفّرها.</div>
-              </div>`;
+            this.renderErrorState(
+              container,
+              'لا توجد فصول للعرض',
+              () => this.refreshCurrentScreen(),
+              () => {
+                this.chapters = JSON.parse(JSON.stringify(FALLBACK_CHAPTERS));
+                this.renderHomeChapters();
+              }
+            );
             return;
           }
           const preview = this.chapters.slice(0, 4);
@@ -1899,14 +2992,16 @@
           this.renderFilterChips();
 
           if (this.books.length === 0) {
-            // تحقق إن كنا لم نحمل بعد
-            container.innerHTML = `
-              <div class="state">
-                <div class="state-icon empty">📚</div>
-                <div class="state-title">المكتبة فارغة</div>
-                <div class="state-desc">لم يتم العثور على كتب حالياً. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.</div>
-                <button class="btn btn-primary btn-sm" onclick="App.refreshCurrentScreen()">إعادة المحاولة</button>
-              </div>`;
+            // نادر الحدوث بسبب البيانات الاحتياطية — اعرض حالة خطأ مع زر إعادة المحاولة وزر البيانات التجريبية
+            this.renderErrorState(
+              container,
+              'تعذّر تحميل المكتبة',
+              () => this.refreshCurrentScreen(),
+              () => {
+                this.books = JSON.parse(JSON.stringify(FALLBACK_BOOKS));
+                this.renderLibrary(query, filter);
+              }
+            );
             return;
           }
 
@@ -2126,21 +3221,28 @@
                 ${year ? `<span class="badge badge-muted">📅 ${this.escape(String(year))}</span>` : ''}
               </div>
               <div class="modal-desc">${this.escape(desc)}</div>
-              <button class="btn ${isRead ? 'btn-ghost' : 'btn-primary'} btn-block" id="markReadBtn">
-                ${isRead ? '✓ تمت القراءة' : '📌 وضع علامة كمقروء'}
-              </button>
+              <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <button class="btn ${isRead ? 'btn-ghost' : 'btn-primary'}" style="flex:1;" id="markReadBtn">
+                  ${isRead ? '✓ تمت القراءة' : '📌 وضع علامة كمقروء'}
+                </button>
+                <button class="btn btn-accent" style="flex:1;" id="startReadBtn">📖 ابدأ القراءة</button>
+              </div>
+              <div style="display:flex; gap:8px; margin-bottom:14px;">
+                <button class="btn btn-ghost btn-sm" style="flex:1;" id="bookmarkModalBtn">🔖 إشارة مرجعية</button>
+                <button class="btn btn-ghost btn-sm" style="flex:1;" id="reviewModalBtn">⭐ قيّم الكتاب</button>
+              </div>
               ${chapters.length > 0 ? `
                 <div class="modal-section-title">
                   <span>فصول الكتاب (${chapters.length})</span>
                 </div>
                 ${chapters.map((ch, i) => `
-                  <div class="chapter-list-item" data-chapter-id="${ch.id || ch._id || i}">
+                  <div class="chapter-list-item" data-chapter-id="${ch.id || ch._id || i}" data-chapter-order="${ch.order || ch.number || (i + 1)}">
                     <div class="chapter-list-num">${ch.number || (i + 1)}</div>
                     <div style="flex:1;min-width:0;">
                       <div class="chapter-list-name">${this.escape(ch.title || ch.name || `الفصل ${i + 1}`)}</div>
                       ${ch.description ? `<div class="chapter-list-meta">${this.escape(ch.description.slice(0, 60))}${ch.description.length > 60 ? '...' : ''}</div>` : ''}
                     </div>
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    <svg viewBox="0 0 24 24" width="18px" height="18px" fill="none" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                   </div>
                 `).join('')}
               ` : `
@@ -2149,7 +3251,9 @@
                 </div>
                 <div class="state" style="padding:20px;">
                   <div class="state-icon empty" style="width:56px;height:56px;font-size:24px;">📭</div>
-                  <div class="state-desc">لا توجد فصول متاحة لهذا الكتاب حالياً.</div>
+                  <div class="state-title">لا توجد فصول متاحة حالياً</div>
+                  <div class="state-desc">يمكنك قراءة معاينة تجريبية من الكتاب.</div>
+                  <button class="btn btn-primary btn-sm" onclick="App.renderBookReader('${bookId}', 1)">📖 ابدأ القراءة</button>
                 </div>
               `}
             </div>
@@ -2178,11 +3282,64 @@
             });
           }
 
-          // النقر على الفصل
+          // زر "ابدأ القراءة"
+          const startBtn = document.getElementById('startReadBtn');
+          if (startBtn) {
+            startBtn.addEventListener('click', () => {
+              this.vibrate(15);
+              const firstOrder = chapters.length > 0 ? (chapters[0].order || chapters[0].number || 1) : 1;
+              this.closeBookModal();
+              setTimeout(() => this.renderBookReader(bookId, firstOrder), 250);
+            });
+          }
+
+          // زر الإشارة المرجعية
+          const bookmarkBtn = document.getElementById('bookmarkModalBtn');
+          if (bookmarkBtn) {
+            const updateBtn = () => {
+              const isMarked = (this.state.bookmarks || []).some((bm) => bm.startsWith(`${bookId}:`));
+              bookmarkBtn.textContent = isMarked ? '✓ في الإشارات المرجعية' : '🔖 إشارة مرجعية';
+              bookmarkBtn.classList.toggle('btn-primary', isMarked);
+              bookmarkBtn.classList.toggle('btn-ghost', !isMarked);
+            };
+            updateBtn();
+            bookmarkBtn.addEventListener('click', () => {
+              this.state.bookmarks = this.state.bookmarks || [];
+              const idx = this.state.bookmarks.indexOf(`${bookId}:1`);
+              if (idx >= 0) {
+                this.state.bookmarks.splice(idx, 1);
+                this.showToast('تمت إزالة الإشارة المرجعية', 'info');
+              } else {
+                this.state.bookmarks.push(`${bookId}:1`);
+                this.showToast('🔖 تمت إضافة الإشارة المرجعية', 'success');
+                this.vibrate(20);
+              }
+              State.save();
+              updateBtn();
+              // أرسل للـ API
+              Api.toggleBookmark(bookId, { chapter: 1 }).catch(() => {});
+            });
+          }
+
+          // زر التقييم
+          const reviewBtn = document.getElementById('reviewModalBtn');
+          if (reviewBtn) {
+            reviewBtn.addEventListener('click', () => this.openReviewForm(bookId, book));
+          }
+
+          // النقر على الفصل — افتح شاشة قارئ الكتب
           content.querySelectorAll('[data-chapter-id]').forEach((el) => {
             el.addEventListener('click', () => {
-              this.showToast('سيتم فتح الفصل في الإصدار القادم', 'info');
-              this.vibrate(10);
+              const chapterId = el.dataset.chapterId;
+              // ابحث عن رقم الفصل (order) من قائمة الفصول
+              const order = Number(el.dataset.chapterOrder) || (() => {
+                const idx = chapters.findIndex((c) => String(c.id || c._id || '') === String(chapterId));
+                return idx >= 0 ? idx + 1 : 1;
+              })();
+              this.vibrate(15);
+              // أغلق مودال الكتاب أولاً ثم افتح القارئ
+              this.closeBookModal();
+              setTimeout(() => this.renderBookReader(bookId, order), 250);
             });
           });
         },
@@ -2196,17 +3353,31 @@
         async renderGame() {
           const container = document.getElementById('gameChapters');
           if (this.chapters.length === 0) {
-            container.innerHTML = `
-              <div class="state">
-                <div class="state-icon empty">🎮</div>
-                <div class="state-title">لا توجد فصول حالياً</div>
-                <div class="state-desc">ستظهر فصول اللعبة هنا عند توفّرها. تأكد من اتصالك بالإنترنت.</div>
-                <button class="btn btn-primary btn-sm" onclick="App.refreshCurrentScreen()">إعادة المحاولة</button>
-              </div>`;
+            this.renderErrorState(
+              container,
+              'لا توجد فصول للعبة',
+              () => this.refreshCurrentScreen(),
+              () => {
+                this.chapters = JSON.parse(JSON.stringify(FALLBACK_CHAPTERS));
+                this.renderGame();
+              }
+            );
             return;
           }
 
           container.innerHTML = `<div class="chapters-list">${this.chapters.map((ch) => this.chapterAccordionHTML(ch)).join('')}</div>`;
+
+          // زر المساعد الذكي — يُضاف مرة واحدة فقط
+          if (!this._aiTutorBtn || !document.body.contains(this._aiTutorBtn)) {
+            const aiBtn = document.createElement('button');
+            aiBtn.className = 'ai-tutor-btn';
+            aiBtn.innerHTML = '🤖';
+            aiBtn.setAttribute('aria-label', 'المساعد الذكي');
+            aiBtn.title = 'اسأل المساعد الذكي';
+            aiBtn.addEventListener('click', () => this.openAiTutor());
+            document.body.appendChild(aiBtn);
+            this._aiTutorBtn = aiBtn;
+          }
 
           // ربط أحداث التوسيع
           container.querySelectorAll('.chapter-header').forEach((header) => {
@@ -2241,12 +3412,35 @@
             try {
               const levels = await Api.getLevels(chapterId);
               if (levels.length === 0) {
-                levelsContainer.innerHTML = `<div style="grid-column:1/-1;" class="state"><div class="state-icon empty" style="width:48px;height:48px;font-size:22px;">📭</div><div class="state-desc">لا توجد مراحل في هذا الفصل.</div></div>`;
-                return;
+                // جرّب البحث في البيانات الاحتياطية
+                const fbChapter = FALLBACK_CHAPTERS.find((c) => String(c.id) === String(chapterId));
+                if (fbChapter && Array.isArray(fbChapter.levels) && fbChapter.levels.length > 0) {
+                  chapter.levels = fbChapter.levels;
+                  levelsContainer.innerHTML = fbChapter.levels.map((lv, i) => this.levelItemHTML(lv, chapterId, i + 1)).join('');
+                } else {
+                  levelsContainer.innerHTML = `<div style="grid-column:1/-1;" class="state"><div class="state-icon empty" style="width:48px;height:48px;font-size:22px;">📭</div><div class="state-desc">لا توجد مراحل في هذا الفصل.</div></div>`;
+                  return;
+                }
+              } else {
+                // ادمج المراحل من الـ API
+                if (chapter) chapter.levels = levels;
+                levelsContainer.innerHTML = levels.map((lv, i) => this.levelItemHTML(lv, chapterId, i + 1)).join('');
               }
-              levelsContainer.innerHTML = levels.map((lv, i) => this.levelItemHTML(lv, chapterId, i + 1)).join('');
             } catch (e) {
-              levelsContainer.innerHTML = `<div style="grid-column:1/-1;" class="state"><div class="state-icon error">⚠️</div><div class="state-title">تعذّر التحميل</div><div class="state-desc">تعذّر تحميل مراحل هذا الفصل.</div></div>`;
+              // عند الفشل، استخدم البيانات الاحتياطية
+              const fbChapter = FALLBACK_CHAPTERS.find((c) => String(c.id) === String(chapterId));
+              if (fbChapter && Array.isArray(fbChapter.levels) && fbChapter.levels.length > 0) {
+                if (chapter) chapter.levels = fbChapter.levels;
+                levelsContainer.innerHTML = fbChapter.levels.map((lv, i) => this.levelItemHTML(lv, chapterId, i + 1)).join('');
+                this.showToast('يتم عرض مراحل تجريبية', 'info');
+              } else {
+                this.renderErrorState(
+                  levelsContainer,
+                  'تعذّر تحميل المراحل',
+                  () => this.loadChapterLevels(chapterId, accordionEl),
+                  null
+                );
+              }
             }
           }
 
@@ -2317,26 +3511,1116 @@
 
         openLevel(levelId, chapterId) {
           this.vibrate(15);
-          this.showToast('سيتم فتح شاشة اللعب في الإصدار القادم 🎮', 'info');
-          // محاكاة إكمال المرحلة للتجربة
-          // this.completeLevel(levelId);
+          this.renderLevelDetail(levelId, chapterId);
         },
 
-        completeLevel(levelId) {
+        completeLevel(levelId, reward = 50, xp = 100, stars = 1) {
           const id = String(levelId);
           if (this.state.completedLevels.includes(id)) {
             this.showToast('لقد أكملت هذه المرحلة سابقاً', 'info');
-            return;
+            return false;
           }
           this.state.completedLevels.push(id);
-          this.state.coins += 50;
-          this.state.xp = (this.state.xp || 0) + 100;
+          this.state.coins = (this.state.coins || 0) + reward;
+          this.state.xp = (this.state.xp || 0) + xp;
+          // أضف نجومًا للإحصاء
+          if (stars > 0) {
+            this.state.totalStars = (this.state.totalStars || 0) + stars;
+          }
           State.save();
           this.updateCoins();
           this.renderProfile();
-          this.showToast('+50 عملة 🎉 مرحلة مكتملة', 'success');
+          this.showToast(`+${reward} عملة 🎉 مرحلة مكتملة`, 'success');
           this.playSound('success');
           this.vibrate([20, 40, 20]);
+          return true;
+        },
+
+        /* ============================================================
+           عرض تفاصيل المرحلة - شبكة الكلمات المتقاطعة
+           ============================================================ */
+        // تحويل خلايا المرحلة من صيغة المسطحة (flat) التي يرجعها الـ API
+        // [{row, col, letter, number}, ...] إلى صيغة الشبكة ثنائية الأبعاد
+        // [[cell|null, cell|null, ...], ...] التي تتوقعها دالة renderCrosswordCells.
+        normalizeLevelCells(level) {
+          if (!level) return level;
+          // إن كان level.cells بالفعل مصفوفة ثنائية الأبعاد (كل عنصر مصفوفة)، أعده كما هو
+          if (Array.isArray(level.cells) && level.cells.length > 0 && Array.isArray(level.cells[0])) {
+            return level;
+          }
+          // إن كانت الخلايا مصفوفة مسطحة (كائنات لها row/col/letter/number) حوّلها إلى شبكة
+          if (Array.isArray(level.cells) && level.cells.length > 0 && level.cells[0] && typeof level.cells[0] === 'object' && 'row' in level.cells[0]) {
+            const flat = level.cells;
+            // أوجد أقصى صف وعمود
+            let maxRow = 0, maxCol = 0;
+            for (const c of flat) {
+              if (c.row > maxRow) maxRow = c.row;
+              if (c.col > maxCol) maxCol = c.col;
+            }
+            const rows = maxRow + 1;
+            const cols = maxCol + 1;
+            // أنشئ شبكة فارغة
+            const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => null));
+            // املأ الخلايا
+            for (const c of flat) {
+              grid[c.row][c.col] = {
+                letter: c.letter || '',
+                num: c.number || null,
+              };
+            }
+            level.cells = grid;
+            level.rows = rows;
+            level.cols = cols;
+          }
+          // إن لم توجد خلايا، استخدم gridSizeRows / gridSizeCols من الـ API
+          if ((!level.cells || !Array.isArray(level.cells) || level.cells.length === 0)) {
+            level.rows = level.rows || level.gridSizeRows || 0;
+            level.cols = level.cols || level.gridSizeCols || 0;
+          } else {
+            level.rows = level.rows || level.gridSizeRows || (Array.isArray(level.cells) ? level.cells.length : 0);
+            level.cols = level.cols || level.gridSizeCols || (Array.isArray(level.cells) && level.cells[0] ? level.cells[0].length : 0);
+          }
+          // طبيع الكلمات: الـ API يرجع {text, number, direction, ...} لكن الكود يستخدم {word, num}
+          if (Array.isArray(level.words)) {
+            level.words = level.words.map((w) => ({
+              ...w,
+              word: w.word || w.text || '',
+              num: w.num || w.number || null,
+            }));
+          }
+          return level;
+        },
+
+        async renderLevelDetail(levelId, chapterId) {
+          const modal = document.getElementById('bookModal');
+          const content = document.getElementById('bookModalContent');
+          modal.classList.add('active');
+          document.body.classList.add('no-scroll');
+
+          content.innerHTML = `<div class="loader-block" style="padding:60px 20px;"><div class="spinner spinner-lg"></div><span>جاري تحميل المرحلة...</span></div>`;
+
+          // ابحث عن المرحلة محلياً أولاً (من chapters)
+          let level = null;
+          let chapter = null;
+          for (const ch of this.chapters) {
+            if (Array.isArray(ch.levels)) {
+              const found = ch.levels.find((lv) => String(lv.id || lv._id) === String(levelId));
+              if (found) { level = found; chapter = ch; break; }
+            }
+          }
+          // جرّب البيانات الاحتياطية إن لزم
+          if (!level) {
+            for (const ch of FALLBACK_CHAPTERS) {
+              if (Array.isArray(ch.levels)) {
+                const found = ch.levels.find((lv) => String(lv.id || lv._id) === String(levelId));
+                if (found) { level = JSON.parse(JSON.stringify(found)); chapter = ch; break; }
+              }
+            }
+          }
+
+          // إذا لم نجد المرحلة محلياً، حمّلها من الـ API
+          if (!level) {
+            try {
+              level = await Api.getLevel(levelId);
+              // ابحث عن الفصل المرتبط
+              if (chapterId) {
+                chapter = this.chapters.find((c) => String(c.id || c._id) === String(chapterId));
+              }
+            } catch (e) {
+              this.renderErrorState(
+                content,
+                'تعذّر تحميل المرحلة',
+                () => this.renderLevelDetail(levelId, chapterId),
+                () => {
+                  // اعرض أول مرحلة احتياطية للتجربة
+                  const fb = FALLBACK_CHAPTERS[0];
+                  if (fb && fb.levels && fb.levels[0]) {
+                    this.renderLevelDetail(fb.levels[0].id, fb.id);
+                  }
+                }
+              );
+              return;
+            }
+          }
+
+          if (!level) {
+            this.renderErrorState(
+              content,
+              'المرحلة غير موجودة',
+              () => this.renderLevelDetail(levelId, chapterId),
+              null
+            );
+            return;
+          }
+
+          // طبيع خلايا المرحلة (حوّل المصفوفة المسطحة من الـ API إلى شبكة ثنائية)
+          level = this.normalizeLevelCells(level);
+
+          // إذا لم توجد بيانات شبكة في المرحلة، استخدم البيانات المحلية (احتياطية)
+          if (!level.cells || !Array.isArray(level.cells) || level.cells.length === 0
+              || (Array.isArray(level.cells) && level.cells.length > 0 && !Array.isArray(level.cells[0]))) {
+            const fbLevel = this.findFallbackLevel(levelId);
+            if (fbLevel) {
+              level = { ...fbLevel, ...level };
+              level.cells = fbLevel.cells;
+              level.words = fbLevel.words;
+              level.rows = fbLevel.rows;
+              level.cols = fbLevel.cols;
+            } else if (!level.cells || !Array.isArray(level.cells) || level.cells.length === 0) {
+              // توليد شبكة بسيطة من كلمة واحدة افتراضية
+              level.cells = [[{ letter: '?' }]];
+              level.rows = 1;
+              level.cols = 1;
+              level.words = level.words || [];
+            }
+          }
+
+          this.renderCrossword(level, chapter);
+        },
+
+        findFallbackLevel(levelId) {
+          for (const ch of FALLBACK_CHAPTERS) {
+            if (Array.isArray(ch.levels)) {
+              const found = ch.levels.find((lv) => String(lv.id) === String(levelId));
+              if (found) return found;
+            }
+          }
+          return null;
+        },
+
+        renderCrossword(level, chapter) {
+          const content = document.getElementById('bookModalContent');
+          const title = this.escape(level.title || level.name || 'المرحلة');
+          const chapterTitle = chapter ? this.escape(chapter.title || chapter.name || '') : '';
+          const difficulty = level.difficulty || 'easy';
+          const diffInfo = DIFFICULTY_LABELS[difficulty] || DIFFICULTY_LABELS.easy;
+          const reward = level.reward || 50;
+          // استخدم rows/cols من البيانات الطبيعية (normalizeLevelCells عيّنها)
+          // وإلا فاستخدم gridSizeRows/gridSizeCols من الـ API
+          const rows = level.rows || level.gridSizeRows || (level.cells ? level.cells.length : 0);
+          const cols = level.cols || level.gridSizeCols || (level.cells && level.cells[0] ? level.cells[0].length : 0);
+
+          const isCompleted = this.state.completedLevels.includes(String(level.id || level._id));
+
+          // افصل التلميحات حسب الاتجاه
+          const acrossClues = (level.words || []).filter((w) => (w.direction || 'across') === 'across');
+          const downClues = (level.words || []).filter((w) => w.direction === 'down');
+
+          content.innerHTML = `
+            <div class="modal-handle"></div>
+            <div class="modal-body" style="padding-top:0;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                <div class="chapter-list-num">${this.escape(String(level.number || '#'))}</div>
+                <div style="flex:1; min-width:0;">
+                  <div class="modal-title" style="font-size:18px; margin-bottom:0;">${title}</div>
+                  ${chapterTitle ? `<div class="modal-author">${chapterTitle}</div>` : ''}
+                </div>
+              </div>
+              <div class="modal-meta" style="margin-bottom:14px;">
+                <span class="badge ${diffInfo.cls}">${diffInfo.label}</span>
+                <span class="badge badge-accent">🪙 ${reward}</span>
+                <span class="badge badge-muted">🔠 ${rows}×${cols}</span>
+                ${isCompleted ? '<span class="badge badge-success">✓ مكتملة</span>' : ''}
+              </div>
+
+              <div id="crosswordArea">
+                ${isCompleted ? this.renderCrosswordSuccess(level, reward, true) : `
+                  <div class="crossword-wrap">
+                    <div class="crossword-grid" id="crosswordGrid" style="grid-template-columns: repeat(${cols}, 36px);">
+                      ${this.renderCrosswordCells(level.cells)}
+                    </div>
+                  </div>
+                  <div class="crossword-clues">
+                    <div class="crossword-clue-list">
+                      <div class="crossword-clue-title">↔ أفقي</div>
+                      ${acrossClues.length > 0 ? acrossClues.map((w) => `
+                        <div class="crossword-clue-item">
+                          <span class="crossword-clue-num">${w.num || ''}</span>
+                          <span>${this.escape(w.clue || '')} <span style="color:var(--text-dim);">(${(w.word || '').length} حروف)</span></span>
+                        </div>
+                      `).join('') : '<div class="crossword-clue-item">لا توجد كلمات أفقية</div>'}
+                    </div>
+                    <div class="crossword-clue-list">
+                      <div class="crossword-clue-title">↕ رأسي</div>
+                      ${downClues.length > 0 ? downClues.map((w) => `
+                        <div class="crossword-clue-item">
+                          <span class="crossword-clue-num">${w.num || ''}</span>
+                          <span>${this.escape(w.clue || '')} <span style="color:var(--text-dim);">(${(w.word || '').length} حروف)</span></span>
+                        </div>
+                      `).join('') : '<div class="crossword-clue-item">لا توجد كلمات رأسية</div>'}
+                    </div>
+                  </div>
+                  <div class="crossword-actions">
+                    <button class="btn btn-primary btn-sm" id="checkBtn">✓ تحقّق من الإجابة</button>
+                    <button class="btn btn-ghost btn-sm" id="hintBtn">💡 تلميح</button>
+                    <button class="btn btn-ghost btn-sm" id="clearBtn">🗑️ مسح</button>
+                  </div>
+                `}
+              </div>
+            </div>
+          `;
+
+          if (!isCompleted) {
+            this.bindCrosswordEvents(level);
+          } else {
+            // حتى لو مكتملة، اربط زر "التالي"
+            const area = content.querySelector('#crosswordArea');
+            const nextBtn = area && area.querySelector('#nextLevelBtn');
+            if (nextBtn) {
+              nextBtn.addEventListener('click', () => {
+                const nextLevel = this.findNextLevel(level);
+                if (nextLevel) {
+                  this.renderLevelDetail(nextLevel.id || nextLevel._id, nextLevel.chapterId);
+                } else {
+                  this.showToast('أكملت كل المراحل في هذا الفصل! 🎉', 'success');
+                  this.closeBookModal();
+                }
+              });
+            }
+          }
+
+          // زر الإغلاق — المودال له زر إغلاق مُربط مسبقاً في bindEvents
+        },
+
+        renderCrosswordCells(cells) {
+          if (!Array.isArray(cells)) return '';
+          let html = '';
+          for (let r = 0; r < cells.length; r++) {
+            const row = cells[r] || [];
+            for (let c = 0; c < row.length; c++) {
+              const cell = row[c];
+              if (!cell || cell === null) {
+                html += `<div class="crossword-cell blocked"></div>`;
+              } else {
+                const numAttr = cell.num ? `<span class="cell-num">${cell.num}</span>` : '';
+                const dataLetter = cell.letter ? `data-letter="${this.escape(cell.letter)}"` : '';
+                html += `<div class="crossword-cell" data-row="${r}" data-col="${c}" ${dataLetter}>${numAttr}<input type="text" class="crossword-input" maxlength="1" inputmode="text" autocomplete="off" /></div>`;
+              }
+            }
+          }
+          return html;
+        },
+
+        bindCrosswordEvents(level) {
+          const content = document.getElementById('bookModalContent');
+          if (!content) return;
+
+          const inputs = content.querySelectorAll('.crossword-input');
+          const cells = content.querySelectorAll('.crossword-cell:not(.blocked)');
+
+          // التنقل التلقائي بين الخلايا
+          inputs.forEach((input, idx) => {
+            input.addEventListener('input', (e) => {
+              const val = e.target.value;
+              // قبول حرف عربي واحد فقط
+              if (val && val.length > 1) {
+                e.target.value = val.slice(-1);
+              }
+              // إزالة أي تنسيق سابق
+              const cell = e.target.closest('.crossword-cell');
+              if (cell) {
+                cell.classList.remove('correct', 'incorrect');
+              }
+              // الانتقال للخلية التالية
+              if (val && idx < inputs.length - 1) {
+                inputs[idx + 1].focus();
+                inputs[idx + 1].select();
+              }
+            });
+            input.addEventListener('keydown', (e) => {
+              if (e.key === 'Backspace' && !input.value && idx > 0) {
+                inputs[idx - 1].focus();
+                inputs[idx - 1].select();
+              } else if (e.key === 'ArrowLeft' && idx < inputs.length - 1) {
+                inputs[idx + 1].focus();
+              } else if (e.key === 'ArrowRight' && idx > 0) {
+                inputs[idx - 1].focus();
+              } else if (e.key === 'Enter') {
+                document.getElementById('checkBtn')?.click();
+              }
+            });
+          });
+
+          // زر التحقق
+          const checkBtn = document.getElementById('checkBtn');
+          if (checkBtn) {
+            checkBtn.addEventListener('click', () => this.checkCrossword(level));
+          }
+
+          // زر التلميح
+          const hintBtn = document.getElementById('hintBtn');
+          if (hintBtn) {
+            hintBtn.addEventListener('click', () => this.revealHint(level));
+          }
+
+          // زر المسح
+          const clearBtn = document.getElementById('clearBtn');
+          if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+              inputs.forEach((i) => { i.value = ''; const c = i.closest('.crossword-cell'); if (c) c.classList.remove('correct', 'incorrect'); });
+              this.showToast('تم مسح الإجابات', 'info');
+            });
+          }
+
+          // تركيز تلقائي على أول خلية
+          if (inputs.length > 0) {
+            setTimeout(() => inputs[0].focus(), 300);
+          }
+        },
+
+        checkCrossword(level) {
+          const content = document.getElementById('bookModalContent');
+          const inputs = content.querySelectorAll('.crossword-input');
+          const cells = content.querySelectorAll('.crossword-cell:not(.blocked)');
+          let allCorrect = true;
+          let filledCount = 0;
+
+          inputs.forEach((input, idx) => {
+            const cell = input.closest('.crossword-cell');
+            const expected = cell.dataset.letter || '';
+            const actual = (input.value || '').trim();
+            if (!actual) { allCorrect = false; return; }
+            filledCount++;
+            if (actual === expected) {
+              cell.classList.add('correct');
+              cell.classList.remove('incorrect');
+            } else {
+              cell.classList.add('incorrect');
+              cell.classList.remove('correct');
+              allCorrect = false;
+            }
+          });
+
+          if (filledCount === 0) {
+            this.showToast('أدخل الحروف أولاً', 'info');
+            this.vibrate(10);
+            return;
+          }
+
+          if (allCorrect) {
+            this.onCrosswordSolved(level);
+          } else {
+            this.showToast('بعض الإجابات غير صحيحة، حاول مرة أخرى', 'error');
+            this.vibrate([20, 30, 20]);
+            this.playSound('click');
+          }
+        },
+
+        revealHint(level) {
+          const content = document.getElementById('bookModalContent');
+          const cells = content.querySelectorAll('.crossword-cell:not(.blocked)');
+          // ابحث عن أول خلية فارغة أو خاطئة
+          for (const cell of cells) {
+            const input = cell.querySelector('.crossword-input');
+            const expected = cell.dataset.letter || '';
+            const actual = (input.value || '').trim();
+            if (actual !== expected) {
+              input.value = expected;
+              cell.classList.add('correct');
+              cell.classList.remove('incorrect');
+              this.showToast('تم كشف حرف واحد 💡', 'info');
+              this.vibrate(10);
+              // خصم عملات صغيرة
+              this.state.coins = Math.max(0, (this.state.coins || 0) - 5);
+              State.save();
+              this.updateCoins();
+              return;
+            }
+          }
+          this.showToast('كل الإجابات صحيحة بالفعل ✅', 'success');
+        },
+
+        onCrosswordSolved(level) {
+          const reward = level.reward || 50;
+          const wasNew = this.completeLevel(level.id || level._id, reward, reward * 2, 1);
+          this.playSound('success');
+          this.vibrate([20, 40, 60, 40, 20]);
+
+          const content = document.getElementById('bookModalContent');
+          const area = content.querySelector('#crosswordArea');
+          if (area) {
+            area.innerHTML = this.renderCrosswordSuccess(level, reward, !wasNew);
+            // اربط زر "التالي" للانتقال للمرحلة التالية في نفس الفصل
+            const nextBtn = area.querySelector('#nextLevelBtn');
+            if (nextBtn) {
+              nextBtn.addEventListener('click', () => {
+                const nextLevel = this.findNextLevel(level);
+                if (nextLevel) {
+                  this.renderLevelDetail(nextLevel.id || nextLevel._id, nextLevel.chapterId);
+                } else {
+                  this.showToast('أكملت كل المراحل في هذا الفصل! 🎉', 'success');
+                  this.closeBookModal();
+                }
+              });
+            }
+          }
+
+          // حدّث تقدّم الفصل في الشاشة الرئيسية واللعبة
+          this._screenRendered = {};
+        },
+
+        findNextLevel(currentLevel) {
+          // ابحث في الفصول المحمّلة عن المرحلة التالية
+          for (const ch of this.chapters) {
+            if (!Array.isArray(ch.levels)) continue;
+            const idx = ch.levels.findIndex((lv) => String(lv.id || lv._id) === String(currentLevel.id || currentLevel._id));
+            if (idx >= 0 && idx < ch.levels.length - 1) {
+              const next = ch.levels[idx + 1];
+              return { ...next, chapterId: ch.id || ch._id };
+            }
+          }
+          // جرّب البيانات الاحتياطية
+          for (const ch of FALLBACK_CHAPTERS) {
+            if (!Array.isArray(ch.levels)) continue;
+            const idx = ch.levels.findIndex((lv) => String(lv.id) === String(currentLevel.id || currentLevel._id));
+            if (idx >= 0 && idx < ch.levels.length - 1) {
+              const next = ch.levels[idx + 1];
+              return { ...next, chapterId: ch.id };
+            }
+          }
+          return null;
+        },
+
+        renderCrosswordSuccess(level, reward, alreadyDone = false) {
+          return `
+            <div class="crossword-success">
+              <div class="crossword-success-icon">🎉</div>
+              <div class="modal-title" style="font-size:22px; margin-bottom:6px;">أحسنت!</div>
+              <div class="state-desc" style="margin-bottom:14px;">
+                ${alreadyDone ? 'لقد أكملت هذه المرحلة سابقاً، لكنك أحسنت في إعادة حلّها!' : `أكملت المرحلة بنجاح وحصلت على <strong style="color:var(--accent-light);">${reward} عملة</strong> و <strong style="color:var(--primary-light);">${reward * 2} نقطة خبرة</strong>.`}
+              </div>
+              <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                <button class="btn btn-primary btn-sm" onclick="App.closeBookModal()">✓ إغلاق</button>
+                <button class="btn btn-ghost btn-sm" id="nextLevelBtn">التالي ←</button>
+              </div>
+            </div>
+          `;
+        },
+
+        /* ============================================================
+           قارئ الكتب - عرض محتوى الفصل
+           ============================================================ */
+        async renderBookReader(bookId, chapterOrder) {
+          // أنشئ المودال إن لم يكن موجوداً
+          let reader = document.getElementById('bookReader');
+          if (!reader) {
+            reader = document.createElement('div');
+            reader.id = 'bookReader';
+            reader.className = 'reader-overlay';
+            reader.innerHTML = `
+              <div class="reader-topbar">
+                <button class="reader-back-btn" id="readerBackBtn" aria-label="رجوع">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <div class="reader-title" id="readerTitle">جاري التحميل...</div>
+                <div class="reader-controls">
+                  <button class="reader-control-btn" id="fontDecBtn" title="تصغير الخط">A-</button>
+                  <button class="reader-control-btn" id="fontIncBtn" title="تكبير الخط">A+</button>
+                  <button class="reader-control-btn" id="nightBtn" title="الوضع الليلي">🌙</button>
+                </div>
+              </div>
+              <div class="reader-content size-medium" id="readerContent">
+                <div class="loader-block"><div class="spinner spinner-lg"></div><span>جاري تحميل الفصل...</span></div>
+              </div>
+              <div class="reader-bottom-nav">
+                <button class="btn btn-ghost" id="prevChapterBtn">← الفصل السابق</button>
+                <button class="btn btn-primary" id="bookmarkBtn">🔖 إشارة مرجعية</button>
+                <button class="btn btn-ghost" id="nextChapterBtn">الفصل التالي →</button>
+              </div>
+              <div class="reader-progress"><div class="reader-progress-fill" id="readerProgress" style="width:0%"></div></div>
+            `;
+            document.body.appendChild(reader);
+
+            // اربط الأحداث
+            reader.querySelector('#readerBackBtn').addEventListener('click', () => this.closeBookReader());
+            reader.querySelector('#fontDecBtn').addEventListener('click', () => this.adjustReaderFont(-1));
+            reader.querySelector('#fontIncBtn').addEventListener('click', () => this.adjustReaderFont(1));
+            reader.querySelector('#nightBtn').addEventListener('click', () => this.toggleReaderNight());
+            reader.querySelector('#prevChapterBtn').addEventListener('click', () => this.navigateChapter(-1));
+            reader.querySelector('#nextChapterBtn').addEventListener('click', () => this.navigateChapter(1));
+            reader.querySelector('#bookmarkBtn').addEventListener('click', () => this.toggleReaderBookmark());
+
+            // تتبّع التمرير لحفظ التقدّم
+            const contentEl = reader.querySelector('#readerContent');
+            contentEl.addEventListener('scroll', () => {
+              const max = contentEl.scrollHeight - contentEl.clientHeight;
+              const pct = max > 0 ? Math.min(100, (contentEl.scrollTop / max) * 100) : 0;
+              const prog = reader.querySelector('#readerProgress');
+              if (prog) prog.style.width = pct + '%';
+              // حفظ التقدّم محلياً
+              this._readerProgress = pct;
+            });
+          }
+
+          // افتح القارئ
+          reader.classList.add('active');
+          document.body.classList.add('no-scroll');
+
+          // اضبط الحالة
+          this._readerBookId = bookId;
+          this._readerChapterOrder = Number(chapterOrder) || 1;
+          this._readerFontSize = this._readerFontSize || 2; // 1=small, 2=medium, 3=large, 4=xlarge
+          this.applyReaderFont();
+
+          // اضبط الوضع الليلي إن كان مفعّلاً
+          if (this._readerNight) {
+            reader.querySelector('#readerContent').classList.add('night-mode');
+            reader.querySelector('#nightBtn').classList.add('active');
+          }
+
+          // حمّل محتوى الفصل
+          const contentEl = reader.querySelector('#readerContent');
+          const titleEl = reader.querySelector('#readerTitle');
+          contentEl.innerHTML = `<div class="loader-block"><div class="spinner spinner-lg"></div><span>جاري تحميل الفصل...</span></div>`;
+          contentEl.scrollTop = 0;
+          reader.querySelector('#readerProgress').style.width = '0%';
+
+          let chapter = null;
+          let book = this.books.find((b) => String(b.id || b._id) === String(bookId));
+
+          try {
+            chapter = await Api.getBookChapter(bookId, chapterOrder);
+          } catch (e) {
+            console.warn('[App] تعذّر تحميل الفصل من الـ API، استخدام المحتوى الاحتياطي:', e.message);
+            chapter = null;
+          }
+
+          // إذا فشل الـ API، استخدم المحتوى الاحتياطي
+          if (!chapter || (typeof chapter === 'object' && Object.keys(chapter).length === 0)) {
+            chapter = {
+              title: `الفصل ${chapterOrder}`,
+              order: chapterOrder,
+              content: FALLBACK_CHAPTER_CONTENT.content,
+            };
+          }
+
+          // اضبط العنوان
+          const chapterTitle = chapter.title || chapter.name || `الفصل ${chapterOrder}`;
+          const bookTitle = book ? (book.title || book.name || '') : '';
+          titleEl.textContent = bookTitle ? `${bookTitle} · ${chapterTitle}` : chapterTitle;
+
+          // اعرض المحتوى
+          const html = chapter.content || chapter.html || chapter.body || FALLBACK_CHAPTER_CONTENT.content;
+          contentEl.innerHTML = `<div>${html}</div>`;
+
+          // حدّث أزرار التنقل بين الفصول
+          const totalChapters = book && Array.isArray(book.chapters) ? book.chapters.length : (book?.chapterCount || 0);
+          const prevBtn = reader.querySelector('#prevChapterBtn');
+          const nextBtn = reader.querySelector('#nextChapterBtn');
+          if (prevBtn) prevBtn.style.visibility = chapterOrder > 1 ? 'visible' : 'hidden';
+          if (nextBtn) nextBtn.style.visibility = (totalChapters > 0 && chapterOrder < totalChapters) ? 'visible' : 'hidden';
+
+          // زر الإشارة المرجعية — حدّث حالته
+          this.updateReaderBookmarkBtn();
+
+          // أرسل تقدّم القراءة للـ API في الخلفية (لا نوقف التطبيق لو فشل)
+          Api.saveBookProgress(bookId, { chapter: chapterOrder, percent: 0 }).catch(() => {});
+
+          // أضف نقاط خبرة عن فتح الفصل
+          if (!this.state.viewedChapters || !this.state.viewedChapters.includes(`${bookId}:${chapterOrder}`)) {
+            this.state.viewedChapters = this.state.viewedChapters || [];
+            this.state.viewedChapters.push(`${bookId}:${chapterOrder}`);
+            this.state.xp = (this.state.xp || 0) + 10;
+            State.save();
+            this.renderProfile();
+          }
+        },
+
+        adjustReaderFont(delta) {
+          this._readerFontSize = Math.max(1, Math.min(4, (this._readerFontSize || 2) + delta));
+          this.applyReaderFont();
+          this.vibrate(10);
+        },
+
+        applyReaderFont() {
+          const reader = document.getElementById('bookReader');
+          if (!reader) return;
+          const content = reader.querySelector('#readerContent');
+          content.classList.remove('size-small', 'size-medium', 'size-large', 'size-xlarge');
+          const sizes = ['size-small', 'size-medium', 'size-large', 'size-xlarge'];
+          content.classList.add(sizes[(this._readerFontSize || 2) - 1]);
+        },
+
+        toggleReaderNight() {
+          const reader = document.getElementById('bookReader');
+          if (!reader) return;
+          const content = reader.querySelector('#readerContent');
+          const btn = reader.querySelector('#nightBtn');
+          this._readerNight = !this._readerNight;
+          if (this._readerNight) {
+            content.classList.add('night-mode');
+            btn.classList.add('active');
+            btn.textContent = '☀️';
+          } else {
+            content.classList.remove('night-mode');
+            btn.classList.remove('active');
+            btn.textContent = '🌙';
+          }
+          this.vibrate(10);
+        },
+
+        navigateChapter(direction) {
+          const newOrder = (this._readerChapterOrder || 1) + direction;
+          if (newOrder < 1) {
+            this.showToast('هذا أول فصل', 'info');
+            return;
+          }
+          this.renderBookReader(this._readerBookId, newOrder);
+        },
+
+        toggleReaderBookmark() {
+          const bookId = this._readerBookId;
+          const chapter = this._readerChapterOrder || 1;
+          if (!bookId) return;
+
+          this.state.bookmarks = this.state.bookmarks || [];
+          const key = `${bookId}:${chapter}`;
+          const idx = this.state.bookmarks.indexOf(key);
+          if (idx >= 0) {
+            this.state.bookmarks.splice(idx, 1);
+            this.showToast('تمت إزالة الإشارة المرجعية', 'info');
+          } else {
+            this.state.bookmarks.push(key);
+            this.showToast('🔖 تمت إضافة الإشارة المرجعية', 'success');
+            this.vibrate(20);
+          }
+          State.save();
+          this.updateReaderBookmarkBtn();
+
+          // أرسل للـ API في الخلفية
+          Api.toggleBookmark(bookId, { chapter, action: idx >= 0 ? 'remove' : 'add' }).catch(() => {});
+        },
+
+        updateReaderBookmarkBtn() {
+          const reader = document.getElementById('bookReader');
+          if (!reader) return;
+          const btn = reader.querySelector('#bookmarkBtn');
+          if (!btn) return;
+          const key = `${this._readerBookId}:${this._readerChapterOrder || 1}`;
+          const isBookmarked = (this.state.bookmarks || []).includes(key);
+          btn.textContent = isBookmarked ? '🔖 إزالة الإشارة' : '🔖 إشارة مرجعية';
+          btn.classList.toggle('btn-primary', !isBookmarked);
+          btn.classList.toggle('btn-ghost', isBookmarked);
+        },
+
+        closeBookReader() {
+          const reader = document.getElementById('bookReader');
+          if (reader) reader.classList.remove('active');
+          document.body.classList.remove('no-scroll');
+          // احفظ التقدّم عند الإغلاق
+          if (this._readerBookId && this._readerProgress !== undefined) {
+            Api.saveBookProgress(this._readerBookId, {
+              chapter: this._readerChapterOrder,
+              percent: Math.round(this._readerProgress),
+            }).catch(() => {});
+          }
+        },
+
+        /* ============================================================
+           نموذج التقييم والمراجعة
+           ============================================================ */
+        openReviewForm(bookId, book) {
+          const modal = document.getElementById('bookModal');
+          const content = document.getElementById('bookModalContent');
+          modal.classList.add('active');
+          document.body.classList.add('no-scroll');
+
+          const bookTitle = book ? (book.title || book.name || '') : '';
+
+          content.innerHTML = `
+            <div class="modal-body" style="padding-top:8px;">
+              <div class="modal-title" style="font-size:18px;">⭐ قيّم "${this.escape(bookTitle)}"</div>
+              <div class="modal-author" style="margin-bottom:14px;">شاركنا رأيك في هذا الكتاب</div>
+
+              <div style="text-align:center; margin:14px 0;">
+                <div id="ratingStars" style="display:flex; gap:6px; justify-content:center; font-size:34px; direction:ltr;">
+                  <span class="star-pick" data-v="1" style="cursor:pointer; color:var(--text-dim);">★</span>
+                  <span class="star-pick" data-v="2" style="cursor:pointer; color:var(--text-dim);">★</span>
+                  <span class="star-pick" data-v="3" style="cursor:pointer; color:var(--text-dim);">★</span>
+                  <span class="star-pick" data-v="4" style="cursor:pointer; color:var(--text-dim);">★</span>
+                  <span class="star-pick" data-v="5" style="cursor:pointer; color:var(--text-dim);">★</span>
+                </div>
+                <div id="ratingLabel" style="font-size:13px; color:var(--text-muted); margin-top:8px;">اختر التقييم</div>
+              </div>
+
+              <div style="margin:14px 0 8px; font-size:13px; font-weight:700;">مراجعتك:</div>
+              <textarea id="reviewText" rows="4" placeholder="اكتب مراجعتك هنا..." style="width:100%; padding:12px; background:var(--background); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text); font-size:13px; resize:vertical; font-family:inherit;"></textarea>
+
+              <button class="btn btn-primary btn-block" id="submitReviewBtn" style="margin-top:14px;" disabled>إرسال التقييم</button>
+              <button class="btn btn-ghost btn-block" id="cancelReviewBtn" style="margin-top:8px;">إلغاء</button>
+            </div>
+          `;
+
+          let selectedRating = 0;
+          const stars = content.querySelectorAll('.star-pick');
+          const ratingLabels = ['', 'سيء', 'مقبول', 'جيد', 'جيد جداً', 'ممتاز'];
+          const labelEl = content.querySelector('#ratingLabel');
+          const submitBtn = content.querySelector('#submitReviewBtn');
+
+          const paintStars = (val) => {
+            stars.forEach((s, i) => {
+              s.style.color = (i < val) ? 'var(--accent-light)' : 'var(--text-dim)';
+              s.style.transform = (i < val) ? 'scale(1.1)' : 'scale(1)';
+            });
+            labelEl.textContent = val > 0 ? ratingLabels[val] : 'اختر التقييم';
+            submitBtn.disabled = val === 0;
+          };
+
+          stars.forEach((s, i) => {
+            s.addEventListener('mouseenter', () => paintStars(i + 1));
+            s.addEventListener('click', () => { selectedRating = i + 1; paintStars(selectedRating); this.vibrate(10); });
+          });
+          content.querySelector('#ratingStars').addEventListener('mouseleave', () => paintStars(selectedRating));
+
+          // زر الإلغاء
+          const cancelBtn = content.querySelector('#cancelReviewBtn');
+          if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => this.closeBookModal());
+          }
+
+          submitBtn.addEventListener('click', async () => {
+            const reviewText = content.querySelector('#reviewText').value.trim();
+            if (selectedRating === 0) { this.showToast('اختر التقييم أولاً', 'info'); return; }
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'جاري الإرسال...';
+            try {
+              await Api.submitBookReview(bookId, selectedRating, reviewText);
+              this.showToast('شكراً! تم إرسال تقييمك بنجاح ⭐', 'success');
+              this.state.xp = (this.state.xp || 0) + 30;
+              State.save();
+              this.renderProfile();
+              this.playSound('success');
+              this.vibrate([20, 40, 20]);
+            } catch (e) {
+              this.showToast('تعذّر إرسال التقييم الآن، حاول لاحقاً', 'error');
+            }
+            this.closeBookModal();
+          });
+        },
+
+        /* ============================================================
+           المساعد الذكي (AI Tutor)
+           ============================================================ */
+        openAiTutor(initialQuestion = '') {
+          let panel = document.getElementById('aiTutorPanel');
+          if (!panel) {
+            panel = document.createElement('div');
+            panel.id = 'aiTutorPanel';
+            panel.className = 'ai-tutor-panel';
+            panel.innerHTML = `
+              <div class="ai-tutor-sheet">
+                <div class="ai-tutor-header">
+                  <div class="ai-tutor-avatar">🤖</div>
+                  <div class="ai-tutor-info">
+                    <div class="ai-tutor-name">المساعد الذكي</div>
+                    <div class="ai-tutor-status">متصل الآن</div>
+                  </div>
+                  <button class="reader-back-btn" id="aiTutorClose" aria-label="إغلاق">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+                <div class="ai-tutor-messages" id="aiTutorMessages">
+                  <div class="ai-msg bot">مرحباً! أنا المساعد الذكي في ثقافتنا 🤖. يمكنني مساعدتك في الأسئلة عن الأدب العربي والتاريخ والعلوم. كيف أساعدك اليوم؟</div>
+                </div>
+                <div class="ai-tutor-suggestions" id="aiTutorSuggestions">
+                  <button class="ai-suggestion-chip">من هو المتنبي؟</button>
+                  <button class="ai-suggestion-chip">ما هي أهمية الأدب العربي؟</button>
+                  <button class="ai-suggestion-chip">اشرح علم العروض</button>
+                  <button class="ai-suggestion-chip">من هو ابن خلدون؟</button>
+                  <button class="ai-suggestion-chip">ما هي الشعر الجاهلي؟</button>
+                </div>
+                <div class="ai-tutor-input-wrap">
+                  <input type="text" class="ai-tutor-input" id="aiTutorInput" placeholder="اكتب سؤالك..." autocomplete="off" />
+                  <button class="ai-tutor-send" id="aiTutorSend" aria-label="إرسال">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  </button>
+                </div>
+              </div>
+            `;
+            document.body.appendChild(panel);
+
+            panel.querySelector('#aiTutorClose').addEventListener('click', () => this.closeAiTutor());
+            panel.querySelector('#aiTutorSend').addEventListener('click', () => this.sendAiTutorQuestion());
+            const input = panel.querySelector('#aiTutorInput');
+            input.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') this.sendAiTutorQuestion();
+            });
+
+            // الاقتراحات
+            panel.querySelectorAll('.ai-suggestion-chip').forEach((c) => {
+              c.addEventListener('click', () => {
+                input.value = c.textContent;
+                this.sendAiTutorQuestion();
+              });
+            });
+          }
+
+          panel.classList.add('active');
+          document.body.classList.add('no-scroll');
+
+          if (initialQuestion) {
+            panel.querySelector('#aiTutorInput').value = initialQuestion;
+            setTimeout(() => this.sendAiTutorQuestion(), 300);
+          } else {
+            setTimeout(() => panel.querySelector('#aiTutorInput').focus(), 300);
+          }
+        },
+
+        closeAiTutor() {
+          const panel = document.getElementById('aiTutorPanel');
+          if (panel) panel.classList.remove('active');
+          document.body.classList.remove('no-scroll');
+        },
+
+        async sendAiTutorQuestion() {
+          const panel = document.getElementById('aiTutorPanel');
+          if (!panel) return;
+          const input = panel.querySelector('#aiTutorInput');
+          const question = (input.value || '').trim();
+          if (!question) return;
+
+          const messages = panel.querySelector('#aiTutorMessages');
+
+          // أضف رسالة المستخدم
+          const userMsg = document.createElement('div');
+          userMsg.className = 'ai-msg user';
+          userMsg.textContent = question;
+          messages.appendChild(userMsg);
+          input.value = '';
+          messages.scrollTop = messages.scrollHeight;
+
+          // أضف مؤشر الكتابة
+          const typing = document.createElement('div');
+          typing.className = 'ai-msg bot typing';
+          typing.innerHTML = '<span></span><span></span><span></span>';
+          messages.appendChild(typing);
+          messages.scrollTop = messages.scrollHeight;
+
+          // أرسل السؤال للـ API
+          let answer = '';
+          try {
+            const ctx = {
+              completedLevels: this.state.completedLevels.length,
+              xp: this.state.xp,
+              screen: this.currentScreen,
+            };
+            const res = await Api.askAiTutor(question, ctx);
+            answer = (res && (res.answer || res.text || res.message || res.response)) || '';
+          } catch (e) {
+            // توليد إجابة افتراضية لطيفة بناءً على السؤال
+            answer = this.generateFallbackAiAnswer(question);
+          }
+
+          // استبدل مؤشر الكتابة بالإجابة
+          typing.remove();
+          const botMsg = document.createElement('div');
+          botMsg.className = 'ai-msg bot';
+          botMsg.textContent = answer;
+          messages.appendChild(botMsg);
+          messages.scrollTop = messages.scrollHeight;
+          this.vibrate(10);
+        },
+
+        generateFallbackAiAnswer(question) {
+          const q = (question || '').toLowerCase();
+          if (q.includes('متنبي') || q.includes('المتنبي')) {
+            return 'أبو الطيب المتنبي (303-354 هـ) هو أشهر شعراء العرب في العصر العباسي. وُلد بالكوفة، واشتهر بحكمته وفخامة معانيه. من أشهر قصائده: "الخيل والليل والبيداء تعرفني".';
+          }
+          if (q.includes('ابن خلدون') || q.includes('خلدون')) {
+            return 'عبد الرحمن بن خلدون (732-808 هـ) مؤرخ وعالم اجتماع عربي، صاحب "مقدمة ابن خلدون" التي تُعدّ من أعظم ما كُتب في علم العمران البشري. ولد في تونس وتوفي في القاهرة.';
+          }
+          if (q.includes('أدب') || q.includes('الادب')) {
+            return 'الأدب العربي من أعرق الآداب العالمية، يمتد من العصر الجاهلي حتى العصر الحديث. يشمل الشعر والنثر والخطابة والقصة. من أعلامه: امرؤ القيس، المتنبي، الجاحظ، طه حسين، ونجيب محفوظ.';
+          }
+          if (q.includes('عروض')) {
+            return 'علم العروض هو علم أوزان الشعر العربي، وضعه الخليل بن أحمد الفراهيدي. يدرس التفعيلات والبحور الشعرية. من البحور المشهورة: الطويل، الكامل، الوافر، البسيط.';
+          }
+          if (q.includes('شعر') && q.includes('جاهل')) {
+            return 'الشعر الجاهلي هو شعر ما قبل الإسلام، أشهره المعلقات السبع. من أعلامه: امرؤ القيس، طرفة بن العبد، زهير بن أبي سلمى، عنترة بن شداد، لبيد بن ربيعة، عمرو بن كلثوم، والحارث بن حلزة.';
+          }
+          return `سؤال جيد! 🤔 للأسف لا أستطيع الوصول لقاعدة المعرفة في الوقت الحالي. لكن يمكنك طرح سؤال حول: المتنبي، ابن خلدون، الأدب العربي، علم العروض، الشعر الجاهلي، أو أي موضوع ثقافي آخر.`;
+        },
+
+        /* ============================================================
+           الإشعارات
+           ============================================================ */
+        openNotifications() {
+          let panel = document.getElementById('notifPanel');
+          if (!panel) {
+            panel = document.createElement('div');
+            panel.id = 'notifPanel';
+            panel.className = 'notif-panel';
+            panel.innerHTML = `
+              <div class="notif-sheet">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                  <div class="modal-title" style="font-size:18px;">🔔 الإشعارات</div>
+                  <button class="reader-back-btn" id="notifClose" aria-label="إغلاق">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+                <div id="notifList"></div>
+              </div>
+            `;
+            document.body.appendChild(panel);
+            panel.querySelector('#notifClose').addEventListener('click', () => this.closeNotifications());
+            panel.addEventListener('click', (e) => { if (e.target === panel) this.closeNotifications(); });
+          }
+
+          const list = panel.querySelector('#notifList');
+          const notifs = this.notifications || FALLBACK_NOTIFICATIONS;
+          if (notifs.length === 0) {
+            list.innerHTML = `<div class="state"><div class="state-icon empty">🔕</div><div class="state-title">لا توجد إشعارات</div></div>`;
+          } else {
+            list.innerHTML = notifs.map((n) => `
+              <div class="notif-item ${n.unread ? 'unread' : ''}" data-notif-id="${n.id || ''}">
+                <div class="notif-icon">${n.icon || '🔔'}</div>
+                <div class="notif-body">
+                  <div class="notif-title">${this.escape(n.title || '')}</div>
+                  <div class="notif-desc">${this.escape(n.desc || '')}</div>
+                  <div class="notif-time">${this.escape(n.time || '')}</div>
+                </div>
+              </div>
+            `).join('');
+          }
+
+          panel.classList.add('active');
+          document.body.classList.add('no-scroll');
+
+          // علّم كل الإشعارات كمقروءة
+          setTimeout(() => {
+            (this.notifications || []).forEach((n) => { n.unread = false; });
+            this.updateNotifBadge(0);
+          }, 1500);
+        },
+
+        closeNotifications() {
+          const panel = document.getElementById('notifPanel');
+          if (panel) panel.classList.remove('active');
+          document.body.classList.remove('no-scroll');
+        },
+
+        /* ============================================================
+           التحليلات وخريطة المعرفة (في الملف الشخصي)
+           ============================================================ */
+        async loadAnalytics() {
+          const container = document.getElementById('analyticsSection');
+          if (!container) return;
+          container.innerHTML = `<div class="loader-block"><div class="spinner"></div><span>جاري تحميل التحليلات...</span></div>`;
+
+          let data = null;
+          try {
+            data = await Api.getAnalytics();
+            if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
+              data = FALLBACK_ANALYTICS;
+            }
+          } catch (e) {
+            data = FALLBACK_ANALYTICS;
+          }
+
+          this.renderAnalytics(container, data);
+        },
+
+        renderAnalytics(container, data) {
+          const a = data || FALLBACK_ANALYTICS;
+          const maxMinutes = Math.max(...(a.weeklyProgress || []).map((d) => d.minutes), 1);
+          const totalCats = (a.categories || []).reduce((s, c) => s + (c.count || 0), 0) || 1;
+
+          container.innerHTML = `
+            <div class="analytics-grid">
+              <div class="analytics-tile">
+                <div class="analytics-label">⏱️ وقت الدراسة الكلي</div>
+                <div class="analytics-value">${this.formatNumber(a.totalStudyTime || 0)}<span style="font-size:11px; color:var(--text-muted);"> دقيقة</span></div>
+              </div>
+              <div class="analytics-tile">
+                <div class="analytics-label">📊 المتوسط اليومي</div>
+                <div class="analytics-value">${this.formatNumber(a.avgDailyMinutes || 0)}<span style="font-size:11px; color:var(--text-muted);"> دقيقة/يوم</span></div>
+              </div>
+              <div class="analytics-tile">
+                <div class="analytics-label">📝 الكلمات المتعلمة</div>
+                <div class="analytics-value">${this.formatNumber(a.totalWords || 0)}</div>
+              </div>
+              <div class="analytics-tile">
+                <div class="analytics-label">🏆 الترتيب الحالي</div>
+                <div class="analytics-value">#${a.rank || '-'}</div>
+              </div>
+            </div>
+
+            <div style="margin-top:14px;">
+              <div class="analytics-label" style="margin-bottom:10px;">📈 النشاط الأسبوعي</div>
+              <div style="display:flex; gap:6px; align-items:flex-end; height:100px; padding:8px 0;">
+                ${(a.weeklyProgress || []).map((d) => `
+                  <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                    <div style="font-size:10px; color:var(--text-muted);">${d.minutes}د</div>
+                    <div style="width:100%; max-width:32px; height:${Math.max(4, (d.minutes / maxMinutes) * 60)}px; background: var(--gradient-primary); border-radius: 6px 6px 0 0; transition: height .5s;"></div>
+                    <div style="font-size:10px; color:var(--text-dim);">${this.escape(d.day || '')}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div style="margin-top:14px;">
+              <div class="analytics-label" style="margin-bottom:10px;">📚 الفئات المقروءة</div>
+              ${(a.categories || []).map((c) => `
+                <div style="margin-bottom:8px;">
+                  <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                    <span>${this.escape(c.name || '')}</span>
+                    <span style="color:var(--text-muted);">${c.count} كتاب</span>
+                  </div>
+                  <div class="analytics-bar">
+                    <div class="analytics-bar-fill" style="width:${Math.round(((c.count || 0) / totalCats) * 100)}%; background:${c.color || 'var(--gradient-primary)'};"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        },
+
+        async loadKnowledgeMap() {
+          const container = document.getElementById('knowledgeMapSection');
+          if (!container) return;
+          container.innerHTML = `<div class="loader-block"><div class="spinner"></div><span>جاري تحميل خريطة المعرفة...</span></div>`;
+
+          let map = null;
+          try {
+            map = await Api.getKnowledgeMap();
+            if (Array.isArray(map) && map.length === 0) map = FALLBACK_KNOWLEDGE_MAP;
+            else if (!Array.isArray(map)) map = FALLBACK_KNOWLEDGE_MAP;
+          } catch (e) {
+            map = FALLBACK_KNOWLEDGE_MAP;
+          }
+
+          this.renderKnowledgeMap(container, map);
+        },
+
+        renderKnowledgeMap(container, map) {
+          if (!Array.isArray(map) || map.length === 0) {
+            container.innerHTML = `<div class="state"><div class="state-icon empty">🗺️</div><div class="state-desc">لا توجد بيانات في خريطة المعرفة</div></div>`;
+            return;
+          }
+
+          const statusLabels = {
+            'mastered': '✓ متقن',
+            'in-progress': '⏳ قيد التعلّم',
+            'locked': '🔒 مقفل',
+          };
+
+          container.innerHTML = `
+            <div class="knowledge-map">
+              ${map.map((domain) => `
+                <div class="km-row">
+                  <div class="km-row-label">${this.escape(domain.domain || '')}</div>
+                  ${(domain.nodes || []).map((node) => `
+                    <span class="km-node ${node.status || ''}" title="${this.escape(statusLabels[node.status] || '')}">${this.escape(node.name || '')}</span>
+                  `).join('')}
+                </div>
+              `).join('')}
+              <div style="display:flex; gap:14px; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); font-size:11px; color:var(--text-muted);">
+                <span>🟢 متقن</span>
+                <span>🟡 قيد التعلّم</span>
+                <span>⚪ مقفل</span>
+              </div>
+            </div>
+          `;
         },
 
         /* ---------- شاشة المتصدرون ---------- */
@@ -2347,24 +4631,40 @@
           let leaders = [];
           try {
             leaders = await Api.getLeaderboard(this.currentPeriod);
+            // حفظ آخر بيانات ناجحة في الكاش المحلي
+            this._lastLeaders = this._lastLeaders || {};
+            this._lastLeaders[this.currentPeriod] = leaders;
           } catch (e) {
-            container.innerHTML = `
-              <div class="state">
-                <div class="state-icon error">📡</div>
-                <div class="state-title">تعذّر تحميل المتصدرين</div>
-                <div class="state-desc">تحقق من اتصالك بالإنترنت وحاول مرة أخرى.</div>
-                <button class="btn btn-primary btn-sm" onclick="App.loadLeaderboard()">إعادة المحاولة</button>
-              </div>`;
-            return;
+            // جرّب بيانات آخر مرة ناجحة
+            if (this._lastLeaders && this._lastLeaders[this.currentPeriod]) {
+              leaders = this._lastLeaders[this.currentPeriod];
+              this.showToast('يتم عرض آخر بيانات محفوظة', 'info');
+            } else {
+              // عرض حالة الخطأ مع زر إعادة المحاولة وزر البيانات التجريبية
+              this.renderErrorState(
+                container,
+                'تعذّر تحميل قائمة المتصدرين',
+                () => this.loadLeaderboard(),
+                () => this.renderLeaderboard(FALLBACK_LEADERBOARD[this.currentPeriod] || FALLBACK_LEADERBOARD.weekly)
+              );
+              return;
+            }
           }
 
           if (leaders.length === 0) {
-            container.innerHTML = `
-              <div class="state">
-                <div class="state-icon empty">🏆</div>
-                <div class="state-title">لا يوجد متصدرون بعد</div>
-                <div class="state-desc">ابدأ اللعب الآن لتكون أول المتصدرين!</div>
-              </div>`;
+            // إذا فشل API، استخدم البيانات الاحتياطية تلقائياً
+            const fallback = FALLBACK_LEADERBOARD[this.currentPeriod] || FALLBACK_LEADERBOARD.weekly;
+            if (fallback && fallback.length > 0) {
+              this.renderLeaderboard(fallback);
+              this.showToast('يتم عرض بيانات تجريبية للمتصدرين', 'info');
+            } else {
+              container.innerHTML = `
+                <div class="state">
+                  <div class="state-icon empty">🏆</div>
+                  <div class="state-title">لا يوجد متصدرون بعد</div>
+                  <div class="state-desc">ابدأ اللعب الآن لتكون أول المتصدرين!</div>
+                </div>`;
+            }
             return;
           }
 
