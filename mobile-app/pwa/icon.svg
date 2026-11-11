@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333EA"/>
+      <stop offset="50%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#1E1B4B"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <linearGradient id="bookGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5F5F4"/>
+      <stop offset="100%" stop-color="#E7E5E4"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="4" result="offsetblur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.35"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- خلفية دائرية متدرجة -->
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+
+  <!-- زخرفة سداسية خفيفة في الخلفية -->
+  <g opacity="0.12" fill="none" stroke="#F5F5F4" stroke-width="3">
+    <path d="M256 70 L412 160 L412 352 L256 442 L100 352 L100 160 Z"/>
+    <path d="M256 110 L378 180 L378 332 L256 402 L134 332 L134 180 Z"/>
+  </g>
+
+  <!-- الكتاب المفتوح -->
+  <g filter="url(#softShadow)" transform="translate(256 256)">
+    <!-- ظل الكتاب -->
+    <g transform="translate(-100 -70)">
+      <!-- الصفحة اليمنى -->
+      <path d="M100 0 Q 100 -10 110 -10 L 195 -10 L 200 0 L 200 140 Q 200 150 190 150 L 110 150 Q 100 150 100 140 Z"
+            fill="url(#bookGrad)" stroke="#9333EA" stroke-width="3"/>
+      <!-- الصفحة اليسرى -->
+      <path d="M100 0 Q 100 -10 90 -10 L 5 -10 L 0 0 L 0 140 Q 0 150 10 150 L 90 150 Q 100 150 100 140 Z"
+            fill="url(#bookGrad)" stroke="#2563EB" stroke-width="3"/>
+      <!-- خطوط الصفحة اليمنى -->
+      <line x1="115" y1="25" x2="185" y2="25" stroke="#9333EA" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+      <line x1="115" y1="45" x2="180" y2="45" stroke="#9333EA" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+      <line x1="115" y1="65" x2="185" y2="65" stroke="#9333EA" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+      <line x1="115" y1="85" x2="170" y2="85" stroke="#9333EA" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+      <line x1="115" y1="105" x2="185" y2="105" stroke="#9333EA" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+      <!-- خطوط الصفحة اليسرى -->
+      <line x1="15" y1="25" x2="85" y2="25" stroke="#2563EB" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+      <line x1="15" y1="45" x2="80" y2="45" stroke="#2563EB" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+      <line x1="15" y1="65" x2="85" y2="65" stroke="#2563EB" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+      <line x1="15" y1="85" x2="70" y2="85" stroke="#2563EB" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+      <line x1="15" y1="105" x2="85" y2="105" stroke="#2563EB" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+      <!-- كعب الكتاب -->
+      <rect x="95" y="-8" width="10" height="156" fill="#0c0a09" rx="2"/>
+    </g>
+  </g>
+
+  <!-- نجمة ذهبية فوق الكتاب -->
+  <g transform="translate(256 118)">
+    <path d="M0 -42 L12 -13 L43 -13 L18 5 L27 35 L0 17 L-27 35 L-18 5 L-43 -13 L-12 -13 Z"
+          fill="url(#goldGrad)" stroke="#FBBF24" stroke-width="2" filter="url(#softShadow)"/>
+    <!-- نقطة بيضاء لامعة -->
+    <circle cx="-8" cy="-15" r="5" fill="#FFFFFF" opacity="0.7"/>
+  </g>
+
+  <!-- كلمة "ثقافة" أسفل الشعار كزخرفة نصية -->
+  <g transform="translate(256 442)" opacity="0.95">
+    <text x="0" y="0"
+          font-family="'Tajawal','Cairo',sans-serif"
+          font-size="72" font-weight="800"
+          text-anchor="middle"
+          fill="#F5F5F4"
+          letter-spacing="2">ثقافتنا</text>
+  </g>
+</svg>
