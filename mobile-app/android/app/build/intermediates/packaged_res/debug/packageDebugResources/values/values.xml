@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorAccent">#F59E0B</color>
+    <color name="colorPrimary">#9333EA</color>
+    <color name="colorPrimaryDark">#7E22CE</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
+    <string name="app_name">ثقافتنا</string>
+    <string name="custom_url_scheme">com.thaqafatna.app</string>
+    <string name="package_name">com.thaqafatna.app</string>
+    <string name="title_activity_main">ثقافتنا</string>
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+    <style name="AppTheme.NoActionBar" parent="AppTheme">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+        <item name="android:windowBackground">@color/colorPrimary</item>
+    </style>
+</resources>
