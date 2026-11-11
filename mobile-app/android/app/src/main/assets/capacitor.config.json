@@ -1,0 +1,10 @@
+{
+  "appId": "com.thaqafatna.app",
+  "appName": "ثقافتنا",
+  "webDir": "pwa",
+  "server": {
+    "url": "https://thaqafatna-qr.vercel.app",
+    "cleartext": false,
+    "androidScheme": "https"
+  }
+}
