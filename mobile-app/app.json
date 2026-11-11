@@ -12,10 +12,6 @@
       "resizeMode": "contain",
       "backgroundColor": "#0c0a09"
     },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.thaqafatna.app"
-    },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -35,10 +31,7 @@
       "expo-secure-store"
     ],
     "extra": {
-      "API_BASE_URL": "https://thaqafatna-qr.vercel.app",
-      "eas": {
-        "projectId": "thaqafatna"
-      }
+      "API_BASE_URL": "https://thaqafatna-qr.vercel.app"
     }
   }
 }

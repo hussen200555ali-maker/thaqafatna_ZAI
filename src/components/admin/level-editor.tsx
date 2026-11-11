@@ -83,7 +83,6 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
   const [validation, setValidation] = useState<{ valid: boolean; errors: string[] } | null>(null);
   const [activeTab, setActiveTab] = useState<"editor" | "settings" | "preview">("editor");
   const [levelNumber, setLevelNumber] = useState<number>(1);  // رقم المرحلة
-  const [effectiveChapterId, setEffectiveChapterId] = useState<number>(chapterId || 0);  // ✅ معرّف الفصل الفعلي
   const { toast } = useToast();
 
   useEffect(() => {
@@ -101,12 +100,6 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
           setTitle(level.title);
           setDifficulty(level.difficulty);
           setLevelNumber(level.number || 1);  // ✅ حفظ رقم المرحلة
-          // ✅ استخراج chapterId من بيانات المرحلة المُحمّلة
-          if (level.chapterId) {
-            setEffectiveChapterId(level.chapterId);
-          } else if (level.chapter?.id) {
-            setEffectiveChapterId(level.chapter.id);
-          }
           setGridSizeRows(level.gridSizeRows);
           setGridSizeCols(level.gridSizeCols);
           setAvailableLetters(level.availableLetters || []);
@@ -189,20 +182,6 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
       return;
     }
 
-    // ✅ تحقق من وجود chapterId صالح
-    if (!effectiveChapterId || effectiveChapterId === 0) {
-      toast({ title: "لا يمكن الحفظ", description: "اختر فصل اللعبة أولًا", variant: "destructive" });
-      setSaving(false);
-      return;
-    }
-
-    // ✅ تحقق من العنوان
-    if (!title || !title.trim()) {
-      toast({ title: "لا يمكن الحفظ", description: "أدخل عنوان المرحلة", variant: "destructive" });
-      setSaving(false);
-      return;
-    }
-
     // توليد الحروف تلقائياً إذا كانت فارغة
     let lettersToSend = availableLetters;
     if (!lettersToSend || lettersToSend.length === 0) {
@@ -213,7 +192,7 @@ export function LevelEditor({ levelId, chapterId, onBack }: LevelEditorProps) {
 
     // استخدام نوع اللغز المختار من المحرر
     const payload = {
-      chapterId: effectiveChapterId,  // ✅ استخدم chapterId الفعلي
+      chapterId,
       gameMode,
       puzzleType: puzzleType,
       title,
