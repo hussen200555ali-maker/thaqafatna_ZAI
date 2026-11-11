@@ -3539,6 +3539,58 @@
         /* ============================================================
            عرض تفاصيل المرحلة - شبكة الكلمات المتقاطعة
            ============================================================ */
+        // تحويل خلايا المرحلة من صيغة المسطحة (flat) التي يرجعها الـ API
+        // [{row, col, letter, number}, ...] إلى صيغة الشبكة ثنائية الأبعاد
+        // [[cell|null, cell|null, ...], ...] التي تتوقعها دالة renderCrosswordCells.
+        normalizeLevelCells(level) {
+          if (!level) return level;
+          // إن كان level.cells بالفعل مصفوفة ثنائية الأبعاد (كل عنصر مصفوفة)، أعده كما هو
+          if (Array.isArray(level.cells) && level.cells.length > 0 && Array.isArray(level.cells[0])) {
+            return level;
+          }
+          // إن كانت الخلايا مصفوفة مسطحة (كائنات لها row/col/letter/number) حوّلها إلى شبكة
+          if (Array.isArray(level.cells) && level.cells.length > 0 && level.cells[0] && typeof level.cells[0] === 'object' && 'row' in level.cells[0]) {
+            const flat = level.cells;
+            // أوجد أقصى صف وعمود
+            let maxRow = 0, maxCol = 0;
+            for (const c of flat) {
+              if (c.row > maxRow) maxRow = c.row;
+              if (c.col > maxCol) maxCol = c.col;
+            }
+            const rows = maxRow + 1;
+            const cols = maxCol + 1;
+            // أنشئ شبكة فارغة
+            const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => null));
+            // املأ الخلايا
+            for (const c of flat) {
+              grid[c.row][c.col] = {
+                letter: c.letter || '',
+                num: c.number || null,
+              };
+            }
+            level.cells = grid;
+            level.rows = rows;
+            level.cols = cols;
+          }
+          // إن لم توجد خلايا، استخدم gridSizeRows / gridSizeCols من الـ API
+          if ((!level.cells || !Array.isArray(level.cells) || level.cells.length === 0)) {
+            level.rows = level.rows || level.gridSizeRows || 0;
+            level.cols = level.cols || level.gridSizeCols || 0;
+          } else {
+            level.rows = level.rows || level.gridSizeRows || (Array.isArray(level.cells) ? level.cells.length : 0);
+            level.cols = level.cols || level.gridSizeCols || (Array.isArray(level.cells) && level.cells[0] ? level.cells[0].length : 0);
+          }
+          // طبيع الكلمات: الـ API يرجع {text, number, direction, ...} لكن الكود يستخدم {word, num}
+          if (Array.isArray(level.words)) {
+            level.words = level.words.map((w) => ({
+              ...w,
+              word: w.word || w.text || '',
+              num: w.num || w.number || null,
+            }));
+          }
+          return level;
+        },
+
         async renderLevelDetail(levelId, chapterId) {
           const modal = document.getElementById('bookModal');
           const content = document.getElementById('bookModalContent');
@@ -3601,8 +3653,12 @@
             return;
           }
 
+          // طبيع خلايا المرحلة (حوّل المصفوفة المسطحة من الـ API إلى شبكة ثنائية)
+          level = this.normalizeLevelCells(level);
+
           // إذا لم توجد بيانات شبكة في المرحلة، استخدم البيانات المحلية (احتياطية)
-          if (!level.cells || !Array.isArray(level.cells) || level.cells.length === 0) {
+          if (!level.cells || !Array.isArray(level.cells) || level.cells.length === 0
+              || (Array.isArray(level.cells) && level.cells.length > 0 && !Array.isArray(level.cells[0]))) {
             const fbLevel = this.findFallbackLevel(levelId);
             if (fbLevel) {
               level = { ...fbLevel, ...level };
@@ -3610,12 +3666,12 @@
               level.words = fbLevel.words;
               level.rows = fbLevel.rows;
               level.cols = fbLevel.cols;
-            } else {
+            } else if (!level.cells || !Array.isArray(level.cells) || level.cells.length === 0) {
               // توليد شبكة بسيطة من كلمة واحدة افتراضية
               level.cells = [[{ letter: '?' }]];
               level.rows = 1;
               level.cols = 1;
-              level.words = [];
+              level.words = level.words || [];
             }
           }
 
@@ -3639,8 +3695,10 @@
           const difficulty = level.difficulty || 'easy';
           const diffInfo = DIFFICULTY_LABELS[difficulty] || DIFFICULTY_LABELS.easy;
           const reward = level.reward || 50;
-          const rows = level.rows || (level.cells ? level.cells.length : 0);
-          const cols = level.cols || (level.cells && level.cells[0] ? level.cells[0].length : 0);
+          // استخدم rows/cols من البيانات الطبيعية (normalizeLevelCells عيّنها)
+          // وإلا فاستخدم gridSizeRows/gridSizeCols من الـ API
+          const rows = level.rows || level.gridSizeRows || (level.cells ? level.cells.length : 0);
+          const cols = level.cols || level.gridSizeCols || (level.cells && level.cells[0] ? level.cells[0].length : 0);
 
           const isCompleted = this.state.completedLevels.includes(String(level.id || level._id));
 

@@ -3,7 +3,7 @@
    يعمل دون اتصال + تخزين مؤقت ذكي + مزامنة في الخلفية
    ============================================================ */
 
-const SW_VERSION = 'v1.0.0';
+const SW_VERSION = 'v1.4.1-crossword-fix';
 const STATIC_CACHE = `thaqafatna-static-${SW_VERSION}`;
 const API_CACHE = `thaqafatna-api-${SW_VERSION}`;
 const IMAGE_CACHE = `thaqafatna-images-${SW_VERSION}`;
