@@ -2505,18 +2505,30 @@
           return this.extractArray(data, 'notifications', 'data', 'items');
         },
 
-        // تحليلات اللاعب
+        // تحليلات اللاعب (مع userId من localStorage)
         async getAnalytics() {
-          const data = await this.request('/analytics');
-          return this.extractObject(data, 'analytics', 'data', 'stats') || data;
+          const userId = App.state.userId || App.state.guestId || localStorage.getItem('thaqafatna_user_id') || 'guest';
+          try {
+            const data = await this.request(`/analytics?userId=${encodeURIComponent(userId)}`);
+            return this.extractObject(data, 'analytics', 'data', 'stats') || data;
+          } catch (e) {
+            console.warn('[API] analytics failed, using fallback:', e.message);
+            return null; // يستخدم fallback data
+          }
         },
 
-        // خريطة المعرفة
+        // خريطة المعرفة (مع userId)
         async getKnowledgeMap() {
-          const data = await this.request('/knowledge-map');
-          const arr = this.extractArray(data, 'domains', 'nodes', 'map', 'data');
-          if (arr.length > 0) return arr;
-          return this.extractObject(data, 'map', 'data') || data;
+          const userId = App.state.userId || App.state.guestId || localStorage.getItem('thaqafatna_user_id') || 'guest';
+          try {
+            const data = await this.request(`/knowledge-map?userId=${encodeURIComponent(userId)}`);
+            const arr = this.extractArray(data, 'domains', 'nodes', 'map', 'data');
+            if (arr.length > 0) return arr;
+            return this.extractObject(data, 'map', 'data') || data;
+          } catch (e) {
+            console.warn('[API] knowledge-map failed, using fallback:', e.message);
+            return null; // يستخدم fallback data
+          }
         },
 
         clearCache() {
