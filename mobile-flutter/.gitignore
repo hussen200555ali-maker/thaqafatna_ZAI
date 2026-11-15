@@ -1,0 +1,73 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+**/generated_plugin_registrant.dart
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# Android
+mobile-flutter/android/.gradle/
+mobile-flutter/android/captures/
+mobile-flutter/android/gradlew
+mobile-flutter/android/gradlew.bat
+mobile-flutter/android/local.properties
+mobile-flutter/android/**/GeneratedPluginRegistrant.java
+mobile-flutter/android/key.properties
+mobile-flutter/android/app/debug
+mobile-flutter/android/app/profile
+mobile-flutter/android/app/release
+**/.cxx/
+
+# iOS
+mobile-flutter/ios/Pods/
+mobile-flutter/ios/.symlinks/
+mobile-flutter/ios/Flutter/Flutter.framework
+mobile-flutter/ios/Flutter/Flutter.podspec
+mobile-flutter/ios/Flutter/Generated.xcconfig
+mobile-flutter/ios/Flutter/app.flx
+mobile-flutter/ios/Flutter/app.zip
+mobile-flutter/ios/Flutter/flutter_assets/
+mobile-flutter/ios/Flutter/flutter_export_environment.sh
+mobile-flutter/ios/ServiceDefinitions.json
+mobile-flutter/ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS
+mobile-flutter/macos/Flutter/GeneratedPluginRegistrant.swift
+mobile-flutter/macos/Flutter/Generated.xcconfig
+
+# Web
+mobile-flutter/web/
+
+# Linux
+mobile-flutter/linux/flutter/ephemeral/
+
+# Windows
+mobile-flutter/windows/runner/GeneratedPluginRegistrant.*
+
+# Keystore
+*.jks
+*.keystore
+
+# Sensitive
+.env
+*.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
