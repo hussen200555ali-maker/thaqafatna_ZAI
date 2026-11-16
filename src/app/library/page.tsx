@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { MobileNav } from '@/components/library/mobile-nav'
 
 /**
  * 📚 صفحة المكتبة الرئيسية — تصميم Dark Elegant Noor Editorial
@@ -178,14 +179,17 @@ export default function LibraryPage() {
         background: 'rgba(12, 10, 9, 0.7)', backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(41, 37, 36, 0.6)',
       }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
+        <div className="lib-header-inner" style={{
+          maxWidth: '1400px', margin: '0 auto', padding: '14px 24px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+        }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', flexShrink: 0 }}>
             <div style={{
               width: '40px', height: '40px', borderRadius: '12px',
               background: 'linear-gradient(135deg, #9333ea, #2563eb)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 8px 24px -8px rgba(147, 51, 234, 0.5)',
-              fontSize: '20px',
+              fontSize: '20px', flexShrink: 0,
             }}>📚</div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <div style={{
@@ -198,34 +202,32 @@ export default function LibraryPage() {
             </div>
           </Link>
 
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <nav className="lib-nav" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <Link href="/library" style={navItemStyle(true)}>الرئيسية</Link>
             <Link href="/library/categories" style={navItemStyle(false)}>التصنيفات</Link>
             <Link href="/library/authors" style={navItemStyle(false)}>المؤلفون</Link>
             <Link href="/library/my-library" style={navItemStyle(false)}>⭐ مكتبتي</Link>
           </nav>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button style={iconBtnStyle} title="بحث">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <MobileNav />
+            <button className="lib-header-icon-btn" style={{ ...iconBtnStyle, display: 'none' }} title="بحث">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
             </button>
-            <button style={iconBtnStyle} title="إشعارات">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-            </button>
-            <Link href="/admin/login" style={{
+            <Link href="/admin/login" className="lib-header-avatar" style={{
               width: '40px', height: '40px', borderRadius: '10px',
               background: 'linear-gradient(135deg, #9333ea, #2563eb)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontWeight: 700, fontSize: '14px', textDecoration: 'none',
+              color: 'white', fontWeight: 700, fontSize: '14px', textDecoration: 'none', flexShrink: 0,
             }}>ح</Link>
           </div>
         </div>
       </header>
 
       {/* Main */}
-      <main style={{ position: 'relative', zIndex: 1, maxWidth: '1400px', margin: '0 auto', padding: '40px 24px 80px' }}>
+      <main className="lib-main" style={{ position: 'relative', zIndex: 1, maxWidth: '1400px', margin: '0 auto', padding: '40px 24px 80px' }}>
         {/* Hero */}
-        <section style={{ textAlign: 'center', marginBottom: '64px' }}>
+        <section className="lib-hero" style={{ textAlign: 'center', marginBottom: '64px' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
             padding: '6px 16px', borderRadius: '100px',
@@ -240,7 +242,7 @@ export default function LibraryPage() {
             <span>مكتبة عربية ذكية · {formatArabicNumber(totalBooks)} كتاب</span>
           </div>
 
-          <h1 style={{
+          <h1 className="lib-hero-title" style={{
             fontFamily: "'Cairo', sans-serif",
             fontSize: '56px', fontWeight: 800, lineHeight: 1.1,
             marginBottom: '16px', letterSpacing: '-0.02em',
@@ -254,7 +256,7 @@ export default function LibraryPage() {
             }}>الكتب العربية</span>
           </h1>
 
-          <p style={{ fontSize: '18px', color: '#a8a29e', maxWidth: '640px', margin: '0 auto 40px', lineHeight: 1.6 }}>
+          <p className="lib-hero-sub" style={{ fontSize: '18px', color: '#a8a29e', maxWidth: '640px', margin: '0 auto 40px', lineHeight: 1.6 }}>
             آلاف الكتب العربية في مختلف التصنيفات · اقرأ وحمّل مجاناً · مدعوم بالذكاء الاصطناعي
           </p>
 
@@ -340,8 +342,8 @@ export default function LibraryPage() {
         </section>
 
         {/* Stats */}
-        <section style={{ marginBottom: '64px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+        <section className="lib-stats-section" style={{ marginBottom: '64px' }}>
+          <div className="lib-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
             {[
               { icon: '📚', value: formatArabicNumber(totalBooks), label: 'كتاب عربي', color: '#9333ea' },
               { icon: '📂', value: formatArabicNumber(categories.length), label: 'تصنيف', color: '#2563eb' },
@@ -612,14 +614,14 @@ export default function LibraryPage() {
 
         {/* CTA Section */}
         <section>
-          <div style={{
+          <div className="lib-cta" style={{
             position: 'relative', padding: '48px',
             background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.15), rgba(37, 99, 235, 0.15))',
             border: '1px solid rgba(147, 51, 234, 0.3)',
             borderRadius: '24px', overflow: 'hidden', textAlign: 'center',
           }}>
             <div style={{ fontSize: '64px', marginBottom: '16px' }}>✍️</div>
-            <h2 style={{ fontFamily: "'Cairo', sans-serif", fontSize: '32px', fontWeight: 800, marginBottom: '12px' }}>
+            <h2 className="lib-cta-title" style={{ fontFamily: "'Cairo', sans-serif", fontSize: '32px', fontWeight: 800, marginBottom: '12px' }}>
               هل أنت مؤلف؟
             </h2>
             <p style={{ fontSize: '16px', color: '#d6d3d1', maxWidth: '480px', margin: '0 auto 24px', lineHeight: 1.7 }}>
@@ -644,13 +646,13 @@ export default function LibraryPage() {
       </main>
 
       {/* Footer */}
-      <footer style={{
+      <footer className="lib-footer" style={{
         position: 'relative', zIndex: 1,
         borderTop: '1px solid rgba(41, 37, 36, 0.6)',
         padding: '48px 24px 32px',
         background: 'rgba(12, 10, 9, 0.5)', backdropFilter: 'blur(20px)',
       }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '48px' }}>
+        <div className="lib-footer-grid" style={{ maxWidth: '1400px', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '48px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
               <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #9333ea, #2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>📚</div>
@@ -685,17 +687,123 @@ export default function LibraryPage() {
         </div>
       </footer>
 
+      {/* Mobile Bottom Navigation — شريط تنقّل سفلي للموبايل */}
+      <nav className="lib-bottom-nav" style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40,
+        display: 'none', // يُعرض فقط على الموبايل عبر CSS
+        background: 'rgba(12, 10, 9, 0.95)', backdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(41, 37, 36, 0.6)',
+        padding: '8px 8px calc(8px + env(safe-area-inset-bottom, 0px))',
+        justifyContent: 'space-around', alignItems: 'center',
+        fontFamily: "'Tajawal', 'Cairo', sans-serif",
+      }}>
+        <Link href="/library" style={bottomNavItemStyle(true)}>
+          <span style={{ fontSize: '20px' }}>🏠</span>
+          <span style={{ fontSize: '10px' }}>الرئيسية</span>
+        </Link>
+        <Link href="/library/categories" style={bottomNavItemStyle(false)}>
+          <span style={{ fontSize: '20px' }}>📂</span>
+          <span style={{ fontSize: '10px' }}>التصنيفات</span>
+        </Link>
+        <Link href="/library/authors" style={bottomNavItemStyle(false)}>
+          <span style={{ fontSize: '20px' }}>✍️</span>
+          <span style={{ fontSize: '10px' }}>المؤلفون</span>
+        </Link>
+        <Link href="/library/my-library" style={bottomNavItemStyle(false)}>
+          <span style={{ fontSize: '20px' }}>⭐</span>
+          <span style={{ fontSize: '10px' }}>مكتبتي</span>
+        </Link>
+      </nav>
+
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.5; transform: scale(0.8); }
         }
+
+        /* ====== تجاوب التابلت (≤ 1024px) ====== */
         @media (max-width: 1024px) {
-          main { grid-template-columns: 1fr !important; }
-          footer > div:first-child { grid-template-columns: 1fr 1fr !important; }
+          .lib-header-inner { padding: 12px 20px !important; gap: 8px !important; }
+          .lib-main { padding: '32px 20px 80px' !important; }
+          .lib-hero-title { font-size: 44px !important; }
+          .lib-footer-grid { grid-template-columns: 1fr 1fr !important; gap: 32px !important; }
         }
+
+        /* ====== تجاوب الموبايل (≤ 768px) ====== */
         @media (max-width: 768px) {
-          nav { display: none !important; }
+          .lib-header-inner { padding: 10px 14px !important; gap: 8px !important; }
+          /* إخفاء nav الأفقي — MobileNav يحل محله */
+          .lib-nav { display: none !important; }
+          /* إظهار زر الهمبرغر عبر MobileNav */
+          /* إخفاء زر البحث لتوفير المساحة */
+          .lib-header-icon-btn { display: none !important; }
+
+          .lib-main {
+            padding: 24px 14px 100px !important; /* مساحة للشريط السفلي */
+          }
+          .lib-hero { margin-bottom: 40px !important; }
+          .lib-hero-title { font-size: 32px !important; line-height: 1.15 !important; }
+          .lib-hero-sub { font-size: 15px !important; margin-bottom: 28px !important; }
+
+          /* شبكة الإحصائيات: 2×2 بدل 4 أعمدة */
+          .lib-stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+          .lib-stats-section { margin-bottom: 40px !important; }
+
+          /* تقليل حشوة بطاقات الإحصائيات */
+          .lib-stats-grid > div { padding: 16px !important; }
+
+          /* أقسام المسافة */
+          .lib-main > section { margin-bottom: 40px !important; }
+
+          /* شبكات الكتب: عمودان على الموبايل */
+          .lib-main section [style*="minmax(180px"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+          }
+
+          /* شبكة التصنيفات: عمودان */
+          .lib-main section [style*="minmax(200px"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+          .lib-main section [style*="minmax(200px"] > a > div {
+            min-height: 100px !important; padding: 16px !important;
+          }
+
+          /* عناوين الأقسام أصغر */
+          .lib-main section h2 { font-size: 22px !important; }
+
+          /* CTA: تقليل الحشوة */
+          .lib-cta { padding: 28px 18px !important; border-radius: 18px !important; }
+          .lib-cta-title { font-size: 24px !important; }
+          .lib-cta > div:first-child { font-size: 48px !important; } /* الإيموجي */
+
+          /* الفوتر: عمود واحد */
+          .lib-footer { padding: 32px 16px 24px !important; }
+          .lib-footer-grid {
+            grid-template-columns: 1fr !important;
+            gap: 24px !important;
+          }
+          .lib-footer > div:last-child {
+            flex-direction: column !important;
+            gap: 8px !important;
+            text-align: center !important;
+          }
+
+          /* إظهار شريط التنقّل السفلي */
+          .lib-bottom-nav { display: flex !important; }
+
+          /* خلفيات الـ orbs أصغر لتفادي التحميل الزائد */
+          .lib-hero + div, div[style*="blur(120px)"] { display: none !important; }
+        }
+
+        /* ====== الموبايل الصغير (≤ 380px) ====== */
+        @media (max-width: 380px) {
+          .lib-hero-title { font-size: 26px !important; }
+          .lib-stats-grid > div { padding: 12px !important; }
         }
       `}</style>
     </div>
@@ -708,6 +816,15 @@ function navItemStyle(active: boolean): React.CSSProperties {
     color: active ? '#fff' : '#d6d3d1', fontSize: '14px', cursor: 'pointer',
     transition: 'all 0.2s', textDecoration: 'none',
     background: active ? 'rgba(68, 64, 60, 0.5)' : 'transparent',
+  }
+}
+
+function bottomNavItemStyle(active: boolean): React.CSSProperties {
+  return {
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+    padding: '6px 10px', borderRadius: '10px', textDecoration: 'none',
+    color: active ? '#c084fc' : '#78716c', minWidth: '52px', minHeight: '44px',
+    justifyContent: 'center', flex: 1,
   }
 }
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { BookCover } from '@/components/library/book-cover'
+import { MobileNav } from '@/components/library/mobile-nav'
 
 /**
  * 📖 صفحة الكتاب — تصميم Dark Elegant Noor Editorial
@@ -197,13 +198,13 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
         borderBottom: '1px solid rgba(41, 37, 36, 0.6)',
         transition: 'all 0.3s ease',
       }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link href="/library" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#d6d3d1', fontSize: '14px', textDecoration: 'none', transition: 'color 0.2s' }}>
+        <div className="book-header-inner" style={{ maxWidth: '1400px', margin: '0 auto', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+            <Link href="/library" className="book-back-link" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#d6d3d1', fontSize: '14px', textDecoration: 'none', transition: 'color 0.2s', flexShrink: 0 }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
-              <span>المكتبة</span>
+              <span className="book-back-label">المكتبة</span>
             </Link>
 
             {/* Adaptive Cover (appears on scroll) */}
@@ -212,9 +213,10 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
               opacity: scrolled ? 1 : 0,
               transform: scrolled ? 'translateX(0)' : 'translateX(20px)',
               transition: 'all 0.4s ease',
+              minWidth: 0,
             }}>
               {b.coverImage && (
-                <img src={b.coverImage} alt={b.title} style={{ width: '32px', height: '44px', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', objectFit: 'cover' }} />
+                <img src={b.coverImage} alt={b.title} style={{ width: '32px', height: '44px', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', objectFit: 'cover', flexShrink: 0 }} />
               )}
               <div style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f4', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {b.title}
@@ -222,8 +224,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button title="إشارة مرجعية" style={{
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <MobileNav />
+            <button title="إشارة مرجعية" className="book-header-action" style={{
               width: '40px', height: '40px', borderRadius: '10px',
               background: 'rgba(41, 37, 36, 0.5)', border: '1px solid rgba(68, 64, 60, 0.4)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -231,7 +234,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
             }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5v16l7-5 7 5V5z" /></svg>
             </button>
-            <button title="مشاركة" style={{
+            <button title="مشاركة" onClick={handleShare} className="book-header-action" style={{
               width: '40px', height: '40px', borderRadius: '10px',
               background: 'rgba(41, 37, 36, 0.5)', border: '1px solid rgba(68, 64, 60, 0.4)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -244,18 +247,18 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
       </header>
 
       {/* Main Layout */}
-      <main style={{
+      <main className="book-main" style={{
         position: 'relative', zIndex: 1,
         maxWidth: '1400px', margin: '0 auto',
         padding: '32px 24px 100px',
         display: 'grid', gridTemplateColumns: '1fr 280px', gap: '48px',
       }}>
         {/* Content Side */}
-        <div style={{ minWidth: 0 }}>
+        <div className="book-content" style={{ minWidth: 0 }}>
           {/* Quote Section */}
-          <section style={{ textAlign: 'center', margin: '0 0 56px', padding: '32px 0', position: 'relative' }}>
+          <section className="book-quote" style={{ textAlign: 'center', margin: '0 0 56px', padding: '32px 0', position: 'relative' }}>
             <div style={{ width: '60px', height: '1px', background: 'linear-gradient(90deg, transparent, #57534e, transparent)', margin: '0 auto 32px' }} />
-            <p style={{
+            <p className="book-quote-text" style={{
               fontFamily: "'Cairo', serif",
               fontSize: '22px', fontWeight: 400, lineHeight: 1.8,
               color: '#e7e5e4', maxWidth: '640px', margin: '0 auto', fontStyle: 'italic',
@@ -280,7 +283,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
               <span>{b.category.name}</span>
             </div>
 
-            <h1 style={{
+            <h1 className="book-title" style={{
               fontFamily: "'Cairo', sans-serif",
               fontSize: '42px', fontWeight: 800, lineHeight: 1.2,
               color: '#fff', marginBottom: '12px', letterSpacing: '-0.02em',
@@ -436,7 +439,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
         </div>
 
         {/* Sidebar */}
-        <aside style={{
+        <aside className="book-sidebar" style={{
           position: 'sticky', top: '96px', alignSelf: 'start',
           maxHeight: 'calc(100vh - 120px)', overflowY: 'auto',
           paddingLeft: '8px',
@@ -624,10 +627,11 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
         </aside>
       </main>
 
-      {/* Mobile Sticky CTA */}
-      <div style={{
-        display: 'flex', gap: '8px', position: 'fixed', bottom: 0, left: 0, right: 0,
-        padding: '12px 16px', zIndex: 50,
+      {/* Mobile Sticky CTA — يظهر فقط على الموبايل */}
+      <div className="book-mobile-cta" style={{
+        display: 'none', /* يُعرض فقط على الموبايل عبر CSS */
+        gap: '8px', position: 'fixed', bottom: 0, left: 0, right: 0,
+        padding: '12px 14px calc(12px + env(safe-area-inset-bottom, 0px))', zIndex: 50,
         background: 'rgba(12, 10, 9, 0.95)', backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(41, 37, 36, 0.6)',
       }}>
@@ -684,6 +688,71 @@ export default function BookDetailPage({ params }: { params: Promise<{ bookId: s
 
       {/* Spacer for mobile CTA */}
       <div style={{ height: '80px' }} />
+
+      <style>{`
+        /* ====== تجاوب التابلت (≤ 1024px) ====== */
+        @media (max-width: 1024px) {
+          .book-main {
+            grid-template-columns: 1fr 240px !important;
+            gap: 32px !important;
+          }
+          .book-title { font-size: 36px !important; }
+        }
+
+        /* ====== تجاوب الموبايل (≤ 768px) ====== */
+        @media (max-width: 768px) {
+          .book-header-inner { padding: 10px 14px !important; gap: 8px !important; }
+          /* إخفاء زر الإشارة المرجعية على الموبايل لإتاحة المساحة */
+          .book-header-action { display: none !important; }
+          /* تسمية "المكتبة" تختفي، يبقى السهم فقط */
+          .book-back-label { display: none !important; }
+
+          /* الشبكة: عمود واحد، الـ sidebar ينتقل أسفل المحتوى */
+          .book-main {
+            grid-template-columns: 1fr !important;
+            gap: 32px !important;
+            padding: 20px 14px 100px !important;
+          }
+          .book-sidebar {
+            position: static !important;
+            maxHeight: none !important;
+            paddingLeft: 0 !important;
+            order: 2; /* بعد المحتوى */
+          }
+          .book-content { order: 1; }
+
+          /* عنوان أصغر */
+          .book-title { font-size: 26px !important; line-height: 1.25 !important; }
+          .book-quote { margin: '0 0 32px' !important; padding: '16px 0' !important; }
+          .book-quote-text { font-size: 17px !important; line-height: 1.7 !important; }
+
+          /* تقليل هوامش الأقسام */
+          .book-content section { margin-bottom: 32px !important; }
+          .book-content h2 { font-size: 20px !important; }
+
+          /* شبكة التفاصيل: عمودان */
+          .book-content [style*="minmax(140px"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+
+          /* الـ cover في الـ sidebar أصغر ومتوسط */
+          .book-sidebar [style*="width: 140px"] {
+            width: 120px !important; height: 170px !important; margin: '0 auto 12px' !important;
+          }
+
+          /* إظهار الـ sticky CTA على الموبايل فقط */
+          .book-mobile-cta { display: flex !important; }
+        }
+
+        /* ====== الموبايل الصغير (≤ 380px) ====== */
+        @media (max-width: 380px) {
+          .book-title { font-size: 22px !important; }
+          .book-content [style*="minmax(140px"] {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }

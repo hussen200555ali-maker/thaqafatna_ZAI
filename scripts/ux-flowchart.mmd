@@ -1,0 +1,49 @@
+flowchart TD
+    Start([تشغيل التطبيق]) --> Session[بدء جلسة وتسجيل APP_LAUNCH]
+    Session --> NetCheck{الاتصال بالانترنت؟}
+
+    NetCheck -->|نعم| Load[تحميل الموقع URL_LOADING]
+    NetCheck -->|لا| Offline[شاشة عربية احتياطية OFFLINE_SHOWN]
+
+    Load --> Progress[شريط التحميل الذهبي PAGE_PROGRESS]
+    Progress --> Loaded{تم التحميل بنجاح؟}
+
+    Loaded -->|نعم| Ready[الصفحة جاهزة PAGE_LOADED]
+    Loaded -->|خطأ شبكة| Offline
+
+    Ready --> Interact[تفاعل المستخدم مع المحتوى]
+    Interact --> Action{نوع الاجراء؟}
+
+    Action -->|رابط داخلي| Navigate[تنقل داخل الموقع]
+    Action -->|رابط PDF| PDF[اعتراض PDF]
+    Action -->|mailto/tel/wa| Intent[تطبيق خارجي EXTERNAL_INTENT]
+    Action -->|زر الرجوع| Back[رجوع NAVIGATE_BACK]
+
+    PDF --> PDFView{عارض PDF موجود؟}
+    PDFView -->|نعم| PDFOpen[فتح بعارض خارجي]
+    PDFView -->|لا| PDFDownload[تنزيل وFileProvider]
+
+    Back --> CanBack{يمكن الرجوع في الموقع؟}
+    CanBack -->|نعم| Navigate
+    CanBack -->|لا| Exit([اغلاق التطبيق APP_DESTROY])
+
+    Navigate --> Ready
+    PDFOpen --> Ready
+    PDFDownload --> Ready
+    Intent --> Ready
+
+    Offline --> Retry[زر اعادة المحاولة]
+    Retry --> NetCheck
+
+    Offline -.->|عودة الاتصال تلقائياً| AutoReload[اعادة تحميل تلقائية APP_RESUME]
+    AutoReload --> Load
+
+    classDef default fill:#1A1A2E,color:#F5F0E1,stroke:#C9A961,stroke-width:2px
+    classDef decision fill:#C9A961,color:#1A1A2E,stroke:#1A1A2E,stroke-width:2px
+    classDef offline fill:#3A2A4E,color:#F5F0E1,stroke:#C9A961
+    classDef success fill:#2A5A3A,color:#FFFFFF,stroke:#3DDBB5
+    classDef pdf fill:#5A3A1A,color:#FFFFFF,stroke:#C9A961
+    class NetCheck,Loaded,Action,PDFView,CanBack decision
+    class Offline offline
+    class Ready success
+    class PDF,PDFOpen,PDFDownload pdf
