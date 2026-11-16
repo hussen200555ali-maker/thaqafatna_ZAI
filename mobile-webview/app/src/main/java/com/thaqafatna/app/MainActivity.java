@@ -43,7 +43,7 @@ public class MainActivity extends Activity {
     private WebView webView;
     private ProgressBar loadingBar;
     private FrameLayout root;
-    private static final String HOME_URL = "https://thaqafatna-qr.vercel.app/";
+    private static final String HOME_URL = "https://thaqafatna-qr.vercel.app/m";
     private static final String PDF_DIR = "pdfs";
 
     @Override
