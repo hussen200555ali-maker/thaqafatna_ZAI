@@ -8,6 +8,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-cairo);
   --font-display: var(--font-tajawal);
+  --font-heading: var(--font-cairo);
+  --font-body: var(--font-tajawal);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -50,6 +52,49 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ============================================
+   نظام تصميم "ثقافتنا" — الهوية التراثية
+   للواجهة الرئيسية الجديدة (feat/new-home-ui)
+   Teal-900: #0F4C5C | Orange: #E36414 | Gold: #D4AF37
+   BG: #F4F1EA (رملي) | Cards: #FFFFFF
+   ============================================ */
+@theme {
+  /* التراثي (Teal) */
+  --color-heritage-950: #082f3a;
+  --color-heritage-900: #0f4c5c;
+  --color-heritage-800: #12596d;
+  --color-heritage-700: #14708a;
+  --color-heritage-600: #1a85a3;
+  --color-heritage-500: #2e97b3;
+  --color-heritage-300: #8ec6d4;
+  --color-heritage-100: #dceaef;
+  --color-heritage-50: #eef6f8;
+
+  /* البرتقالي (Flame) */
+  --color-flame-700: #b34a0b;
+  --color-flame-600: #cc570f;
+  --color-flame-500: #e36414;
+  --color-flame-400: #ef7b35;
+  --color-flame-100: #fceadb;
+
+  /* الذهبي (Gold) — درجات لوحة الواجهة الجديدة */
+  --color-gold-700: #9c7f1c;
+  --color-gold-600: #b8941f;
+  --color-gold-500: #d4af37;
+  --color-gold-400: #e0c158;
+  --color-gold-100: #f7edca;
+
+  /* الرملي (Sand) — خلفية الصفحة */
+  --color-sand: #f4f1ea;
+  --color-sand-dark: #eae5da;
+  --color-sand-darker: #ddd6c6;
+
+  /* الظلال الناعمة — مُسماة card لتفادي تعارض الأسماء مع .shadow-soft أعلاه */
+  --shadow-card: 0 4px 14px rgba(15, 76, 92, 0.07);
+  --shadow-card-lg: 0 10px 28px rgba(15, 76, 92, 0.12);
+  --shadow-glow-gold: 0 4px 18px rgba(212, 175, 55, 0.35);
 }
 
 :root {
@@ -419,4 +464,34 @@ button:disabled,
 [aria-disabled="true"] {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ============================================
+   أدوات الواجهة الرئيسية الجديدة (feat/new-home-ui)
+   ============================================ */
+
+/* تأثير الزجاجية للشريط العلوي */
+.glass-header {
+  background: rgba(244, 241, 234, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* تأثير الزجاجية لشريط التنقل السفلي */
+.glass-tabbar {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+
+/* إطار التطبيق على الشاشات الكبيرة */
+.app-frame {
+  box-shadow: 0 0 0 1px rgba(15, 76, 92, 0.06),
+    0 12px 48px rgba(15, 76, 92, 0.1);
+}
+
+/* شريط تمرير ذهبي رفيع */
+.scrollbar-thin-gold {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gold-400) transparent;
 }
